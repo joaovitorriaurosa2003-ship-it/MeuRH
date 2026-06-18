@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Plataforma de Avaliação Organizacional</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<style>
+  :root {
+    --bg: #f4f3f1;
+    --surface: #ffffff;
+    --ink: #1f1d1a;
+    --ink-soft: #6b675f;
+    --line: #e3e0da;
+    --accent: #2e2b28;
+    --gold: #b8976a;
+    --gold-soft: #f3ead9;
+    --success: #4a7c59;
+    --danger: #b3543e;
+    --radius: 10px;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); }
+  #root { min-height: 100vh; }
+
+  .shell { display: flex; min-height: 100vh; }
+  .sidebar {
+    width: 230px; background: var(--accent); color: #f4f1ea;
+    padding: 24px 16px; display: flex; flex-direction: column; gap: 6px;
+    flex-shrink: 0;
+  }
+  .sidebar .brand { font-size: 17px; font-weight: 600; margin-bottom: 24px; letter-spacing: 0.3px; color: var(--gold); }
+  .nav-btn {
+    text-align: left; background: transparent; border: none; color: #e8e4dc;
+    padding: 11px 14px; border-radius: var(--radius); cursor: pointer; font-size: 14.5px;
+    display: flex; align-items: center; gap: 10px; transition: background .15s;
+  }
+  .nav-btn:hover { background: rgba(255,255,255,0.08); }
+  .nav-btn.active { background: var(--gold); color: #2e2b28; font-weight: 600; }
+  .nav-spacer { flex: 1; }
+  .logout-btn {
+    background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #cfc9bd;
+    padding: 9px 14px; border-radius: var(--radius); cursor: pointer; font-size: 13px;
+  }
+  .logout-btn:hover { background: rgba(255,255,255,0.08); }
+
+  .main { flex: 1; padding: 32px 40px; max-width: 1200px; }
+  .page-title { font-size: 22px; font-weight: 700; margin: 0 0 4px; }
+  .page-sub { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 28px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: 14px;
+    padding: 20px 22px; margin-bottom: 18px;
+  }
+  .kpi-row { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+  .kpi-card {
+    flex: 1; min-width: 160px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 18px;
+  }
+  .kpi-label { font-size: 12px; color: var(--ink-soft); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+  .kpi-value { font-size: 26px; font-weight: 700; color: var(--accent); }
+
+  .btn {
+    background: var(--accent); color: #fff; border: none; padding: 10px 18px;
+    border-radius: var(--radius); cursor: pointer; font-size: 14px; font-weight: 600;
+    display: inline-flex; align-items: center; gap: 8px; transition: opacity .15s;
+  }
+  .btn:hover { opacity: 0.88; }
+  .btn.gold { background: var(--gold); color: #2e2b28; }
+  .btn.outline { background: transparent; color: var(--accent); border: 1px solid var(--line); }
+  .btn.danger { background: var(--danger); }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn.small { padding: 6px 12px; font-size: 12.5px; }
+
+  .toggle-group { display: inline-flex; border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+  .toggle-group button {
+    border: none; background: var(--surface); padding: 8px 16px; cursor: pointer; font-size: 13.5px; color: var(--ink-soft);
+  }
+  .toggle-group button.active { background: var(--accent); color: #fff; font-weight: 600; }
+
+  table { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  th { text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--line); color: var(--ink-soft); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px; }
+  td { padding: 11px 12px; border-bottom: 1px solid var(--line); }
+  tr:hover td { background: #faf9f7; }
+
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; }
+  .badge.pendente { background: #fbe9d9; color: #a35d1f; }
+  .badge.concluida { background: #dcebe0; color: var(--success); }
+
+  .input, select, textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: var(--radius);
+    font-size: 14px; background: #fff; color: var(--ink); font-family: inherit;
+  }
+  .input:focus, select:focus, textarea:focus { outline: none; border-color: var(--gold); }
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: var(--ink-soft); }
+
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.45); display: flex;
+    align-items: center; justify-content: center; z-index: 50; padding: 20px;
+  }
+  .modal {
+    background: #fff; border-radius: 16px; padding: 28px 30px; width: 100%; max-width: 460px;
+    max-height: 88vh; overflow-y: auto;
+  }
+  .modal h3 { margin: 0 0 18px; font-size: 18px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+
+  .link-box {
+    background: var(--gold-soft); border: 1px solid #e6d4b5; border-radius: var(--radius);
+    padding: 12px 14px; font-size: 13px; word-break: break-all; display: flex; align-items: center; gap: 10px; justify-content: space-between;
+  }
+
+  .login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+  .login-card { background: #fff; padding: 40px; border-radius: 16px; width: 100%; max-width: 380px; border: 1px solid var(--line); }
+  .login-card h2 { margin: 0 0 6px; }
+  .login-card p { color: var(--ink-soft); font-size: 13.5px; margin: 0 0 26px; }
+  .error-text { color: var(--danger); font-size: 13px; margin-top: 10px; }
+
+  .empty-state { text-align: center; padding: 50px 20px; color: var(--ink-soft); }
+
+  .public-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; background: var(--bg); }
+  .public-card { background: #fff; padding: 36px; border-radius: 16px; width: 100%; max-width: 480px; border: 1px solid var(--line); }
+  .public-card h2 { margin: 0 0 6px; }
+  .public-card .company-name { color: var(--gold); font-weight: 700; }
+  .question-block { margin-bottom: 22px; }
+  .question-block label { font-weight: 600; font-size: 14.5px; display: block; margin-bottom: 10px; }
+  .scale-row { display: flex; gap: 8px; flex-wrap: wrap; }
+  .scale-opt {
+    flex: 1; min-width: 44px; text-align: center; padding: 10px 0; border: 1px solid var(--line);
+    border-radius: 8px; cursor: pointer; font-size: 13.5px; background: #fff;
+  }
+  .scale-opt.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .filter-bar { display: flex; gap: 10px; margin-bottom: 18px; align-items: center; flex-wrap: wrap; }
+
+  .spinner-wrap { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useMemo } = React;
+
+/* ============== FIREBASE CONFIG ==============
+   Substitua pelo seu firebaseConfig real do console.
+*/
+const firebaseConfig = {
+  apiKey: "AIzaSyARvBxwWERljcaAaJsqLZdMstSVIi-6j2g",
+  authDomain: "meurh-23fad.firebaseapp.com",
+  projectId: "meurh-23fad",
+  storageBucket: "meurh-23fad.firebasestorage.app",
+  messagingSenderId: "241699999089",
+  appId: "1:241699999089:web:cc50293405d6c17db73ad0"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+/* ============== HELPERS ============== */
+function slugify(text) {
+  return text
+    .toString()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function formatDate(ts) {
+  if (!ts) return '-';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/* Pergunta simples de exemplo (escala 1-5) usada nas tarefas.
+   O admin define o título/tipo da tarefa; as perguntas aqui são um modelo
+   genérico de clima/percepção que pode ser substituído por instrumentos
+   validados (CSAI-2R, NR-01 etc.) depois. */
+const PERGUNTAS_PADRAO = [
+  "Sinto que meu trabalho é reconhecido pela equipe.",
+  "Tenho clareza sobre minhas responsabilidades.",
+  "Consigo equilibrar minhas demandas de trabalho com minha vida pessoal.",
+  "Sinto-me apoiado pela liderança no dia a dia.",
+  "O ambiente de trabalho contribui para meu bem-estar."
+];
+
+/* ============== LOGIN (ADMIN) ============== */
+function LoginScreen() {
+  const [email, setEmail] = useState('');
+  const [senha, setSenha] = useState('');
+  const [erro, setErro] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setErro('');
+    setLoading(true);
+    try {
+      await auth.signInWithEmailAndPassword(email, senha);
+    } catch (err) {
+      setErro('E-mail ou senha inválidos.');
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="login-screen">
+      <div className="login-card">
+        <h2>Acesso restrito</h2>
+        <p>Plataforma de Avaliação Organizacional</p>
+        <form onSubmit={handleLogin}>
+          <div className="field">
+            <label>E-mail</label>
+            <input className="input" type="email" value={email} onChange={e => setEmail(e.target.value)} required />
+          </div>
+          <div className="field">
+            <label>Senha</label>
+            <input className="input" type="password" value={senha} onChange={e => setSenha(e.target.value)} required />
+          </div>
+          {erro && <p className="error-text">{erro}</p>}
+          <button className="btn" type="submit" disabled={loading} style={{ width: '100%', justifyContent: 'center' }}>
+            {loading ? 'Entrando...' : 'Entrar'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/* ============== MODAL CADASTRAR EMPRESA ============== */
+function ModalCadastrarEmpresa({ onClose, onCreated }) {
+  const [nome, setNome] = useState('');
+  const [saving, setSaving] = useState(false);
+  const [linkGerado, setLinkGerado] = useState(null);
+  const [copiado, setCopiado] = useState(false);
+
+  const handleSave = async () => {
+    if (!nome.trim()) return;
+    setSaving(true);
+    const slug = slugify(nome) + '-' + Math.random().toString(36).substring(2, 6);
+    const docRef = await db.collection('companies').add({
+      nome: nome.trim(),
+      slug,
+      dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    const baseUrl = window.location.origin + window.location.pathname;
+    const link = `${baseUrl}?empresa=${slug}`;
+    setLinkGerado(link);
+    setSaving(false);
+    onCreated();
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(linkGerado);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 1500);
+  };
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        {!linkGerado ? (
+          <>
+            <h3>Cadastrar empresa</h3>
+            <div className="field">
+              <label>Nome da empresa</label>
+              <input className="input" value={nome} onChange={e => setNome(e.target.value)} placeholder="Ex: Tip Toey Joey" autoFocus />
+            </div>
+            <div className="modal-actions">
+              <button className="btn outline" onClick={onClose}>Cancelar</button>
+              <button className="btn gold" onClick={handleSave} disabled={saving || !nome.trim()}>
+                {saving ? 'Salvando...' : 'Cadastrar e gerar link'}
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <h3>Empresa cadastrada!</h3>
+            <p style={{ fontSize: 13.5, color: 'var(--ink-soft)', marginTop: -10, marginBottom: 16 }}>
+              Encaminhe este link para os colaboradores da empresa:
+            </p>
+            <div className="link-box">
+              <span>{linkGerado}</span>
+              <button className="btn small gold" onClick={handleCopy}>{copiado ? 'Copiado!' : 'Copiar'}</button>
+            </div>
+            <div className="modal-actions">
+              <button className="btn" onClick={onClose}>Concluir</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/* ============== MODAL CADASTRAR TAREFA ============== */
+function ModalCadastrarTarefa({ empresas, onClose, onCreated }) {
+  const [titulo, setTitulo] = useState('');
+  const [tipo, setTipo] = useState('Clima Organizacional');
+  const [companyId, setCompanyId] = useState(empresas[0]?.id || '');
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    if (!titulo.trim() || !companyId) return;
+    setSaving(true);
+    await db.collection('tasks').add({
+      titulo: titulo.trim(),
+      tipo,
+      companyId,
+      status: 'pendente',
+      perguntas: PERGUNTAS_PADRAO,
+      dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setSaving(false);
+    onCreated();
+    onClose();
+  };
+
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onClose()}>
+      <div className="modal">
+        <h3>Cadastrar tarefa</h3>
+        <div className="field">
+          <label>Empresa</label>
+          <select className="input" value={companyId} onChange={e => setCompanyId(e.target.value)}>
+            {empresas.length === 0 && <option value="">Nenhuma empresa cadastrada</option>}
+            {empresas.map(emp => <option key={emp.id} value={emp.id}>{emp.nome}</option>)}
+          </select>
+        </div>
+        <div className="field">
+          <label>Título da tarefa</label>
+          <input className="input" value={titulo} onChange={e => setTitulo(e.target.value)} placeholder="Ex: Avaliação de Clima - Q1 2026" />
+        </div>
+        <div className="field">
+          <label>Tipo</label>
+          <select className="input" value={tipo} onChange={e => setTipo(e.target.value)}>
+            <option>Clima Organizacional</option>
+            <option>Riscos Psicossociais (NR-01)</option>
+            <option>Avaliação Psicológica</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        <div className="modal-actions">
+          <button className="btn outline" onClick={onClose}>Cancelar</button>
+          <button className="btn gold" onClick={handleSave} disabled={saving || !titulo.trim() || !companyId}>
+            {saving ? 'Salvando...' : 'Cadastrar tarefa'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ============== PÁGINA: VISÃO GERAL (INDEX) ============== */
+function PaginaIndex() {
+  const [respostas, setRespostas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+  const [visao, setVisao] = useState('agregado'); // agregado | bruto
+  const [filtroEmpresa, setFiltroEmpresa] = useState('todas');
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const unsubR = db.collection('responses').orderBy('dataResposta', 'desc').onSnapshot(snap => {
+      setRespostas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setLoading(false);
+    });
+    const unsubE = db.collection('companies').onSnapshot(snap => {
+      setEmpresas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { unsubR(); unsubE(); };
+  }, []);
+
+  const respostasFiltradas = useMemo(() => {
+    if (filtroEmpresa === 'todas') return respostas;
+    return respostas.filter(r => r.companyId === filtroEmpresa);
+  }, [respostas, filtroEmpresa]);
+
+  const agregados = useMemo(() => {
+    const porEmpresa = {};
+    respostasFiltradas.forEach(r => {
+      const nomeEmpresa = empresas.find(e => e.id === r.companyId)?.nome || 'Desconhecida';
+      if (!porEmpresa[nomeEmpresa]) porEmpresa[nomeEmpresa] = { total: 0, somaMedias: 0 };
+      const valores = Object.values(r.respostas || {}).filter(v => typeof v === 'number');
+      const media = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : 0;
+      porEmpresa[nomeEmpresa].total += 1;
+      porEmpresa[nomeEmpresa].somaMedias += media;
+    });
+    return Object.entries(porEmpresa).map(([nome, d]) => ({
+      nome,
+      totalRespostas: d.total,
+      mediaGeral: d.total ? (d.somaMedias / d.total).toFixed(2) : '-'
+    }));
+  }, [respostasFiltradas, empresas]);
+
+  const empresaNome = (id) => empresas.find(e => e.id === id)?.nome || '-';
+
+  return (
+    <div>
+      <h1 className="page-title">Visão Geral</h1>
+      <p className="page-sub">Acompanhe todas as respostas recebidas nos formulários.</p>
+
+      <div className="kpi-row">
+        <div className="kpi-card">
+          <div className="kpi-label">Total de respostas</div>
+          <div className="kpi-value">{respostas.length}</div>
+        </div>
+        <div className="kpi-card">
+          <div className="kpi-label">Empresas cadastradas</div>
+          <div className="kpi-value">{empresas.length}</div>
+        </div>
+      </div>
+
+      <div className="filter-bar">
+        <div className="toggle-group">
+          <button className={visao === 'agregado' ? 'active' : ''} onClick={() => setVisao('agregado')}>Agregado</button>
+          <button className={visao === 'bruto' ? 'active' : ''} onClick={() => setVisao('bruto')}>Bruto</button>
+        </div>
+        <select className="input" style={{ width: 220 }} value={filtroEmpresa} onChange={e => setFiltroEmpresa(e.target.value)}>
+          <option value="todas">Todas as empresas</option>
+          {empresas.map(emp => <option key={emp.id} value={emp.id}>{emp.nome}</option>)}
+        </select>
+      </div>
+
+      {loading ? (
+        <div className="empty-state">Carregando...</div>
+      ) : visao === 'agregado' ? (
+        <div className="card" style={{ padding: 0 }}>
+          {agregados.length === 0 ? (
+            <div className="empty-state">Nenhuma resposta registrada ainda.</div>
+          ) : (
+            <table>
+              <thead><tr><th>Empresa</th><th>Total de respostas</th><th>Média geral (1-5)</th></tr></thead>
+              <tbody>
+                {agregados.map((a, i) => (
+                  <tr key={i}><td>{a.nome}</td><td>{a.totalRespostas}</td><td>{a.mediaGeral}</td></tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      ) : (
+        <div className="card" style={{ padding: 0 }}>
+          {respostasFiltradas.length === 0 ? (
+            <div className="empty-state">Nenhuma resposta registrada ainda.</div>
+          ) : (
+            <table>
+              <thead><tr><th>Colaborador</th><th>Cargo</th><th>Empresa</th><th>Data</th></tr></thead>
+              <tbody>
+                {respostasFiltradas.map(r => (
+                  <tr key={r.id}>
+                    <td>{r.nomeColaborador || '-'}</td>
+                    <td>{r.cargo || '-'}</td>
+                    <td>{empresaNome(r.companyId)}</td>
+                    <td>{formatDate(r.dataResposta)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ============== PÁGINA: EMPRESAS ============== */
+function PaginaEmpresas() {
+  const [empresas, setEmpresas] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+  const [copiadoId, setCopiadoId] = useState(null);
+
+  useEffect(() => {
+    const unsub = db.collection('companies').orderBy('dataCriacao', 'desc').onSnapshot(snap => {
+      setEmpresas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return unsub;
+  }, []);
+
+  const getLink = (slug) => `${window.location.origin}${window.location.pathname}?empresa=${slug}`;
+
+  const handleCopy = (id, slug) => {
+    navigator.clipboard.writeText(getLink(slug));
+    setCopiadoId(id);
+    setTimeout(() => setCopiadoId(null), 1500);
+  };
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="page-title">Empresas</h1>
+          <p className="page-sub">Empresas cadastradas na plataforma e seus links de acesso.</p>
+        </div>
+        <button className="btn gold" onClick={() => setShowModal(true)}>+ Cadastrar empresa</button>
+      </div>
+
+      <div className="card" style={{ padding: 0 }}>
+        {empresas.length === 0 ? (
+          <div className="empty-state">Nenhuma empresa cadastrada ainda. Clique em "Cadastrar empresa" para começar.</div>
+        ) : (
+          <table>
+            <thead><tr><th>Nome</th><th>Cadastrada em</th><th>Link</th><th></th></tr></thead>
+            <tbody>
+              {empresas.map(emp => (
+                <tr key={emp.id}>
+                  <td>{emp.nome}</td>
+                  <td>{formatDate(emp.dataCriacao)}</td>
+                  <td style={{ fontSize: 12.5, color: 'var(--ink-soft)' }}>{getLink(emp.slug)}</td>
+                  <td><button className="btn small outline" onClick={() => handleCopy(emp.id, emp.slug)}>{copiadoId === emp.id ? 'Copiado!' : 'Copiar link'}</button></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {showModal && <ModalCadastrarEmpresa onClose={() => setShowModal(false)} onCreated={() => {}} />}
+    </div>
+  );
+}
+
+/* ============== PÁGINA: TAREFAS ============== */
+function PaginaTarefas() {
+  const [tarefas, setTarefas] = useState([]);
+  const [empresas, setEmpresas] = useState([]);
+  const [showModal, setShowModal] = useState(false);
+
+  useEffect(() => {
+    const unsubT = db.collection('tasks').orderBy('dataCriacao', 'desc').onSnapshot(snap => {
+      setTarefas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    const unsubE = db.collection('companies').onSnapshot(snap => {
+      setEmpresas(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    });
+    return () => { unsubT(); unsubE(); };
+  }, []);
+
+  const empresaNome = (id) => empresas.find(e => e.id === id)?.nome || '-';
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div>
+          <h1 className="page-title">Tarefas</h1>
+          <p className="page-sub">Tarefas delegadas para colaboradores das empresas cadastradas.</p>
+        </div>
+        <button className="btn gold" onClick={() => setShowModal(true)} disabled={empresas.length === 0}>+ Cadastrar tarefa</button>
+      </div>
+
+      {empresas.length === 0 && (
+        <div className="card" style={{ background: '#fdf6ec', borderColor: '#e6d4b5' }}>
+          Cadastre ao menos uma empresa antes de criar tarefas.
+        </div>
+      )}
+
+      <div className="card" style={{ padding: 0 }}>
+        {tarefas.length === 0 ? (
+          <div className="empty-state">Nenhuma tarefa cadastrada ainda.</div>
+        ) : (
+          <table>
+            <thead><tr><th>Título</th><th>Tipo</th><th>Empresa</th><th>Status</th><th>Criada em</th></tr></thead>
+            <tbody>
+              {tarefas.map(t => (
+                <tr key={t.id}>
+                  <td>{t.titulo}</td>
+                  <td>{t.tipo}</td>
+                  <td>{empresaNome(t.companyId)}</td>
+                  <td><span className={`badge ${t.status === 'pendente' ? 'pendente' : 'concluida'}`}>{t.status}</span></td>
+                  <td>{formatDate(t.dataCriacao)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
+      {showModal && <ModalCadastrarTarefa empresas={empresas} onClose={() => setShowModal(false)} onCreated={() => {}} />}
+    </div>
+  );
+}
+
+/* ============== PAINEL ADMIN (logado) ============== */
+function PainelAdmin({ user }) {
+  const [pagina, setPagina] = useState('index');
+
+  return (
+    <div className="shell">
+      <div className="sidebar">
+        <div className="brand">Propagare · Avaliação</div>
+        <button className={`nav-btn ${pagina === 'index' ? 'active' : ''}`} onClick={() => setPagina('index')}>📊 Visão Geral</button>
+        <button className={`nav-btn ${pagina === 'empresas' ? 'active' : ''}`} onClick={() => setPagina('empresas')}>🏢 Empresas</button>
+        <button className={`nav-btn ${pagina === 'tarefas' ? 'active' : ''}`} onClick={() => setPagina('tarefas')}>📋 Tarefas</button>
+        <div className="nav-spacer"></div>
+        <div style={{ fontSize: 12, color: '#a39c8d', marginBottom: 10 }}>{user.email}</div>
+        <button className="logout-btn" onClick={() => auth.signOut()}>Sair</button>
+      </div>
+      <div className="main">
+        {pagina === 'index' && <PaginaIndex />}
+        {pagina === 'empresas' && <PaginaEmpresas />}
+        {pagina === 'tarefas' && <PaginaTarefas />}
+      </div>
+    </div>
+  );
+}
+
+/* ============== FLUXO PÚBLICO (COLABORADOR) ============== */
+function FluxoPublico({ slug }) {
+  const [empresa, setEmpresa] = useState(null);
+  const [loadingEmpresa, setLoadingEmpresa] = useState(true);
+  const [employeeId, setEmployeeId] = useState(localStorage.getItem(`emp_id_${slug}`));
+  const [employeeData, setEmployeeData] = useState(null);
+  const [tarefaAtual, setTarefaAtual] = useState(null);
+  const [loadingTarefa, setLoadingTarefa] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+
+  // Carrega empresa pelo slug
+  useEffect(() => {
+    db.collection('companies').where('slug', '==', slug).limit(1).get().then(snap => {
+      if (!snap.empty) {
+        setEmpresa({ id: snap.docs[0].id, ...snap.docs[0].data() });
+      }
+      setLoadingEmpresa(false);
+    });
+  }, [slug]);
+
+  // Se já tem employeeId salvo, busca tarefa pendente
+  useEffect(() => {
+    if (!employeeId || !empresa) return;
+    setLoadingTarefa(true);
+    db.collection('employees').doc(employeeId).get().then(doc => {
+      if (doc.exists) setEmployeeData(doc.data());
+    });
+    db.collection('tasks')
+      .where('companyId', '==', empresa.id)
+      .where('status', '==', 'pendente')
+      .limit(1)
+      .get()
+      .then(snap => {
+        if (!snap.empty) setTarefaAtual({ id: snap.docs[0].id, ...snap.docs[0].data() });
+        setLoadingTarefa(false);
+      });
+  }, [employeeId, empresa]);
+
+  const handleCadastroCompleto = (id, data) => {
+    localStorage.setItem(`emp_id_${slug}`, id);
+    setEmployeeId(id);
+    setEmployeeData(data);
+  };
+
+  if (loadingEmpresa) return <div className="spinner-wrap">Carregando...</div>;
+
+  if (!empresa) {
+    return (
+      <div className="public-screen">
+        <div className="public-card">
+          <h2>Link inválido</h2>
+          <p>Esta empresa não foi encontrada. Verifique o link recebido.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (enviado) {
+    return (
+      <div className="public-screen">
+        <div className="public-card" style={{ textAlign: 'center' }}>
+          <h2>Obrigado, {employeeData?.nome?.split(' ')[0]}!</h2>
+          <p>Sua resposta foi enviada com sucesso. Você pode fechar esta página.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!employeeId || !employeeData) {
+    return <CadastroColaborador empresa={empresa} onComplete={handleCadastroCompleto} />;
+  }
+
+  if (loadingTarefa) return <div className="spinner-wrap">Carregando tarefa...</div>;
+
+  if (!tarefaAtual) {
+    return (
+      <div className="public-screen">
+        <div className="public-card" style={{ textAlign: 'center' }}>
+          <h2>Olá, {employeeData.nome.split(' ')[0]}!</h2>
+          <p>Não há tarefas pendentes para você no momento. Volte mais tarde.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <FormularioTarefa
+      empresa={empresa}
+      employeeId={employeeId}
+      employeeData={employeeData}
+      tarefa={tarefaAtual}
+      onEnviado={() => setEnviado(true)}
+    />
+  );
+}
+
+function CadastroColaborador({ empresa, onComplete }) {
+  const [nome, setNome] = useState('');
+  const [cargo, setCargo] = useState('');
+  const [sexo, setSexo] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!nome.trim() || !cargo.trim() || !sexo) return;
+    setSaving(true);
+    const data = {
+      nome: nome.trim(),
+      cargo: cargo.trim(),
+      sexo,
+      companyId: empresa.id,
+      dataCadastro: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const docRef = await db.collection('employees').add(data);
+    setSaving(false);
+    onComplete(docRef.id, data);
+  };
+
+  return (
+    <div className="public-screen">
+      <div className="public-card">
+        <h2>Bem-vindo(a)!</h2>
+        <p>Você está respondendo em nome de <span className="company-name">{empresa.nome}</span>. Antes de começar, complete seu cadastro:</p>
+        <form onSubmit={handleSubmit}>
+          <div className="field">
+            <label>Nome completo</label>
+            <input className="input" value={nome} onChange={e => setNome(e.target.value)} required autoFocus />
+          </div>
+          <div className="field">
+            <label>Cargo</label>
+            <input className="input" value={cargo} onChange={e => setCargo(e.target.value)} required />
+          </div>
+          <div className="field">
+            <label>Sexo</label>
+            <select className="input" value={sexo} onChange={e => setSexo(e.target.value)} required>
+              <option value="">Selecione</option>
+              <option value="Feminino">Feminino</option>
+              <option value="Masculino">Masculino</option>
+              <option value="Prefiro não informar">Prefiro não informar</option>
+            </select>
+          </div>
+          <button className="btn gold" type="submit" disabled={saving} style={{ width: '100%', justifyContent: 'center' }}>
+            {saving ? 'Salvando...' : 'Continuar'}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function FormularioTarefa({ empresa, employeeId, employeeData, tarefa, onEnviado }) {
+  const perguntas = tarefa.perguntas || PERGUNTAS_PADRAO;
+  const [respostas, setRespostas] = useState({});
+  const [enviando, setEnviando] = useState(false);
+
+  const todasRespondidas = perguntas.every((_, i) => respostas[i] !== undefined);
+
+  const handleSelect = (idx, valor) => {
+    setRespostas(prev => ({ ...prev, [idx]: valor }));
+  };
+
+  const handleEnviar = async () => {
+    if (!todasRespondidas) return;
+    setEnviando(true);
+    await db.collection('responses').add({
+      taskId: tarefa.id,
+      employeeId,
+      companyId: empresa.id,
+      nomeColaborador: employeeData.nome,
+      cargo: employeeData.cargo,
+      sexo: employeeData.sexo,
+      respostas,
+      dataResposta: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    await db.collection('tasks').doc(tarefa.id).update({ status: 'concluida' });
+    setEnviando(false);
+    onEnviado();
+  };
+
+  return (
+    <div className="public-screen">
+      <div className="public-card" style={{ maxWidth: 560 }}>
+        <h2>{tarefa.titulo}</h2>
+        <p>Olá, {employeeData.nome.split(' ')[0]}. Responda com sinceridade — não há respostas certas ou erradas.</p>
+
+        {perguntas.map((pergunta, idx) => (
+          <div className="question-block" key={idx}>
+            <label>{idx + 1}. {pergunta}</label>
+            <div className="scale-row">
+              {[1, 2, 3, 4, 5].map(v => (
+                <div
+                  key={v}
+                  className={`scale-opt ${respostas[idx] === v ? 'selected' : ''}`}
+                  onClick={() => handleSelect(idx, v)}
+                >{v}</div>
+              ))}
+            </div>
+          </div>
+        ))}
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11.5, color: 'var(--ink-soft)', marginTop: -6, marginBottom: 20 }}>
+          <span>1 = Discordo totalmente</span><span>5 = Concordo totalmente</span>
+        </div>
+
+        <button className="btn gold" onClick={handleEnviar} disabled={!todasRespondidas || enviando} style={{ width: '100%', justifyContent: 'center' }}>
+          {enviando ? 'Enviando...' : 'Enviar respostas'}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ============== APP RAIZ ============== */
+function App() {
+  const [user, setUser] = useState(undefined); // undefined = carregando, null = não logado
+  const params = new URLSearchParams(window.location.search);
+  const empresaSlug = params.get('empresa');
+
+  useEffect(() => {
+    const unsub = auth.onAuthStateChanged(u => setUser(u));
+    return unsub;
+  }, []);
+
+  // Rota pública (colaborador) — não exige autenticação Firebase
+  if (empresaSlug) {
+    return <FluxoPublico slug={empresaSlug} />;
+  }
+
+  // Rota admin
+  if (user === undefined) return <div className="spinner-wrap">Carregando...</div>;
+  if (!user) return <LoginScreen />;
+  return <PainelAdmin user={user} />;
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
