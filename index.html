@@ -250,20 +250,26 @@ function ModalCadastrarEmpresa({
   const [saving, setSaving] = useState(false);
   const [linkGerado, setLinkGerado] = useState(null);
   const [copiado, setCopiado] = useState(false);
+  const [erro, setErro] = useState('');
   const handleSave = async () => {
     if (!nome.trim()) return;
     setSaving(true);
-    const slug = slugify(nome) + '-' + Math.random().toString(36).substring(2, 6);
-    const docRef = await db.collection('companies').add({
-      nome: nome.trim(),
-      slug,
-      dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
-    });
-    const baseUrl = window.location.origin + window.location.pathname;
-    const link = `${baseUrl}?empresa=${slug}`;
-    setLinkGerado(link);
+    setErro('');
+    try {
+      const slug = slugify(nome) + '-' + Math.random().toString(36).substring(2, 6);
+      const docRef = await db.collection('companies').add({
+        nome: nome.trim(),
+        slug,
+        dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      const baseUrl = window.location.origin + window.location.pathname;
+      const link = `${baseUrl}?empresa=${slug}`;
+      setLinkGerado(link);
+      onCreated();
+    } catch (e) {
+      setErro('Erro ao salvar: ' + (e.code || '') + ' ' + (e.message || e));
+    }
     setSaving(false);
-    onCreated();
   };
   const handleCopy = () => {
     navigator.clipboard.writeText(linkGerado);
@@ -292,7 +298,12 @@ function ModalCadastrarEmpresa({
     className: "btn gold",
     onClick: handleSave,
     disabled: saving || !nome.trim()
-  }, saving ? 'Salvando...' : 'Cadastrar e gerar link'))) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h3", null, "Empresa cadastrada!"), /*#__PURE__*/React.createElement("p", {
+  }, saving ? 'Salvando...' : 'Cadastrar e gerar link')), erro && /*#__PURE__*/React.createElement("p", {
+    className: "error-text",
+    style: {
+      marginTop: 14
+    }
+  }, erro)) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("h3", null, "Empresa cadastrada!"), /*#__PURE__*/React.createElement("p", {
     style: {
       fontSize: 13.5,
       color: 'var(--ink-soft)',
