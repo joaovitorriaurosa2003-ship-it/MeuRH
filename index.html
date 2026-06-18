@@ -166,6 +166,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
+db.settings({
+  experimentalForceLongPolling: true,
+  merge: true
+});
 
 /* ============== HELPERS ============== */
 function slugify(text) {
@@ -188,6 +192,222 @@ function formatDate(ts) {
    genérico de clima/percepção que pode ser substituído por instrumentos
    validados (CSAI-2R, NR-01 etc.) depois. */
 const PERGUNTAS_PADRAO = ["Sinto que meu trabalho é reconhecido pela equipe.", "Tenho clareza sobre minhas responsabilidades.", "Consigo equilibrar minhas demandas de trabalho com minha vida pessoal.", "Sinto-me apoiado pela liderança no dia a dia.", "O ambiente de trabalho contribui para meu bem-estar."];
+
+/* ============== TESTE DE PERFIL COMPORTAMENTAL (ÁGUIA / GOLFINHO / LOBO / TUBARÃO) ==============
+   Cada pergunta tem 4 alternativas, uma para cada perfil (na ordem aguia, golfinho, lobo, tubarao).
+   O resultado é o perfil com mais pontos ao final. */
+const PERFIS_COMPORTAMENTAIS = {
+  aguia: {
+    nome: 'Águia',
+    emoji: '🦅',
+    cor: '#7B5FC4',
+    palavraChave: 'Idealização',
+    descricao: 'Criativa, intuitiva, focada no futuro e na liberdade de criar.',
+    pontosFortes: 'Inovação, flexibilidade e visão ampla.',
+    pontosMelhoria: 'Falta de foco no presente, indisciplina.',
+    profissoes: 'Marketing, Design, Arquitetura, Artes.'
+  },
+  golfinho: {
+    nome: 'Golfinho',
+    emoji: '🐬',
+    cor: '#2E9CCA',
+    palavraChave: 'Comunicação',
+    descricao: 'Sensível, focada em pessoas, busca harmonia no ambiente.',
+    pontosFortes: 'Trabalho em equipe, empatia, comunicação.',
+    pontosMelhoria: 'Dificuldade em dizer "não", esconde conflitos.',
+    profissoes: 'RH, Treinamentos, Enfermagem, Psicologia.'
+  },
+  lobo: {
+    nome: 'Lobo',
+    emoji: '🐺',
+    cor: '#5A6B57',
+    palavraChave: 'Organização',
+    descricao: 'Metódica, detalhista, focada em regras e processos.',
+    pontosFortes: 'Planejamento, pontualidade, lealdade.',
+    pontosMelhoria: 'Dificuldade com mudanças, centralizador.',
+    profissoes: 'Engenharia, Finanças, TI, Contabilidade.'
+  },
+  tubarao: {
+    nome: 'Tubarão',
+    emoji: '🦈',
+    cor: '#C4524A',
+    palavraChave: 'Ação',
+    descricao: 'Direta, competitiva, focada em resultados rápidos.',
+    pontosFortes: 'Determinação, rapidez, senso de urgência.',
+    pontosMelhoria: 'Impaciência, autoritarismo, falta de tato.',
+    profissoes: 'Gestão, Vendas, Liderança Executiva.'
+  }
+};
+const PERGUNTAS_PERFIL_COMPORTAMENTAL = [{
+  pergunta: "Em uma reunião de trabalho, você costuma:",
+  opcoes: [{
+    texto: "Propor ideias novas e fora da caixa, mesmo sem todos os detalhes prontos.",
+    perfil: "aguia"
+  }, {
+    texto: "Garantir que todos se sintam ouvidos antes de qualquer decisão.",
+    perfil: "golfinho"
+  }, {
+    texto: "Seguir a pauta com cuidado e anotar cada detalhe combinado.",
+    perfil: "lobo"
+  }, {
+    texto: "Cobrar objetividade e ir direto para as decisões.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Quando recebe uma tarefa nova, sua primeira reação é:",
+  opcoes: [{
+    texto: "Imaginar possibilidades diferentes de como fazer.",
+    perfil: "aguia"
+  }, {
+    texto: "Pensar em quem mais será impactado e como ajudá-los.",
+    perfil: "golfinho"
+  }, {
+    texto: "Organizar um plano passo a passo antes de começar.",
+    perfil: "lobo"
+  }, {
+    texto: "Já começar a executar o quanto antes.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Diante de uma mudança repentina de planos, você:",
+  opcoes: [{
+    texto: "Se anima com a novidade e se adapta rápido.",
+    perfil: "aguia"
+  }, {
+    texto: "Se preocupa com como isso afeta o clima da equipe.",
+    perfil: "golfinho"
+  }, {
+    texto: "Sente desconforto e prefere previsibilidade.",
+    perfil: "lobo"
+  }, {
+    texto: "Vê como um novo desafio a ser resolvido logo.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Um colega comete um erro que afeta seu trabalho. Você:",
+  opcoes: [{
+    texto: "Sugere uma forma criativa de contornar o problema.",
+    perfil: "aguia"
+  }, {
+    texto: "Conversa com empatia para entender o que aconteceu.",
+    perfil: "golfinho"
+  }, {
+    texto: "Revisa o processo para que não se repita.",
+    perfil: "lobo"
+  }, {
+    texto: "Vai direto ao ponto e cobra uma solução rápida.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "O que mais te motiva no trabalho?",
+  opcoes: [{
+    texto: "Liberdade para criar e inovar.",
+    perfil: "aguia"
+  }, {
+    texto: "Um ambiente harmonioso e colaborativo.",
+    perfil: "golfinho"
+  }, {
+    texto: "Processos claros e bem estruturados.",
+    perfil: "lobo"
+  }, {
+    texto: "Bater metas e ver resultados rápidos.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Sob pressão e prazos curtos, você tende a:",
+  opcoes: [{
+    texto: "Buscar uma solução não convencional e rápida.",
+    perfil: "aguia"
+  }, {
+    texto: "Buscar apoio da equipe para dividir a carga.",
+    perfil: "golfinho"
+  }, {
+    texto: "Seguir o planejamento já feito, sem improviso.",
+    perfil: "lobo"
+  }, {
+    texto: "Assumir o controle e acelerar decisões.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Como você prefere receber feedback?",
+  opcoes: [{
+    texto: "De forma livre, sem muita formalidade.",
+    perfil: "aguia"
+  }, {
+    texto: "De forma acolhedora, com cuidado na entrega.",
+    perfil: "golfinho"
+  }, {
+    texto: "De forma estruturada e com exemplos claros.",
+    perfil: "lobo"
+  }, {
+    texto: "De forma direta e objetiva, sem rodeios.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Em um projeto em grupo, qual papel você assume naturalmente?",
+  opcoes: [{
+    texto: "O que traz ideias e visão de futuro.",
+    perfil: "aguia"
+  }, {
+    texto: "O que cuida do clima e da motivação do grupo.",
+    perfil: "golfinho"
+  }, {
+    texto: "O que organiza tarefas, prazos e documentação.",
+    perfil: "lobo"
+  }, {
+    texto: "O que lidera e empurra o grupo para o resultado.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "O que mais te incomoda em um ambiente de trabalho?",
+  opcoes: [{
+    texto: "Rotina excessiva e falta de espaço para criar.",
+    perfil: "aguia"
+  }, {
+    texto: "Conflitos constantes e falta de empatia.",
+    perfil: "golfinho"
+  }, {
+    texto: "Desorganização e mudanças sem aviso.",
+    perfil: "lobo"
+  }, {
+    texto: "Lentidão e falta de objetividade.",
+    perfil: "tubarao"
+  }]
+}, {
+  pergunta: "Ao tomar decisões importantes, você se baseia mais em:",
+  opcoes: [{
+    texto: "Intuição e visão do que pode ser possível.",
+    perfil: "aguia"
+  }, {
+    texto: "Como a decisão impacta as pessoas envolvidas.",
+    perfil: "golfinho"
+  }, {
+    texto: "Dados, regras e experiências anteriores.",
+    perfil: "lobo"
+  }, {
+    texto: "O que traz resultado mais rápido e eficaz.",
+    perfil: "tubarao"
+  }]
+}];
+function calcularPerfilComportamental(respostasIndices) {
+  const pontos = {
+    aguia: 0,
+    golfinho: 0,
+    lobo: 0,
+    tubarao: 0
+  };
+  respostasIndices.forEach((opcaoIdx, perguntaIdx) => {
+    const pergunta = PERGUNTAS_PERFIL_COMPORTAMENTAL[perguntaIdx];
+    if (!pergunta) return;
+    const opcao = pergunta.opcoes[opcaoIdx];
+    if (opcao) pontos[opcao.perfil] += 1;
+  });
+  const perfilDominante = Object.entries(pontos).sort((a, b) => b[1] - a[1])[0][0];
+  return {
+    pontos,
+    perfilDominante
+  };
+}
 
 /* ============== LOGIN (ADMIN) ============== */
 function LoginScreen() {
@@ -350,12 +570,14 @@ function ModalCadastrarTarefa({
   const handleSave = async () => {
     if (!titulo.trim() || !companyId) return;
     setSaving(true);
+    const ehPerfilComportamental = tipo === 'Perfil Comportamental';
     await db.collection('tasks').add({
       titulo: titulo.trim(),
       tipo,
       companyId,
       status: 'pendente',
-      perguntas: PERGUNTAS_PADRAO,
+      formato: ehPerfilComportamental ? 'perfil_comportamental' : 'escala',
+      perguntas: ehPerfilComportamental ? PERGUNTAS_PERFIL_COMPORTAMENTAL : PERGUNTAS_PADRAO,
       dataCriacao: firebase.firestore.FieldValue.serverTimestamp()
     });
     setSaving(false);
@@ -391,7 +613,14 @@ function ModalCadastrarTarefa({
     className: "input",
     value: tipo,
     onChange: e => setTipo(e.target.value)
-  }, /*#__PURE__*/React.createElement("option", null, "Clima Organizacional"), /*#__PURE__*/React.createElement("option", null, "Riscos Psicossociais (NR-01)"), /*#__PURE__*/React.createElement("option", null, "Avaliação Psicológica"), /*#__PURE__*/React.createElement("option", null, "Outro"))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("option", null, "Clima Organizacional"), /*#__PURE__*/React.createElement("option", null, "Riscos Psicossociais (NR-01)"), /*#__PURE__*/React.createElement("option", null, "Avaliação Psicológica"), /*#__PURE__*/React.createElement("option", null, "Perfil Comportamental"), /*#__PURE__*/React.createElement("option", null, "Outro"))), tipo === 'Perfil Comportamental' && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12.5,
+      color: 'var(--ink-soft)',
+      marginTop: -8,
+      marginBottom: 16
+    }
+  }, "Teste gamificado de 10 perguntas que identifica o perfil dominante do colaborador entre Águia, Golfinho, Lobo e Tubarão."), /*#__PURE__*/React.createElement("div", {
     className: "modal-actions"
   }, /*#__PURE__*/React.createElement("button", {
     className: "btn outline",
@@ -407,8 +636,10 @@ function ModalCadastrarTarefa({
 function PaginaIndex() {
   const [respostas, setRespostas] = useState([]);
   const [empresas, setEmpresas] = useState([]);
+  const [tarefas, setTarefas] = useState([]);
   const [visao, setVisao] = useState('agregado'); // agregado | bruto
   const [filtroEmpresa, setFiltroEmpresa] = useState('todas');
+  const [filtroTarefa, setFiltroTarefa] = useState('todas');
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     const unsubR = db.collection('responses').orderBy('dataResposta', 'desc').onSnapshot(snap => {
@@ -424,15 +655,36 @@ function PaginaIndex() {
         ...d.data()
       })));
     });
+    const unsubT = db.collection('tasks').onSnapshot(snap => {
+      setTarefas(snap.docs.map(d => ({
+        id: d.id,
+        ...d.data()
+      })));
+    });
     return () => {
       unsubR();
       unsubE();
+      unsubT();
     };
   }, []);
+
+  // Tarefas disponíveis no filtro, restritas à empresa selecionada (se houver)
+  const tarefasDisponiveis = useMemo(() => {
+    if (filtroEmpresa === 'todas') return tarefas;
+    return tarefas.filter(t => t.companyId === filtroEmpresa);
+  }, [tarefas, filtroEmpresa]);
+
+  // Se trocar de empresa e a tarefa filtrada não pertencer mais a ela, reseta o filtro de tarefa
+  useEffect(() => {
+    if (filtroTarefa === 'todas') return;
+    if (!tarefasDisponiveis.some(t => t.id === filtroTarefa)) setFiltroTarefa('todas');
+  }, [filtroEmpresa, tarefasDisponiveis, filtroTarefa]);
   const respostasFiltradas = useMemo(() => {
-    if (filtroEmpresa === 'todas') return respostas;
-    return respostas.filter(r => r.companyId === filtroEmpresa);
-  }, [respostas, filtroEmpresa]);
+    let lista = respostas;
+    if (filtroEmpresa !== 'todas') lista = lista.filter(r => r.companyId === filtroEmpresa);
+    if (filtroTarefa !== 'todas') lista = lista.filter(r => r.taskId === filtroTarefa);
+    return lista;
+  }, [respostas, filtroEmpresa, filtroTarefa]);
   const agregados = useMemo(() => {
     const porEmpresa = {};
     respostasFiltradas.forEach(r => {
@@ -452,6 +704,50 @@ function PaginaIndex() {
       mediaGeral: d.total ? (d.somaMedias / d.total).toFixed(2) : '-'
     }));
   }, [respostasFiltradas, empresas]);
+
+  // Dashboard específico da tarefa: média por pergunta + distribuição de notas
+  const dashboardTarefa = useMemo(() => {
+    if (filtroTarefa === 'todas') return null;
+    const tarefa = tarefas.find(t => t.id === filtroTarefa);
+    if (!tarefa) return null;
+    if (tarefa.formato === 'perfil_comportamental') {
+      const totalRespostas = respostasFiltradas.length;
+      const contagem = {
+        aguia: 0,
+        golfinho: 0,
+        lobo: 0,
+        tubarao: 0
+      };
+      respostasFiltradas.forEach(r => {
+        if (r.perfilDominante && contagem[r.perfilDominante] !== undefined) contagem[r.perfilDominante] += 1;
+      });
+      return {
+        titulo: tarefa.titulo,
+        tipo: tarefa.tipo,
+        formato: 'perfil_comportamental',
+        contagem,
+        totalRespostas
+      };
+    }
+    const perguntas = tarefa.perguntas || [];
+    const porPergunta = perguntas.map((pergunta, idx) => {
+      const valores = respostasFiltradas.map(r => r.respostas && r.respostas[idx]).filter(v => typeof v === 'number');
+      const media = valores.length ? valores.reduce((a, b) => a + b, 0) / valores.length : 0;
+      const distribuicao = [1, 2, 3, 4, 5].map(nota => valores.filter(v => v === nota).length);
+      return {
+        pergunta,
+        media: media.toFixed(2),
+        totalRespostas: valores.length,
+        distribuicao
+      };
+    });
+    return {
+      titulo: tarefa.titulo,
+      tipo: tarefa.tipo,
+      formato: 'escala',
+      porPergunta
+    };
+  }, [filtroTarefa, tarefas, respostasFiltradas]);
   const empresaNome = id => empresas.find(e => e.id === id)?.nome || '-';
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
     className: "page-title"
@@ -493,9 +789,149 @@ function PaginaIndex() {
   }, "Todas as empresas"), empresas.map(emp => /*#__PURE__*/React.createElement("option", {
     key: emp.id,
     value: emp.id
-  }, emp.nome)))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, emp.nome))), /*#__PURE__*/React.createElement("select", {
+    className: "input",
+    style: {
+      width: 240
+    },
+    value: filtroTarefa,
+    onChange: e => setFiltroTarefa(e.target.value)
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "todas"
+  }, "Todas as tarefas"), tarefasDisponiveis.map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.titulo)))), loading ? /*#__PURE__*/React.createElement("div", {
     className: "empty-state"
-  }, "Carregando...") : visao === 'agregado' ? /*#__PURE__*/React.createElement("div", {
+  }, "Carregando...") : dashboardTarefa ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0
+    }
+  }, dashboardTarefa.titulo), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: 'var(--ink-soft)',
+      fontSize: 13,
+      marginTop: -8
+    }
+  }, dashboardTarefa.tipo, " · ", respostasFiltradas.length, " resposta(s)")), dashboardTarefa.formato === 'perfil_comportamental' ? dashboardTarefa.totalRespostas === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card empty-state"
+  }, "Nenhuma resposta registrada ainda para esta tarefa.") : /*#__PURE__*/React.createElement("div", {
+    className: "card"
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 600,
+      marginTop: 0,
+      marginBottom: 14
+    }
+  }, "Distribuição de perfis"), Object.entries(PERFIS_COMPORTAMENTAIS).map(([key, p]) => /*#__PURE__*/React.createElement("div", {
+    key: key,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 20,
+      width: 26
+    }
+  }, p.emoji), /*#__PURE__*/React.createElement("span", {
+    style: {
+      width: 90,
+      fontSize: 13.5
+    }
+  }, p.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: 'var(--bg)',
+      borderRadius: 6,
+      height: 12,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: p.cor,
+      width: dashboardTarefa.totalRespostas ? `${dashboardTarefa.contagem[key] / dashboardTarefa.totalRespostas * 100}%` : '0%'
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: 'var(--ink-soft)',
+      width: 30,
+      textAlign: 'right'
+    }
+  }, dashboardTarefa.contagem[key])))) : dashboardTarefa.porPergunta.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    className: "card empty-state"
+  }, "Esta tarefa não possui perguntas registradas.") : dashboardTarefa.porPergunta.map((p, idx) => /*#__PURE__*/React.createElement("div", {
+    className: "card",
+    key: idx
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontWeight: 600,
+      marginTop: 0,
+      marginBottom: 10
+    }
+  }, idx + 1, ". ", p.pergunta), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 18,
+      alignItems: 'center',
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "kpi-card",
+    style: {
+      minWidth: 130
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "kpi-label"
+  }, "Média (1-5)"), /*#__PURE__*/React.createElement("div", {
+    className: "kpi-value"
+  }, p.totalRespostas ? p.media : '-')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 220
+    }
+  }, [1, 2, 3, 4, 5].map((nota, i) => /*#__PURE__*/React.createElement("div", {
+    key: nota,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--ink-soft)',
+      width: 14
+    }
+  }, nota), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: 'var(--bg)',
+      borderRadius: 6,
+      height: 10,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: 'var(--gold)',
+      width: p.totalRespostas ? `${p.distribuicao[i] / p.totalRespostas * 100}%` : '0%'
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: 'var(--ink-soft)',
+      width: 24,
+      textAlign: 'right'
+    }
+  }, p.distribuicao[i])))))))) : visao === 'agregado' ? /*#__PURE__*/React.createElement("div", {
     className: "card",
     style: {
       padding: 0
@@ -517,10 +953,109 @@ function PaginaIndex() {
 }
 
 /* ============== PÁGINA: EMPRESAS ============== */
+function ModalDetalheEmpresa({
+  empresa,
+  onClose
+}) {
+  const [nome, setNome] = useState(empresa.nome);
+  const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [confirmarExclusao, setConfirmarExclusao] = useState(false);
+  const [erro, setErro] = useState('');
+  const handleSalvar = async () => {
+    if (!nome.trim()) return;
+    setSaving(true);
+    setErro('');
+    try {
+      await db.collection('companies').doc(empresa.id).update({
+        nome: nome.trim()
+      });
+      onClose();
+    } catch (e) {
+      setErro('Erro ao salvar: ' + (e.code || '') + ' ' + (e.message || e));
+    }
+    setSaving(false);
+  };
+  const handleExcluir = async () => {
+    setDeleting(true);
+    setErro('');
+    try {
+      await db.collection('companies').doc(empresa.id).delete();
+      onClose();
+    } catch (e) {
+      setErro('Erro ao excluir: ' + (e.code || '') + ' ' + (e.message || e));
+      setDeleting(false);
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    className: "modal-overlay",
+    onClick: e => e.target === e.currentTarget && onClose()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "modal"
+  }, /*#__PURE__*/React.createElement("h3", null, "Detalhes da empresa"), /*#__PURE__*/React.createElement("div", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("label", null, "Nome da empresa"), /*#__PURE__*/React.createElement("input", {
+    className: "input",
+    value: nome,
+    onChange: e => setNome(e.target.value)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "field"
+  }, /*#__PURE__*/React.createElement("label", null, "Link de acesso"), /*#__PURE__*/React.createElement("div", {
+    className: "link-box"
+  }, /*#__PURE__*/React.createElement("span", null, `${window.location.origin}${window.location.pathname}?empresa=${empresa.slug}`))), !confirmarExclusao ? /*#__PURE__*/React.createElement("div", {
+    className: "modal-actions",
+    style: {
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn danger",
+    onClick: () => setConfirmarExclusao(true)
+  }, "Excluir empresa"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn outline",
+    onClick: onClose
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn gold",
+    onClick: handleSalvar,
+    disabled: saving || !nome.trim()
+  }, saving ? 'Salvando...' : 'Salvar alterações'))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      padding: 14,
+      background: '#fdf2ef',
+      borderRadius: 10,
+      border: '1px solid #f0d6cf'
+    }
+  }, /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 13.5,
+      marginTop: 0
+    }
+  }, "Tem certeza? Isso remove o cadastro da empresa, mas tarefas e respostas já registradas serão mantidas no histórico."), /*#__PURE__*/React.createElement("div", {
+    className: "modal-actions"
+  }, /*#__PURE__*/React.createElement("button", {
+    className: "btn outline",
+    onClick: () => setConfirmarExclusao(false)
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    className: "btn danger",
+    onClick: handleExcluir,
+    disabled: deleting
+  }, deleting ? 'Excluindo...' : 'Confirmar exclusão'))), erro && /*#__PURE__*/React.createElement("p", {
+    className: "error-text",
+    style: {
+      marginTop: 14
+    }
+  }, erro)));
+}
 function PaginaEmpresas() {
   const [empresas, setEmpresas] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [copiadoId, setCopiadoId] = useState(null);
+  const [empresaSelecionada, setEmpresaSelecionada] = useState(null);
   useEffect(() => {
     const unsub = db.collection('companies').orderBy('dataCriacao', 'desc').onSnapshot(snap => {
       setEmpresas(snap.docs.map(d => ({
@@ -556,7 +1091,7 @@ function PaginaEmpresas() {
     }
   }, empresas.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "empty-state"
-  }, "Nenhuma empresa cadastrada ainda. Clique em \"Cadastrar empresa\" para começar.") : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nome"), /*#__PURE__*/React.createElement("th", null, "Cadastrada em"), /*#__PURE__*/React.createElement("th", null, "Link"), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, empresas.map(emp => /*#__PURE__*/React.createElement("tr", {
+  }, "Nenhuma empresa cadastrada ainda. Clique em \"Cadastrar empresa\" para começar.") : /*#__PURE__*/React.createElement("table", null, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", null, "Nome"), /*#__PURE__*/React.createElement("th", null, "Cadastrada em"), /*#__PURE__*/React.createElement("th", null, "Link"), /*#__PURE__*/React.createElement("th", null), /*#__PURE__*/React.createElement("th", null))), /*#__PURE__*/React.createElement("tbody", null, empresas.map(emp => /*#__PURE__*/React.createElement("tr", {
     key: emp.id
   }, /*#__PURE__*/React.createElement("td", null, emp.nome), /*#__PURE__*/React.createElement("td", null, formatDate(emp.dataCriacao)), /*#__PURE__*/React.createElement("td", {
     style: {
@@ -566,7 +1101,13 @@ function PaginaEmpresas() {
   }, getLink(emp.slug)), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
     className: "btn small outline",
     onClick: () => handleCopy(emp.id, emp.slug)
-  }, copiadoId === emp.id ? 'Copiado!' : 'Copiar link'))))))), showModal && /*#__PURE__*/React.createElement(ModalCadastrarEmpresa, {
+  }, copiadoId === emp.id ? 'Copiado!' : 'Copiar link')), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("button", {
+    className: "btn small outline",
+    onClick: () => setEmpresaSelecionada(emp)
+  }, "Detalhes"))))))), empresaSelecionada && /*#__PURE__*/React.createElement(ModalDetalheEmpresa, {
+    empresa: empresaSelecionada,
+    onClose: () => setEmpresaSelecionada(null)
+  }), showModal && /*#__PURE__*/React.createElement(ModalCadastrarEmpresa, {
     onClose: () => setShowModal(false),
     onCreated: () => {}
   }));
@@ -833,6 +1374,264 @@ function CadastroColaborador({
     }
   }, saving ? 'Salvando...' : 'Continuar'))));
 }
+function TestePerfilComportamental({
+  empresa,
+  employeeId,
+  employeeData,
+  tarefa,
+  onEnviado
+}) {
+  const perguntas = tarefa.perguntas || PERGUNTAS_PERFIL_COMPORTAMENTAL;
+  const [passo, setPasso] = useState(0); // índice da pergunta atual
+  const [escolhas, setEscolhas] = useState([]); // array de índices de opção escolhida
+  const [enviando, setEnviando] = useState(false);
+  const [resultado, setResultado] = useState(null);
+  const [animarEntrada, setAnimarEntrada] = useState(true);
+  const totalPerguntas = perguntas.length;
+  const progresso = Math.round(passo / totalPerguntas * 100);
+  const handleEscolher = async opcaoIdx => {
+    const novasEscolhas = [...escolhas, opcaoIdx];
+    setEscolhas(novasEscolhas);
+    setAnimarEntrada(false);
+    if (passo + 1 < totalPerguntas) {
+      setTimeout(() => {
+        setPasso(passo + 1);
+        setAnimarEntrada(true);
+      }, 220);
+    } else {
+      setEnviando(true);
+      const {
+        pontos,
+        perfilDominante
+      } = calcularPerfilComportamental(novasEscolhas);
+      const perfilInfo = PERFIS_COMPORTAMENTAIS[perfilDominante];
+      await db.collection('responses').add({
+        taskId: tarefa.id,
+        employeeId,
+        companyId: empresa.id,
+        nomeColaborador: employeeData.nome,
+        cargo: employeeData.cargo,
+        sexo: employeeData.sexo,
+        formato: 'perfil_comportamental',
+        escolhas: novasEscolhas,
+        pontosPorPerfil: pontos,
+        perfilDominante,
+        dataResposta: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      await db.collection('tasks').doc(tarefa.id).update({
+        status: 'concluida'
+      });
+      setEnviando(false);
+      setResultado({
+        perfilDominante,
+        perfilInfo,
+        pontos
+      });
+    }
+  };
+  if (resultado) {
+    const {
+      perfilInfo,
+      pontos
+    } = resultado;
+    const totalRespondido = Object.values(pontos).reduce((a, b) => a + b, 0);
+    return /*#__PURE__*/React.createElement("div", {
+      className: "public-screen"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "public-card",
+      style: {
+        maxWidth: 520,
+        textAlign: 'center',
+        animation: 'fadeInResult 0.5s ease'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 64,
+        marginBottom: 8
+      }
+    }, perfilInfo.emoji), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: 'var(--ink-soft)',
+        fontSize: 13,
+        marginBottom: 2,
+        textTransform: 'uppercase',
+        letterSpacing: 1
+      }
+    }, "Seu perfil é"), /*#__PURE__*/React.createElement("h2", {
+      style: {
+        color: perfilInfo.cor,
+        marginTop: 0,
+        marginBottom: 4
+      }
+    }, perfilInfo.nome), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontWeight: 600,
+        color: 'var(--ink-soft)',
+        marginTop: 0
+      }
+    }, perfilInfo.palavraChave), /*#__PURE__*/React.createElement("p", {
+      style: {
+        marginTop: 14
+      }
+    }, perfilInfo.descricao), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'left',
+        marginTop: 22,
+        marginBottom: 22
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600,
+        marginBottom: 6
+      }
+    }, "Pontos fortes"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13.5,
+        color: 'var(--ink-soft)',
+        marginTop: 0
+      }
+    }, perfilInfo.pontosFortes), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13,
+        fontWeight: 600,
+        marginBottom: 6
+      }
+    }, "Pontos de melhoria"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13.5,
+        color: 'var(--ink-soft)',
+        marginTop: 0
+      }
+    }, perfilInfo.pontosMelhoria)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 22
+      }
+    }, Object.entries(PERFIS_COMPORTAMENTAIS).map(([key, p]) => /*#__PURE__*/React.createElement("div", {
+      key: key,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 8,
+        marginBottom: 6
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 16,
+        width: 22
+      }
+    }, p.emoji), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        background: 'var(--bg)',
+        borderRadius: 6,
+        height: 10,
+        overflow: 'hidden'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: '100%',
+        background: p.cor,
+        width: totalRespondido ? `${pontos[key] / totalRespondido * 100}%` : '0%',
+        transition: 'width 0.6s ease'
+      }
+    })), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        color: 'var(--ink-soft)',
+        width: 20,
+        textAlign: 'right'
+      }
+    }, pontos[key])))), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 12.5,
+        color: 'var(--ink-soft)'
+      }
+    }, "Obrigado por participar, ", employeeData.nome.split(' ')[0], "! Você pode fechar esta página.")), /*#__PURE__*/React.createElement("style", null, `@keyframes fadeInResult { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`));
+  }
+  const perguntaAtual = perguntas[passo];
+  return /*#__PURE__*/React.createElement("div", {
+    className: "public-screen"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "public-card",
+    style: {
+      maxWidth: 520
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 12,
+      color: 'var(--ink-soft)',
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Pergunta ", passo + 1, " de ", totalPerguntas), /*#__PURE__*/React.createElement("span", null, progresso, "%")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'var(--bg)',
+      borderRadius: 8,
+      height: 8,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: 'var(--gold)',
+      width: `${progresso}%`,
+      transition: 'width 0.3s ease'
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      opacity: animarEntrada ? 1 : 0,
+      transition: 'opacity 0.2s ease'
+    },
+    key: passo
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      marginTop: 0,
+      marginBottom: 20
+    }
+  }, perguntaAtual.pergunta), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, perguntaAtual.opcoes.map((opcao, idx) => /*#__PURE__*/React.createElement("button", {
+    key: idx,
+    onClick: () => handleEscolher(idx),
+    disabled: enviando,
+    style: {
+      textAlign: 'left',
+      padding: '14px 16px',
+      borderRadius: 10,
+      border: '1px solid var(--line)',
+      background: '#fff',
+      cursor: enviando ? 'default' : 'pointer',
+      fontSize: 14.5,
+      fontFamily: 'inherit',
+      transition: 'background .15s, border-color .15s'
+    },
+    onMouseEnter: e => {
+      e.currentTarget.style.background = 'var(--gold-soft)';
+      e.currentTarget.style.borderColor = 'var(--gold)';
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.background = '#fff';
+      e.currentTarget.style.borderColor = 'var(--line)';
+    }
+  }, opcao.texto)))), enviando && /*#__PURE__*/React.createElement("p", {
+    style: {
+      textAlign: 'center',
+      color: 'var(--ink-soft)',
+      fontSize: 13,
+      marginTop: 18
+    }
+  }, "Calculando seu perfil...")));
+}
 function FormularioTarefa({
   empresa,
   employeeId,
@@ -840,6 +1639,15 @@ function FormularioTarefa({
   tarefa,
   onEnviado
 }) {
+  if (tarefa.formato === 'perfil_comportamental') {
+    return /*#__PURE__*/React.createElement(TestePerfilComportamental, {
+      empresa: empresa,
+      employeeId: employeeId,
+      employeeData: employeeData,
+      tarefa: tarefa,
+      onEnviado: onEnviado
+    });
+  }
   const perguntas = tarefa.perguntas || PERGUNTAS_PADRAO;
   const [respostas, setRespostas] = useState({});
   const [enviando, setEnviando] = useState(false);
