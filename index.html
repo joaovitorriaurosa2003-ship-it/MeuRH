@@ -684,6 +684,7 @@ function PaginaIndex() {
   const agregados = useMemo(() => {
     const porEmpresa = {};
     respostasFiltradas.forEach(r => {
+      if (r.formato === 'perfil_comportamental') return; // não entra no cálculo de média 1-5
       const nomeEmpresa = empresas.find(e => e.id === r.companyId)?.nome || 'Desconhecida';
       if (!porEmpresa[nomeEmpresa]) porEmpresa[nomeEmpresa] = {
         total: 0,
@@ -813,54 +814,152 @@ function PaginaIndex() {
     }
   }, dashboardTarefa.tipo, " · ", respostasFiltradas.length, " resposta(s)")), dashboardTarefa.formato === 'perfil_comportamental' ? dashboardTarefa.totalRespostas === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card empty-state"
-  }, "Nenhuma resposta registrada ainda para esta tarefa.") : /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("p", {
-    style: {
-      fontWeight: 600,
-      marginTop: 0,
-      marginBottom: 14
-    }
-  }, "Distribuição de perfis"), Object.entries(PERFIS_COMPORTAMENTAIS).map(([key, p]) => /*#__PURE__*/React.createElement("div", {
-    key: key,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 20,
-      width: 26
-    }
-  }, p.emoji), /*#__PURE__*/React.createElement("span", {
-    style: {
-      width: 90,
-      fontSize: 13.5
-    }
-  }, p.nome), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      background: 'var(--bg)',
-      borderRadius: 6,
-      height: 12,
-      overflow: 'hidden'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: '100%',
-      background: p.cor,
-      width: dashboardTarefa.totalRespostas ? `${dashboardTarefa.contagem[key] / dashboardTarefa.totalRespostas * 100}%` : '0%'
-    }
-  })), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 13,
-      color: 'var(--ink-soft)',
-      width: 30,
-      textAlign: 'right'
-    }
-  }, dashboardTarefa.contagem[key])))) : dashboardTarefa.porPergunta.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, "Nenhuma resposta registrada ainda para esta tarefa.") : /*#__PURE__*/React.createElement("div", null, (() => {
+    const total = dashboardTarefa.totalRespostas;
+    const entradas = Object.entries(PERFIS_COMPORTAMENTAIS).map(([key, p]) => ({
+      key,
+      ...p,
+      qtd: dashboardTarefa.contagem[key],
+      pct: total ? Math.round(dashboardTarefa.contagem[key] / total * 100) : 0
+    }));
+    const dominante = entradas.reduce((a, b) => b.qtd > a.qtd ? b : a, entradas[0]);
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 16,
+        borderColor: dominante.cor
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 38
+      }
+    }, dominante.emoji), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        fontSize: 12.5,
+        color: 'var(--ink-soft)',
+        textTransform: 'uppercase',
+        letterSpacing: 0.4
+      }
+    }, "Perfil predominante no grupo"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        fontSize: 19,
+        fontWeight: 700,
+        color: dominante.cor
+      }
+    }, dominante.nome, " · ", dominante.pct, "% dos respondentes"))), entradas.sort((a, b) => b.qtd - a.qtd).map(p => /*#__PURE__*/React.createElement("div", {
+      className: "card",
+      key: p.key
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        marginBottom: 10
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 26
+      }
+    }, p.emoji), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        fontWeight: 700,
+        fontSize: 15
+      }
+    }, p.nome, " ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: 'var(--ink-soft)',
+        fontWeight: 400,
+        fontSize: 13
+      }
+    }, "· ", p.palavraChave))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'right'
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        fontWeight: 700,
+        fontSize: 20,
+        color: p.cor
+      }
+    }, p.pct, "%"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0,
+        fontSize: 11.5,
+        color: 'var(--ink-soft)'
+      }
+    }, p.qtd, " de ", total))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: 'var(--bg)',
+        borderRadius: 6,
+        height: 10,
+        overflow: 'hidden',
+        marginBottom: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: '100%',
+        background: p.cor,
+        width: `${p.pct}%`,
+        transition: 'width 0.4s ease'
+      }
+    })), /*#__PURE__*/React.createElement("p", {
+      style: {
+        fontSize: 13.5,
+        margin: '0 0 10px'
+      }
+    }, p.descricao), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10,
+        fontSize: 12.5
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: '0 0 2px',
+        fontWeight: 600,
+        color: 'var(--ink-soft)'
+      }
+    }, "Pontos fortes"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0
+      }
+    }, p.pontosFortes)), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: '0 0 2px',
+        fontWeight: 600,
+        color: 'var(--ink-soft)'
+      }
+    }, "Pontos de melhoria"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0
+      }
+    }, p.pontosMelhoria)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        gridColumn: '1 / -1'
+      }
+    }, /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: '0 0 2px',
+        fontWeight: 600,
+        color: 'var(--ink-soft)'
+      }
+    }, "Profissões comuns"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        margin: 0
+      }
+    }, p.profissoes))))));
+  })()) : dashboardTarefa.porPergunta.length === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card empty-state"
   }, "Esta tarefa não possui perguntas registradas.") : dashboardTarefa.porPergunta.map((p, idx) => /*#__PURE__*/React.createElement("div", {
     className: "card",
