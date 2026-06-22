@@ -629,6 +629,213 @@ function ModalCadastrarTarefa({
 }
 
 /* ============== PÁGINA: VISÃO GERAL (INDEX) ============== */
+/* ============== GERAÇÃO DE PDF POR TAREFA ============== */
+function gerarPDFTarefa(dashboardTarefa, respostas, empresas) {
+  const empresaNome = id => empresas.find(e => e.id === id)?.nome || '-';
+  const dataHoje = new Date().toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+  const empresaResp = empresaNome(respostas[0]?.companyId);
+  let conteudoAgregado = '';
+  let conteudoIndividual = '';
+  if (dashboardTarefa.formato === 'perfil_comportamental') {
+    const total = dashboardTarefa.totalRespostas;
+    const entradas = Object.entries(PERFIS_COMPORTAMENTAIS).map(([key, p]) => ({
+      key,
+      ...p,
+      qtd: dashboardTarefa.contagem[key],
+      pct: total ? Math.round(dashboardTarefa.contagem[key] / total * 100) : 0
+    })).sort((a, b) => b.qtd - a.qtd);
+    const dominante = entradas[0];
+    conteudoAgregado = `
+      <div class="card destaque">
+        <span class="emoji-big">${dominante.emoji}</span>
+        <div>
+          <div class="label-small">Perfil predominante no grupo</div>
+          <div class="perfil-destaque" style="color:${'#' + dominante.cor}">${dominante.nome} · ${dominante.pct}%</div>
+        </div>
+      </div>
+      <h2>Distribuição de Perfis</h2>
+      ${entradas.map(p => `
+        <div class="perfil-row">
+          <span class="perfil-emoji">${p.emoji}</span>
+          <span class="perfil-nome">${p.nome}</span>
+          <div class="barra-wrap">
+            <div class="barra" style="width:${p.pct}%;background:${'#' + p.cor}"></div>
+          </div>
+          <span class="perfil-pct">${p.pct}% (${p.qtd})</span>
+        </div>
+      `).join('')}
+      <h2>Interpretação dos Perfis Presentes</h2>
+      ${entradas.filter(p => p.qtd > 0).map(p => `
+        <div class="perfil-card" style="border-left: 4px solid ${'#' + p.cor}">
+          <div class="perfil-titulo" style="color:${'#' + p.cor}">${p.emoji} ${p.nome} — ${p.palavraChave}</div>
+          <p>${p.descricao}</p>
+          <div class="grid-2">
+            <div><strong>Pontos fortes:</strong> ${p.pontosFortes}</div>
+            <div><strong>Pontos de melhoria:</strong> ${p.pontosMelhoria}</div>
+          </div>
+          <div><strong>O que motiva:</strong> ${p.motivacao}</div>
+          <div><strong>Comunicação:</strong> ${p.comunicacao}</div>
+        </div>
+      `).join('')}
+    `;
+    conteudoIndividual = `
+      <h2>Respondentes Individuais</h2>
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Cargo</th><th>Sexo</th><th>Perfil Dominante</th></tr>
+        </thead>
+        <tbody>
+          ${respostas.map(r => {
+      const p = PERFIS_COMPORTAMENTAIS[r.perfilDominante] || {};
+      return `<tr>
+              <td>${r.nomeColaborador || '-'}</td>
+              <td>${r.cargo || '-'}</td>
+              <td>${r.sexo || '-'}</td>
+              <td style="color:${'#' + (p.cor || '444')};font-weight:600">${p.emoji || ''} ${p.nome || r.perfilDominante || '-'}</td>
+            </tr>`;
+    }).join('')}
+        </tbody>
+      </table>
+    `;
+  } else {
+    // Formato escala (clima, NR-01 etc)
+    const perguntas = dashboardTarefa.porPergunta || [];
+    conteudoAgregado = `
+      <h2>Resultados por Pergunta</h2>
+      ${perguntas.map((p, idx) => `
+        <div class="pergunta-card">
+          <div class="pergunta-titulo">${idx + 1}. ${typeof p.pergunta === 'string' ? p.pergunta : p.pergunta?.pergunta || ''}</div>
+          <div class="media-linha">
+            <span class="media-valor">${p.totalRespostas ? p.media : '-'}</span>
+            <span class="media-label">média (escala 1–5)</span>
+          </div>
+          <div class="dist-barras">
+            ${[1, 2, 3, 4, 5].map((nota, i) => `
+              <div class="dist-linha">
+                <span class="dist-nota">${nota}</span>
+                <div class="barra-wrap">
+                  <div class="barra barra-escala" style="width:${p.totalRespostas ? Math.round(p.distribuicao[i] / p.totalRespostas * 100) : 0}%"></div>
+                </div>
+                <span class="dist-qtd">${p.distribuicao[i]}</span>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    `;
+    conteudoIndividual = `
+      <h2>Respondentes Individuais</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Nome</th><th>Cargo</th><th>Sexo</th>
+            ${perguntas.map((_, i) => `<th>Q${i + 1}</th>`).join('')}
+          </tr>
+        </thead>
+        <tbody>
+          ${respostas.map(r => `<tr>
+            <td>${r.nomeColaborador || '-'}</td>
+            <td>${r.cargo || '-'}</td>
+            <td>${r.sexo || '-'}</td>
+            ${perguntas.map((_, i) => `<td style="text-align:center">${r.respostas?.[i] ?? '-'}</td>`).join('')}
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    `;
+  }
+  const html = `<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<title>${dashboardTarefa.titulo}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; font-size: 13px; color: #1f1d1a; padding: 32px 40px; }
+  .header { border-bottom: 3px solid #b8976a; padding-bottom: 14px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+  .header-titulo { font-size: 20px; font-weight: 700; color: #2e2b28; }
+  .header-sub { font-size: 12px; color: #888; margin-top: 4px; }
+  .header-logo { font-size: 12px; color: #b8976a; font-weight: 600; letter-spacing: 0.5px; text-align: right; }
+  .kpi-row { display: flex; gap: 16px; margin-bottom: 24px; }
+  .kpi { flex: 1; border: 1px solid #e3e0da; border-radius: 8px; padding: 12px 16px; }
+  .kpi-label { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .kpi-value { font-size: 24px; font-weight: 700; color: #2e2b28; }
+  h2 { font-size: 15px; color: #2e2b28; margin: 24px 0 12px; border-bottom: 1px solid #e3e0da; padding-bottom: 6px; }
+  .card { border: 1px solid #e3e0da; border-radius: 8px; padding: 14px 18px; margin-bottom: 14px; }
+  .destaque { display: flex; gap: 16px; align-items: center; background: #f3ead9; border-color: #e6d4b5; }
+  .emoji-big { font-size: 36px; }
+  .label-small { font-size: 11px; color: #888; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px; }
+  .perfil-destaque { font-size: 18px; font-weight: 700; }
+  .perfil-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .perfil-emoji { font-size: 18px; width: 24px; }
+  .perfil-nome { width: 80px; font-weight: 600; font-size: 13px; }
+  .barra-wrap { flex: 1; background: #f0ede8; border-radius: 4px; height: 10px; overflow: hidden; }
+  .barra { height: 100%; border-radius: 4px; min-width: 2px; }
+  .perfil-pct { width: 70px; text-align: right; font-size: 12px; color: #666; }
+  .perfil-card { border-left: 4px solid #ccc; padding: 12px 14px; margin-bottom: 12px; background: #faf9f7; font-size: 12.5px; line-height: 1.6; }
+  .perfil-titulo { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 6px 0; }
+  .pergunta-card { border: 1px solid #e3e0da; border-radius: 6px; padding: 12px 14px; margin-bottom: 12px; }
+  .pergunta-titulo { font-weight: 600; margin-bottom: 8px; font-size: 13px; }
+  .media-linha { margin-bottom: 8px; }
+  .media-valor { font-size: 22px; font-weight: 700; color: #2e2b28; margin-right: 6px; }
+  .media-label { font-size: 12px; color: #888; }
+  .dist-linha { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+  .dist-nota { width: 12px; color: #666; }
+  .dist-qtd { width: 20px; text-align: right; color: #666; }
+  .barra-escala { background: #b8976a; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; }
+  th { background: #2e2b28; color: #fff; padding: 8px 10px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 0.3px; }
+  td { padding: 8px 10px; border-bottom: 1px solid #e3e0da; }
+  tr:nth-child(even) td { background: #faf9f7; }
+  .footer { margin-top: 32px; padding-top: 12px; border-top: 1px solid #e3e0da; font-size: 11px; color: #aaa; display: flex; justify-content: space-between; }
+  @media print {
+    body { padding: 20px 28px; }
+    @page { margin: 1.5cm; }
+  }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="header-titulo">${dashboardTarefa.titulo}</div>
+      <div class="header-sub">${dashboardTarefa.tipo} · ${empresaResp} · Gerado em ${dataHoje}</div>
+    </div>
+    <div class="header-logo">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div>
+  </div>
+
+  <div class="kpi-row">
+    <div class="kpi">
+      <div class="kpi-label">Total de respondentes</div>
+      <div class="kpi-value">${respostas.length}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Empresa</div>
+      <div class="kpi-value" style="font-size:16px">${empresaResp}</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Tipo de avaliação</div>
+      <div class="kpi-value" style="font-size:16px">${dashboardTarefa.tipo}</div>
+    </div>
+  </div>
+
+  ${conteudoAgregado}
+  ${conteudoIndividual}
+
+  <div class="footer">
+    <span>Plataforma de Avaliação Organizacional · Instituto Propagare</span>
+    <span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span>
+  </div>
+</body>
+</html>`;
+  const janela = window.open('', '_blank');
+  janela.document.write(html);
+  janela.document.close();
+  setTimeout(() => janela.print(), 400);
+}
 function PaginaIndex() {
   const [respostas, setRespostas] = useState([]);
   const [empresas, setEmpresas] = useState([]);
@@ -801,8 +1008,13 @@ function PaginaIndex() {
   }, t.titulo)))), loading ? /*#__PURE__*/React.createElement("div", {
     className: "empty-state"
   }, "Carregando...") : dashboardTarefa ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    className: "card"
-  }, /*#__PURE__*/React.createElement("h3", {
+    className: "card",
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
     style: {
       marginTop: 0
     }
@@ -812,7 +1024,10 @@ function PaginaIndex() {
       fontSize: 13,
       marginTop: -8
     }
-  }, dashboardTarefa.tipo, " · ", respostasFiltradas.length, " resposta(s)")), dashboardTarefa.formato === 'perfil_comportamental' ? dashboardTarefa.totalRespostas === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, dashboardTarefa.tipo, " · ", respostasFiltradas.length, " resposta(s)")), respostasFiltradas.length > 0 && /*#__PURE__*/React.createElement("button", {
+    className: "btn gold",
+    onClick: () => gerarPDFTarefa(dashboardTarefa, respostasFiltradas, empresas)
+  }, "⬇ Exportar PDF")), dashboardTarefa.formato === 'perfil_comportamental' ? dashboardTarefa.totalRespostas === 0 ? /*#__PURE__*/React.createElement("div", {
     className: "card empty-state"
   }, "Nenhuma resposta registrada ainda para esta tarefa.") : /*#__PURE__*/React.createElement("div", null, (() => {
     const total = dashboardTarefa.totalRespostas;
