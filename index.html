@@ -405,61 +405,193 @@ function calcularPerfil(escolhas) {
     const op = PERGUNTAS_PERFIL[pergIdx]?.opcoes[opcaoIdx];
     if (op) pontos[op.perfil] += 1;
   });
+  // % proporcional: pontos / total de perguntas × 100
+  const totalPerguntas = escolhas.length || 10;
+  const pct = {};
+  Object.keys(pontos).forEach(k => {
+    pct[k] = Math.round(pontos[k] / totalPerguntas * 100);
+  });
   const dominante = Object.entries(pontos).sort((a, b) => b[1] - a[1])[0][0];
   return {
     pontos,
+    pct,
     dominante
   };
 }
 
 /* ============== GERAÇÃO DE PDF ============== */
+function radarSVG(pct, size) {
+  size = size || 190;
+  var cx = size / 2,
+    cy = size / 2,
+    r = size * 0.36;
+  var perfisOrdem = ['aguia', 'golfinho', 'lobo', 'tubarao'];
+  var labels = ['Águia', 'Golfinho', 'Lobo', 'Tubarão'];
+  var emojis = ['🦅', '🐬', '🐺', '🦈'];
+  var cores = ['#7B5FC4', '#2E9CCA', '#5A9B72', '#E05C4A'];
+  var n = 4;
+  var angBase = -Math.PI / 2;
+  var pts = perfisOrdem.map(function (k, i) {
+    var ang = angBase + 2 * Math.PI * i / n;
+    var val = (pct[k] || 0) / 100;
+    return {
+      x: cx + r * val * Math.cos(ang),
+      y: cy + r * val * Math.sin(ang),
+      ang: ang
+    };
+  });
+  var grades = [0.25, 0.5, 0.75, 1].map(function (frac) {
+    var gpts = perfisOrdem.map(function (_, i) {
+      var ang = angBase + 2 * Math.PI * i / n;
+      return (cx + r * frac * Math.cos(ang)).toFixed(1) + ',' + (cy + r * frac * Math.sin(ang)).toFixed(1);
+    }).join(' ');
+    return '<polygon points="' + gpts + '" fill="none" stroke="#ddd" stroke-width="0.5"/>';
+  }).join('');
+  var eixos = perfisOrdem.map(function (_, i) {
+    var ang = angBase + 2 * Math.PI * i / n;
+    return '<line x1="' + cx.toFixed(1) + '" y1="' + cy.toFixed(1) + '" x2="' + (cx + r * Math.cos(ang)).toFixed(1) + '" y2="' + (cy + r * Math.sin(ang)).toFixed(1) + '" stroke="#ccc" stroke-width="0.8"/>';
+  }).join('');
+  var area = '<polygon points="' + pts.map(function (p) {
+    return p.x.toFixed(1) + ',' + p.y.toFixed(1);
+  }).join(' ') + '" fill="#b8976a33" stroke="#b8976a" stroke-width="2"/>';
+  var pontos = pts.map(function (p, i) {
+    return '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="4" fill="' + cores[i] + '"/>';
+  }).join('');
+  var labelOff = 26;
+  var labelsHTML = perfisOrdem.map(function (_, i) {
+    var ang = angBase + 2 * Math.PI * i / n;
+    var lx = cx + (r + labelOff) * Math.cos(ang);
+    var ly = cy + (r + labelOff) * Math.sin(ang);
+    var anchor = Math.cos(ang) > 0.1 ? 'start' : Math.cos(ang) < -0.1 ? 'end' : 'middle';
+    return '<text x="' + lx.toFixed(1) + '" y="' + ly.toFixed(1) + '" text-anchor="' + anchor + '" dominant-baseline="middle" font-size="9" fill="#555" font-family="Arial">' + emojis[i] + ' ' + labels[i] + '</text>';
+  }).join('');
+  var pctLabels = pts.map(function (p, i) {
+    var k = perfisOrdem[i];
+    var v = pct[k] || 0;
+    if (!v) return '';
+    var ang = angBase + 2 * Math.PI * i / n;
+    var ox = 10 * Math.cos(ang),
+      oy = 10 * Math.sin(ang);
+    return '<text x="' + (p.x + ox).toFixed(1) + '" y="' + (p.y + oy).toFixed(1) + '" text-anchor="middle" font-size="8" fill="' + cores[i] + '" font-weight="bold" font-family="Arial">' + v + '%</text>';
+  }).join('');
+  return '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" xmlns="http://www.w3.org/2000/svg">' + grades + eixos + area + pontos + labelsHTML + pctLabels + '</svg>';
+}
+function interpretacaoCombinada(pct, dominante) {
+  var ranking = Object.entries(pct).sort(function (a, b) {
+    return b[1] - a[1];
+  });
+  var segundo = ranking[1];
+  var dom = PERFIS_COMPORTAMENTAIS[dominante];
+  var seg = PERFIS_COMPORTAMENTAIS[segundo[0]];
+  var combos = {
+    'aguia_golfinho': 'Combinação de visão criativa com sensibilidade às pessoas. Tende a inovar preservando o clima, propondo mudanças de forma empática e inclusiva.',
+    'aguia_lobo': 'Criatividade com organização. Capaz de gerar ideias e estruturá-las em planos concretos. O desafio é equilibrar experimentação e processos.',
+    'aguia_tubarao': 'Alta energia inovadora aliada ao senso de urgência. Perfil empreendedor: age rápido e pensa diferente. Pode ter dificuldade em projetos longos sem variedade.',
+    'golfinho_aguia': 'Empatia com criatividade. Cria conexões significativas e resolve problemas com originalidade. Pode precisar de suporte para manter foco e cumprir prazos.',
+    'golfinho_lobo': 'Sensibilidade equilibrada com método. Colaborativo e organizado, humaniza os processos. Pode ter dificuldade com situações de conflito direto.',
+    'golfinho_tubarao': 'Orientação a pessoas com foco em resultados. Lidera com cuidado sem perder de vista as metas. O desafio é não sacrificar o clima pela entrega.',
+    'lobo_aguia': 'Método com abertura para inovar. Organizado mas flexível quando necessário. Pode alternar entre alta estrutura e picos criativos.',
+    'lobo_golfinho': 'Organização com foco em pessoas. Constrói processos que respeitam o coletivo. Tende a ser leal, pontual e cuidadoso nas relações.',
+    'lobo_tubarao': 'Planejamento com execução acelerada. Combina precisão e urgência na entrega. Pode ser exigente consigo e com os outros sob pressão.',
+    'tubarao_aguia': 'Resultado com inovação. Age rápido e pensa fora da caixa. Perfil de alta performance, mas pode descuidar de processos e pessoas no caminho.',
+    'tubarao_golfinho': 'Foco em resultado equilibrado com cuidado com o time. Sabe quando pressionar e quando ouvir. Tende a ser respeitado como líder por entregar e se importar.',
+    'tubarao_lobo': 'Resultado com precisão. Executa com velocidade sem abrir mão da qualidade. Pode ser perfeccionista sob pressão e ter dificuldade em delegar.'
+  };
+  var chave = dominante + '_' + segundo[0];
+  return combos[chave] || 'Perfil predominante ' + dom.nome + ' com influência de ' + seg.nome + '. Combina características de ' + dom.palavraChave.toLowerCase() + ' e ' + seg.palavraChave.toLowerCase() + '.';
+}
 function gerarPDFTarefa(tarefa, respostas, empresaNome) {
-  const dataHoje = new Date().toLocaleDateString('pt-BR', {
+  var dataHoje = new Date().toLocaleDateString('pt-BR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric'
   });
-  let conteudoAgregado = '',
-    conteudoIndividual = '';
+  var conteudo = '';
   if (tarefa.formato === 'perfil_comportamental') {
-    const total = respostas.length;
-    const contagem = {
+    var total = respostas.length;
+    var contagem = {
       aguia: 0,
       golfinho: 0,
       lobo: 0,
       tubarao: 0
     };
-    respostas.forEach(r => {
+    respostas.forEach(function (r) {
       if (r.perfilDominante && contagem[r.perfilDominante] !== undefined) contagem[r.perfilDominante]++;
     });
-    const entradas = Object.entries(PERFIS_COMPORTAMENTAIS).map(([k, p]) => ({
-      key: k,
-      ...p,
-      qtd: contagem[k],
-      pct: total ? Math.round(contagem[k] / total * 100) : 0
-    })).sort((a, b) => b.qtd - a.qtd);
-    const dom = entradas[0];
-    conteudoAgregado = `<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">${dom.emoji}</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante</div><div style="font-size:18px;font-weight:700;color:${dom.cor}">${dom.nome} · ${dom.pct}%</div></div></div><h2 style="font-size:15px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição</h2>${entradas.map(p => `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:18px;width:24px">${p.emoji}</span><span style="width:80px;font-size:13px;font-weight:600">${p.nome}</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:10px;overflow:hidden"><div style="height:100%;background:${p.cor};width:${p.pct}%;border-radius:4px"></div></div><span style="width:60px;text-align:right;font-size:12px;color:#666">${p.pct}% (${p.qtd})</span></div>`).join('')}${entradas.filter(p => p.qtd > 0).map(p => `<div style="border-left:4px solid ${p.cor};padding:10px 14px;margin:10px 0;background:#faf9f7;font-size:12px;line-height:1.6"><div style="font-weight:700;color:${p.cor};margin-bottom:4px">${p.emoji} ${p.nome} — ${p.palavraChave}</div><p style="margin:0 0 4px">${p.descricao}</p><b>Pontos fortes:</b> ${p.pontosFortes} · <b>Melhoria:</b> ${p.pontosMelhoria}</div>`).join('')}`;
-    conteudoIndividual = `<h2 style="font-size:15px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff"><th style="padding:8px 10px;text-align:left">Nome</th><th style="padding:8px 10px;text-align:left">Cargo</th><th style="padding:8px 10px;text-align:left">Sexo</th><th style="padding:8px 10px;text-align:left">Perfil</th></tr></thead><tbody>${respostas.map((r, i) => {
-      const p = PERFIS_COMPORTAMENTAIS[r.perfilDominante] || {};
-      return `<tr style="background:${i % 2 === 0 ? '#fff' : '#faf9f7'}"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.nomeColaborador || '-'}</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.cargo || '-'}</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.sexo || '-'}</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da;color:${p.cor || '#444'};font-weight:600">${p.emoji || ''} ${p.nome || r.perfilDominante || '-'}</td></tr>`;
-    }).join('')}</tbody></table>`;
-  } else {
-    const perguntas = tarefa.perguntas || [];
-    conteudoAgregado = perguntas.map((perg, idx) => {
-      const pergTexto = typeof perg === 'string' ? perg : perg?.pergunta || '';
-      const valores = respostas.map(r => r.respostas?.[idx]).filter(v => typeof v === 'number');
-      const media = valores.length ? (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2) : '-';
-      const dist = [1, 2, 3, 4, 5].map(n => valores.filter(v => v === n).length);
-      return `<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">${idx + 1}. ${pergTexto}</div><div style="font-size:22px;font-weight:700;margin-bottom:8px">${media} <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>${dist.map((qtd, i) => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">${i + 1}</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:${valores.length ? Math.round(qtd / valores.length * 100) : 0}%"></div></div><span style="width:20px;text-align:right;color:#666">${qtd}</span></div>`).join('')}</div>`;
+    var entradas = Object.entries(PERFIS_COMPORTAMENTAIS).map(function ([k, p]) {
+      return Object.assign({
+        key: k
+      }, p, {
+        qtd: contagem[k],
+        pct: total ? Math.round(contagem[k] / total * 100) : 0
+      });
+    }).sort(function (a, b) {
+      return b.qtd - a.qtd;
+    });
+    var dom = entradas[0];
+    var distGrupo = entradas.map(function (p) {
+      return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">' + '<span style="font-size:16px;width:22px">' + p.emoji + '</span>' + '<span style="width:76px;font-size:12px;font-weight:600">' + p.nome + '</span>' + '<div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden">' + '<div style="height:100%;background:' + p.cor + ';width:' + p.pct + '%;border-radius:4px"></div>' + '</div>' + '<span style="width:70px;text-align:right;font-size:12px;color:#666">' + p.pct + '% (' + p.qtd + ')</span>' + '</div>';
     }).join('');
-    conteudoIndividual = `<h2 style="font-size:15px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff"><th style="padding:8px 10px;text-align:left">Nome</th><th style="padding:8px 10px;text-align:left">Cargo</th><th style="padding:8px 10px;text-align:left">Sexo</th>${perguntas.map((_, i) => `<th style="padding:8px 10px;text-align:center">Q${i + 1}</th>`).join('')}</tr></thead><tbody>${respostas.map((r, i) => `<tr style="background:${i % 2 === 0 ? '#fff' : '#faf9f7'}"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.nomeColaborador || '-'}</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.cargo || '-'}</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">${r.sexo || '-'}</td>${perguntas.map((_, idx) => `<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">${r.respostas?.[idx] ?? '-'}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    var explicacoes = Object.entries(PERFIS_COMPORTAMENTAIS).map(function ([k, p]) {
+      return '<div style="border-left:4px solid ' + p.cor + ';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6">' + '<div style="font-weight:700;color:' + p.cor + ';margin-bottom:4px;font-size:13px">' + p.emoji + ' ' + p.nome + ' — ' + p.palavraChave + '</div>' + '<p style="margin:0 0 6px">' + p.descricao + '</p>' + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">' + '<div><b>Pontos fortes:</b> ' + p.pontosFortes + '</div>' + '<div><b>Pontos de melhoria:</b> ' + p.pontosMelhoria + '</div>' + '<div><b>O que motiva:</b> ' + p.motivacao + '</div>' + '<div><b>Comunicação:</b> ' + p.comunicacao + '</div>' + '<div style="grid-column:1/-1"><b>Profissões comuns:</b> ' + p.profissoes + '</div>' + '</div>' + '</div>';
+    }).join('');
+    var individuais = respostas.map(function (r) {
+      var p = PERFIS_COMPORTAMENTAIS[r.perfilDominante] || {};
+      var pts = r.pontosPorPerfil || {};
+      var t = Object.values(pts).reduce(function (a, b) {
+        return a + b;
+      }, 0) || 10;
+      var pct = {};
+      ['aguia', 'golfinho', 'lobo', 'tubarao'].forEach(function (k) {
+        pct[k] = Math.round((pts[k] || 0) / t * 100);
+      });
+      var interp = r.perfilDominante ? interpretacaoCombinada(pct, r.perfilDominante) : '';
+      var barras = Object.entries(PERFIS_COMPORTAMENTAIS).map(function ([k, pp]) {
+        return '<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px">' + '<span style="width:16px">' + pp.emoji + '</span>' + '<span style="width:58px;color:#666">' + pp.nome + '</span>' + '<div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden">' + '<div style="height:100%;background:' + pp.cor + ';width:' + (pct[k] || 0) + '%"></div>' + '</div>' + '<span style="width:28px;text-align:right;font-weight:700;color:' + pp.cor + '">' + (pct[k] || 0) + '%</span>' + '</div>';
+      }).join('');
+      return '<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid">' + '<div style="display:flex;gap:16px;align-items:flex-start">' + '<div style="text-align:center;min-width:192px">' + radarSVG(pct, 192) + '</div>' + '<div style="flex:1">' + '<div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">' + (r.nomeColaborador || '-') + '</div>' + '<div style="font-size:12px;color:#888;margin-bottom:10px">' + (r.cargo || '-') + ' · ' + (r.sexo || '-') + '</div>' + '<div style="display:inline-block;background:' + p.cor + '22;border:1px solid ' + p.cor + '55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:' + (p.cor || '#888') + ';margin-bottom:10px">' + (p.emoji || '') + ' ' + (p.nome || '-') + ' (perfil dominante)</div>' + '<div style="margin-bottom:10px">' + barras + '</div>' + '<div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #b8976a">' + '<b style="color:#b8976a">Interpretação:</b> ' + interp + '</div>' + '</div>' + '</div>' + '</div>';
+    }).join('');
+    conteudo = '<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px">' + '<span style="font-size:36px">' + dom.emoji + '</span>' + '<div>' + '<div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div>' + '<div style="font-size:18px;font-weight:700;color:' + dom.cor + '">' + dom.nome + ' · ' + dom.pct + '% dos respondentes</div>' + '</div>' + '</div>' + '<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>' + distGrupo + '<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>' + explicacoes + '<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>' + individuais;
+  } else {
+    var perguntas = tarefa.perguntas || [];
+    conteudo = perguntas.map(function (perg, idx) {
+      var pergTexto = typeof perg === 'string' ? perg : perg && perg.pergunta ? perg.pergunta : '';
+      var valores = respostas.map(function (r) {
+        return r.respostas && r.respostas[idx];
+      }).filter(function (v) {
+        return typeof v === 'number';
+      });
+      var media = valores.length ? (valores.reduce(function (a, b) {
+        return a + b;
+      }, 0) / valores.length).toFixed(2) : '-';
+      var dist = [1, 2, 3, 4, 5].map(function (n) {
+        return valores.filter(function (v) {
+          return v === n;
+        }).length;
+      });
+      return '<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px">' + '<div style="font-weight:600;margin-bottom:8px;font-size:13px">' + (idx + 1) + '. ' + pergTexto + '</div>' + '<div style="font-size:22px;font-weight:800;margin-bottom:8px">' + media + ' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>' + dist.map(function (qtd, i) {
+        return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">' + (i + 1) + '</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:' + (valores.length ? Math.round(qtd / valores.length * 100) : 0) + '%"></div></div><span style="width:20px;text-align:right;color:#666">' + qtd + '</span></div>';
+      }).join('') + '</div>';
+    }).join('') + '<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2>' + '<table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">' + ['Nome', 'Cargo', 'Sexo'].concat(perguntas.map(function (_, i) {
+      return 'Q' + (i + 1);
+    })).map(function (h) {
+      return '<th style="padding:8px 10px;text-align:left">' + h + '</th>';
+    }).join('') + '</tr></thead><tbody>' + respostas.map(function (r, i) {
+      return '<tr style="background:' + (i % 2 === 0 ? '#fff' : '#faf9f7') + '">' + '<td style="padding:8px 10px;border-bottom:1px solid #e3e0da">' + (r.nomeColaborador || '-') + '</td>' + '<td style="padding:8px 10px;border-bottom:1px solid #e3e0da">' + (r.cargo || '-') + '</td>' + '<td style="padding:8px 10px;border-bottom:1px solid #e3e0da">' + (r.sexo || '-') + '</td>' + perguntas.map(function (_, idx) {
+        return '<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">' + (r.respostas && r.respostas[idx] != null ? r.respostas[idx] : '-') + '</td>';
+      }).join('') + '</tr>';
+    }).join('') + '</tbody></table>';
   }
-  const html = `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>${tarefa.titulo}</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body><div class="header"><div><div style="font-size:20px;font-weight:700;color:#2e2b28">${tarefa.titulo}</div><div style="font-size:12px;color:#888;margin-top:4px">${tarefa.tipo} · ${empresaNome} · Gerado em ${dataHoje}</div></div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div><div style="display:flex;gap:16px;margin-bottom:24px">${[['Total de respondentes', respostas.length], ['Empresa', empresaNome], ['Tipo', tarefa.tipo]].map(([l, v]) => `<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">${l}</div><div style="font-size:${typeof v === 'number' ? '24' : '16'}px;font-weight:700;color:#2e2b28">${v}</div></div>`).join('')}</div>${conteudoAgregado}${conteudoIndividual}<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div></body></html>`;
-  const w = window.open('', '_blank');
+  var kpis = [['Total de respondentes', respostas.length], ['Empresa', empresaNome], ['Tipo', tarefa.tipo]].map(function ([l, v]) {
+    return '<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px">' + '<div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">' + l + '</div>' + '<div style="font-size:' + (typeof v === 'number' ? '24' : '16') + 'px;font-weight:700;color:#2e2b28">' + v + '</div>' + '</div>';
+  }).join('');
+  var html = '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>' + tarefa.titulo + '</title>' + '<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}' + '.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}' + '.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}' + '@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body>' + '<div class="header"><div>' + '<div style="font-size:20px;font-weight:700;color:#2e2b28">' + tarefa.titulo + '</div>' + '<div style="font-size:12px;color:#888;margin-top:4px">' + tarefa.tipo + ' · ' + empresaNome + ' · Gerado em ' + dataHoje + '</div>' + '</div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>' + '<div style="display:flex;gap:16px;margin-bottom:24px">' + kpis + '</div>' + conteudo + '<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>' + '</body></html>';
+  var w = window.open('', '_blank');
   w.document.write(html);
   w.document.close();
-  setTimeout(() => w.print(), 400);
+  setTimeout(function () {
+    w.print();
+  }, 500);
 }
 
 /* ======================================================
@@ -2810,6 +2942,7 @@ function TestePerfilMobile({
       setEnviando(true);
       const {
         pontos,
+        pct,
         dominante
       } = calcularPerfil(novas);
       await db.collection('responses').add({
@@ -2822,6 +2955,7 @@ function TestePerfilMobile({
         formato: 'perfil_comportamental',
         escolhas: novas,
         pontosPorPerfil: pontos,
+        pctPorPerfil: pct,
         perfilDominante: dominante,
         dataResposta: firebase.firestore.FieldValue.serverTimestamp()
       });
@@ -2832,14 +2966,16 @@ function TestePerfilMobile({
       setResultado({
         dominante,
         perfilInfo: PERFIS_COMPORTAMENTAIS[dominante],
-        pontos
+        pontos,
+        pct
       });
     }
   };
   if (resultado) {
     const {
       perfilInfo,
-      pontos
+      pontos,
+      pct
     } = resultado;
     const totalPontos = Object.values(pontos).reduce((a, b) => a + b, 0);
     return /*#__PURE__*/React.createElement("div", {
@@ -2899,14 +3035,20 @@ function TestePerfilMobile({
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        marginBottom: 8
+        marginBottom: 10
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        fontSize: 16,
-        width: 22
+        fontSize: 18,
+        width: 24
       }
-    }, p.emoji), /*#__PURE__*/React.createElement("div", {
+    }, p.emoji), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        width: 72,
+        color: '#888'
+      }
+    }, p.nome), /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1,
         background: '#1a1d27',
@@ -2918,16 +3060,17 @@ function TestePerfilMobile({
       style: {
         height: '100%',
         background: p.cor,
-        width: `${totalPontos ? pontos[k] / totalPontos * 100 : 0}%`
+        width: `${pct[k] || 0}%`
       }
     })), /*#__PURE__*/React.createElement("span", {
       style: {
         fontSize: 12,
-        color: '#666',
-        width: 20,
+        fontWeight: 700,
+        color: p.cor,
+        width: 34,
         textAlign: 'right'
       }
-    }, pontos[k])))), /*#__PURE__*/React.createElement("button", {
+    }, pct[k] || 0, "%")))), /*#__PURE__*/React.createElement("button", {
       onClick: onEnviado,
       style: {
         background: '#b8976a',
