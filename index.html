@@ -9,6 +9,8 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #f4f3f1;
@@ -3877,785 +3879,338 @@ function PainelGrafico({
   }, TIPOS_GRAFICO.find(t => t.id === painel.tipo)?.icone, " ", TIPOS_GRAFICO.find(t => t.id === painel.tipo)?.label));
 }
 
-/* ---- ABA INDICADORES PRINCIPAL ---- */
-function AbaIndicadores({
-  empresas,
-  tarefas,
-  respostas
-}) {
-  const [empresaSel, setEmpresaSel] = useState(null);
-  const [paineis, setPaineis] = useState([]);
-  const [indicadoresCustom, setIndicadoresCustom] = useState([]);
-  const [modalDados, setModalDados] = useState(false);
-  const [modalGrafico, setModalGrafico] = useState(false);
-  const [editarPainel, setEditarPainel] = useState(null);
-  useEffect(() => {
-    if (!empresaSel) return;
-    const u1 = db.collection('companies').doc(empresaSel.id).collection('paineis').orderBy('criadoEm', 'desc').onSnapshot(s => setPaineis(s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }))));
-    const u2 = db.collection('companies').doc(empresaSel.id).collection('indicadores_config').onSnapshot(s => setIndicadoresCustom(s.docs.map(d => d.data())));
-    return () => {
-      u1();
-      u2();
-    };
-  }, [empresaSel?.id]);
-  const todosIndicadores = [...INDICADORES_PADRAO, ...indicadoresCustom];
-  const respostasEmp = empresaSel ? respostas.filter(r => r.companyId === empresaSel.id) : [];
-  const handleDeletePainel = async id => {
-    await db.collection('companies').doc(empresaSel.id).collection('paineis').doc(id).delete();
-  };
-
-  // Tela de seleção
-  if (!empresaSel) {
-    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
-      style: {
-        fontSize: 22,
-        fontWeight: 700,
-        margin: '0 0 4px',
-        color: '#1a1d2e'
-      }
-    }, "Indicadores"), /*#__PURE__*/React.createElement("p", {
-      style: {
-        color: '#6b7280',
-        fontSize: 13,
-        marginBottom: 28
-      }
-    }, "Selecione uma empresa para gerenciar indicadores e criar painéis"), empresas.length === 0 ? /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: '#ffffff',
-        border: '1px solid #d1d5e0',
-        borderRadius: 14,
-        padding: '50px 20px',
-        textAlign: 'center',
-        color: '#9ca3af'
-      }
-    }, "Nenhuma empresa cadastrada ainda.") : /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-        gap: 14
-      }
-    }, empresas.map(emp => {
-      const respEmp = respostas.filter(r => r.companyId === emp.id).length;
-      return /*#__PURE__*/React.createElement("button", {
-        key: emp.id,
-        onClick: () => {
-          setEmpresaSel(emp);
-          setPaineis([]);
-          setIndicadoresCustom([]);
-        },
-        style: {
-          background: '#ffffff',
-          border: '1px solid #d1d5e0',
-          borderRadius: 16,
-          padding: 22,
-          textAlign: 'left',
-          cursor: 'pointer'
-        },
-        onMouseEnter: e => e.currentTarget.style.borderColor = '#b8976a',
-        onMouseLeave: e => e.currentTarget.style.borderColor = '#2a2d3a'
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          width: 44,
-          height: 44,
-          borderRadius: 12,
-          background: '#b8976a22',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: 22,
-          marginBottom: 14
-        }
-      }, "🏢"), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 17,
-          fontWeight: 700,
-          color: '#1a1d2e',
-          marginBottom: 4
-        }
-      }, emp.nome), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 12,
-          color: '#6b7280',
-          marginBottom: 12
-        }
-      }, "Desde ", formatDate(emp.dataCriacao)), /*#__PURE__*/React.createElement("div", {
-        style: {
-          display: 'flex',
-          gap: 14
-        }
-      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 18,
-          fontWeight: 800,
-          color: '#b8976a'
-        }
-      }, respEmp), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontSize: 11,
-          color: '#9ca3af'
-        }
-      }, "respostas"))));
-    })));
-  }
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 14,
-      marginBottom: 28,
-      flexWrap: 'wrap'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setEmpresaSel(null),
-    style: {
-      background: '#ebeef3',
-      border: 'none',
-      color: '#b8976a',
-      borderRadius: 8,
-      padding: '7px 12px',
-      cursor: 'pointer',
-      fontSize: 13
-    }
-  }, "← Voltar"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("h1", {
-    style: {
-      fontSize: 22,
-      fontWeight: 700,
-      margin: 0,
-      color: '#1a1d2e'
-    }
-  }, empresaSel.nome), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: '#6b7280',
-      fontSize: 12,
-      margin: 0
-    }
-  }, "Dashboard de indicadores e painéis")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setModalDados(true),
-    style: {
-      background: '#ebeef3',
-      color: '#b8976a',
-      border: '1px solid #b8976a44',
-      borderRadius: 10,
-      padding: '9px 16px',
-      cursor: 'pointer',
-      fontWeight: 600,
-      fontSize: 13
-    }
-  }, "📥 Registrar dados"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setEditarPainel(null);
-      setModalGrafico(true);
-    },
-    style: {
-      background: '#b8976a',
-      color: '#1a0e00',
-      border: 'none',
-      borderRadius: 10,
-      padding: '9px 16px',
-      cursor: 'pointer',
-      fontWeight: 700,
-      fontSize: 13
-    }
-  }, "+ Criar gráfico"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-      gap: 12,
-      marginBottom: 24
-    }
-  }, [['Respostas totais', respostasEmp.length, '#b8976a', '📝'], ['Painéis salvos', paineis.length, '#7B5FC4', '📊'], ['Indicadores', todosIndicadores.length, '#2E9CCA', '🎯']].map(([l, v, c, ic]) => /*#__PURE__*/React.createElement("div", {
-    key: l,
-    style: {
-      background: '#ffffff',
-      border: '1px solid #d1d5e0',
-      borderRadius: 12,
-      padding: '14px 16px',
-      borderTop: `3px solid ${c}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 10,
-      color: '#6b7280',
-      textTransform: 'uppercase',
-      letterSpacing: .5,
-      marginBottom: 4
-    }
-  }, ic, " ", l), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 28,
-      fontWeight: 800,
-      color: '#1a1d2e'
-    }
-  }, v)))), paineis.length === 0 ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: '#ffffff',
-      border: '1px dashed #2a2d3a',
-      borderRadius: 16,
-      padding: '50px 20px',
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 36,
-      marginBottom: 12
-    }
-  }, "📊"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: '#6b7280',
-      fontSize: 14,
-      marginBottom: 8
-    }
-  }, "Nenhum gráfico criado ainda"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      color: '#9ca3af',
-      fontSize: 12,
-      marginBottom: 20
-    }
-  }, "Registre dados e crie seus primeiros painéis de visualização"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10,
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setModalDados(true),
-    style: {
-      background: '#ebeef3',
-      color: '#b8976a',
-      border: '1px solid #b8976a44',
-      borderRadius: 8,
-      padding: '9px 16px',
-      cursor: 'pointer',
-      fontSize: 13
-    }
-  }, "📥 Registrar dados primeiro"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setModalGrafico(true),
-    style: {
-      background: '#b8976a',
-      color: '#1a0e00',
-      border: 'none',
-      borderRadius: 8,
-      padding: '9px 16px',
-      cursor: 'pointer',
-      fontWeight: 700,
-      fontSize: 13
-    }
-  }, "+ Criar gráfico"))) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: 'repeat(auto-fill, minmax(560px, 1fr))',
-      gap: 18
-    }
-  }, paineis.map(p => /*#__PURE__*/React.createElement(PainelGrafico, {
-    key: p.id,
-    painel: p,
-    empresaId: empresaSel.id,
-    respostas: respostasEmp,
-    onEdit: () => {
-      setEditarPainel(p);
-      setModalGrafico(true);
-    },
-    onDelete: () => handleDeletePainel(p.id)
-  }))), modalDados && /*#__PURE__*/React.createElement(ModalEntradaDados, {
-    empresaId: empresaSel.id,
-    indicadores: todosIndicadores,
-    onClose: () => setModalDados(false)
-  }), modalGrafico && /*#__PURE__*/React.createElement(ModalConstruirGrafico, {
-    empresaId: empresaSel.id,
-    indicadores: todosIndicadores,
-    respostas: respostasEmp,
-    painelExistente: editarPainel,
-    onSave: () => {},
-    onClose: () => {
-      setModalGrafico(false);
-      setEditarPainel(null);
-    }
-  }));
-}
-
 /* ======================================================
-   ABA APRESENTAÇÕES — MODO MENTIMETER
+   ABA INDICADORES — Visual estilo Dashboard Moreira
 ====================================================== */
-
-/* ---- Utilitário: gera código de sala ---- */
-function gerarCodigo() {
-  return 'PROP-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+const MESES_LABELS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+const ANOS_DISP = [2024, 2025, 2026, 2027];
+const KPI_CATEGORIAS = [{
+  id: 'rh',
+  label: 'RH e Pessoas',
+  icone: '👥',
+  cor: '#47448E',
+  corBg: '#EEEEF8',
+  indicadores: [{
+    id: 'turnover',
+    label: 'Turnover',
+    unidade: '%',
+    meta: 5,
+    metaDir: 'abaixo',
+    decimais: 2
+  }, {
+    id: 'absenteismo',
+    label: 'Absenteísmo',
+    unidade: '%',
+    meta: 3,
+    metaDir: 'abaixo',
+    decimais: 2
+  }, {
+    id: 'headcount',
+    label: 'Headcount',
+    unidade: '',
+    meta: null,
+    metaDir: null,
+    decimais: 0
+  }, {
+    id: 'custo_pessoal',
+    label: 'Custo Pessoal/Fat.',
+    unidade: '%',
+    meta: 30,
+    metaDir: 'abaixo',
+    decimais: 2
+  }]
+}, {
+  id: 'vendas',
+  label: 'Vendas e Faturamento',
+  icone: '💰',
+  cor: '#1B5E20',
+  corBg: '#E8F5E9',
+  indicadores: [{
+    id: 'faturamento',
+    label: 'Faturamento bruto',
+    unidade: 'R$',
+    meta: null,
+    metaDir: null,
+    decimais: 0
+  }, {
+    id: 'ticket_medio',
+    label: 'Ticket médio',
+    unidade: 'R$',
+    meta: null,
+    metaDir: null,
+    decimais: 2
+  }, {
+    id: 'transacoes',
+    label: 'Nº transações',
+    unidade: '',
+    meta: null,
+    metaDir: null,
+    decimais: 0
+  }]
+}, {
+  id: 'atendimento',
+  label: 'Atendimento',
+  icone: '⭐',
+  cor: '#E65100',
+  corBg: '#FFF3E0',
+  indicadores: [{
+    id: 'nps',
+    label: 'NPS',
+    unidade: '%',
+    meta: 70,
+    metaDir: 'acima',
+    decimais: 1
+  }, {
+    id: 'tempo_fila',
+    label: 'Tempo de fila',
+    unidade: 'min',
+    meta: 3,
+    metaDir: 'abaixo',
+    decimais: 1
+  }, {
+    id: 'avaliacao',
+    label: 'Avaliação média',
+    unidade: '/5',
+    meta: 4.5,
+    metaDir: 'acima',
+    decimais: 2
+  }]
+}, {
+  id: 'operacoes',
+  label: 'Operações e Estoque',
+  icone: '📦',
+  cor: '#BF360C',
+  corBg: '#FBE9E7',
+  indicadores: [{
+    id: 'ruptura',
+    label: 'Ruptura de estoque',
+    unidade: '%',
+    meta: 2,
+    metaDir: 'abaixo',
+    decimais: 1
+  }, {
+    id: 'giro_estoque',
+    label: 'Giro de estoque',
+    unidade: 'x',
+    meta: null,
+    metaDir: null,
+    decimais: 2
+  }]
+}];
+function fmtValor(v, ind) {
+  if (v === null || v === undefined || v === '') return '—';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '—';
+  const f = n.toLocaleString('pt-BR', {
+    minimumFractionDigits: ind.decimais,
+    maximumFractionDigits: ind.decimais
+  });
+  if (ind.unidade === 'R$') return 'R$ ' + f;
+  if (ind.unidade) return f + ' ' + ind.unidade;
+  return f;
+}
+function statusCor(v, ind) {
+  if (!ind.meta || v === null || v === undefined) return '#888';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '#888';
+  if (ind.metaDir === 'abaixo') return n <= ind.meta ? '#5A8A1A' : n <= ind.meta * 1.5 ? '#B87A00' : '#B83030';
+  if (ind.metaDir === 'acima') return n >= ind.meta ? '#5A8A1A' : n >= ind.meta * 0.7 ? '#B87A00' : '#B83030';
+  return '#888';
+}
+function statusBadge(v, ind) {
+  if (!ind.meta || v === null || v === undefined) return '';
+  const n = parseFloat(v);
+  if (isNaN(n)) return '';
+  const cor = statusCor(v, ind);
+  const bg = cor === '#5A8A1A' ? '#EAF3DE' : cor === '#B87A00' ? '#FFF8E1' : '#FCEBEB';
+  const tc = cor === '#5A8A1A' ? '#3B6D11' : cor === '#B87A00' ? '#7A5500' : '#791F1F';
+  return {
+    cor: tc,
+    bg
+  };
 }
 
-/* ---- Nuvem de palavras SVG ---- */
-function NuvemPalavras({
-  palavras,
-  width,
-  height
+/* ---- Chart.js inline (mini gráfico de linha por indicador) ---- */
+function SparkLine({
+  dados,
+  cor,
+  meta,
+  metaDir
 }) {
-  width = width || 560;
-  height = height || 300;
-  const {
-    useRef,
-    useEffect,
-    useState
-  } = React;
-  const [entradas, setEntradas] = useState([]);
-
-  // Calcula frequência e posições
-  const freq = {};
-  (palavras || []).forEach(p => {
-    const w = (p || '').trim().toLowerCase().replace(/[^\w\sáéíóúâêîôûãõàèìòùç]/g, '');
-    if (w.length > 1) freq[w] = (freq[w] || 0) + 1;
-  });
-  const lista = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 50);
-  const maxF = lista[0]?.[1] || 1;
-  const cores = ['#7B5FC4', '#2E9CCA', '#b8976a', '#5A9B72', '#E05C4A', '#e879a0', '#f59e0b', '#06b6d4'];
-  const tamanho = f => Math.round(13 + f / maxF * 36);
-  const peso = f => f === maxF ? 900 : f > maxF * 0.6 ? 700 : 500;
-
-  // Anima palavras novas
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
   useEffect(() => {
-    setEntradas(lista.map(([w], i) => ({
-      w,
-      i
-    })));
-  }, [palavras?.length]);
-  if (!lista.length) return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width,
-      height,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      color: '#555',
-      fontSize: 14
+    if (!canvasRef.current) return;
+    if (chartRef.current) {
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
-  }, "☁️ Aguardando respostas...");
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width,
-      height,
-      display: 'flex',
-      flexWrap: 'wrap',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: '10px 18px',
-      padding: 20,
-      overflow: 'hidden',
-      position: 'relative'
-    }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @keyframes wordPop { 0%{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.2) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
-        @keyframes wordGrow { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
-      `), lista.map(([word, f], i) => /*#__PURE__*/React.createElement("span", {
-    key: word,
-    style: {
-      fontSize: tamanho(f),
-      fontWeight: peso(f),
-      color: cores[i % cores.length],
-      lineHeight: 1.1,
-      display: 'inline-block',
-      animation: `wordPop .5s ease ${i * 0.04}s both`,
-      transition: 'font-size .6s cubic-bezier(.34,1.56,.64,1), color .3s',
-      cursor: 'default',
-      textShadow: f === maxF ? `0 0 20px ${cores[i % cores.length]}66` : 'none'
-    }
-  }, word, f > 1 && /*#__PURE__*/React.createElement("sup", {
-    style: {
-      fontSize: '55%',
-      opacity: .6,
-      marginLeft: 2
-    }
-  }, f))));
-}
-
-/* ---- Resultado ao vivo: Múltipla escolha ---- */
-function ResultadoMultipla({
-  opcoes,
-  respostas
-}) {
-  const total = respostas.length;
-  const contagem = {};
-  opcoes.forEach(o => {
-    contagem[o] = 0;
-  });
-  respostas.forEach(r => {
-    if (r.valor && contagem[r.valor] !== undefined) contagem[r.valor]++;
-  });
-  const maxQtd = Math.max(...Object.values(contagem), 1);
-  const cores = ['#7B5FC4', '#2E9CCA', '#5A9B72', '#E05C4A', '#b8976a', '#e879a0'];
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: '100%'
-    }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @keyframes barGrow { from{width:0} }
-        @keyframes countPulse { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
-      `), opcoes.map((op, i) => {
-    const qtd = contagem[op] || 0;
-    const pct = total ? Math.round(qtd / total * 100) : 0;
-    const isLider = qtd === maxQtd && qtd > 0;
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
-      style: {
-        marginBottom: 16
+    const vals = dados.filter(d => d !== null && d !== undefined);
+    if (!vals.length) return;
+    const labels = dados.map((_, i) => MESES_LABELS[i] || '');
+    chartRef.current = new Chart(canvasRef.current, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          data: dados,
+          borderColor: cor,
+          backgroundColor: cor + '18',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 3,
+          pointBackgroundColor: cor,
+          borderWidth: 2,
+          spanGaps: true
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            enabled: true
+          }
+        },
+        scales: {
+          x: {
+            grid: {
+              display: false
+            },
+            ticks: {
+              font: {
+                family: 'Nunito',
+                weight: '700',
+                size: 10
+              }
+            }
+          },
+          y: {
+            grid: {
+              color: 'rgba(0,0,0,.06)'
+            },
+            ticks: {
+              font: {
+                family: 'Nunito',
+                weight: '700',
+                size: 10
+              }
+            }
+          }
+        }
       }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        fontSize: 15,
-        marginBottom: 6
-      }
-    }, /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: isLider ? '#fff' : '#9ca3af',
-        fontWeight: isLider ? 700 : 400,
-        display: 'flex',
-        alignItems: 'center',
-        gap: 6
-      }
-    }, isLider && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 16
-      }
-    }, "🏆"), op), /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: cores[i % cores.length],
-        fontWeight: 900,
-        fontSize: 18,
-        animation: qtd > 0 ? 'countPulse .4s ease' : 'none',
-        display: 'inline-block'
-      }
-    }, pct, "%", /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: '#555',
-        fontWeight: 400,
-        fontSize: 13
-      }
-    }, " (", qtd, ")"))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: '#1e2235',
-        borderRadius: 10,
-        height: isLider ? 40 : 32,
-        overflow: 'hidden',
-        boxShadow: isLider ? `0 0 20px ${cores[i % cores.length]}44` : 'none'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: '100%',
-        background: isLider ? `linear-gradient(90deg,${cores[i % cores.length]},${cores[i % cores.length]}dd)` : `linear-gradient(90deg,${cores[i % cores.length]}88,${cores[i % cores.length]}55)`,
-        width: `${pct}%`,
-        borderRadius: 10,
-        transition: 'width .6s cubic-bezier(.34,1.56,.64,1)',
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft: 12,
-        boxShadow: isLider ? `inset 0 1px 0 rgba(255,255,255,0.2)` : 'none'
-      }
-    }, pct > 8 && /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: '#fff',
-        fontSize: 13,
-        fontWeight: 800
-      }
-    }, pct, "%"))));
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      fontSize: 13,
-      color: '#555',
-      marginTop: 12,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 8,
-      height: 8,
-      borderRadius: '50%',
-      background: '#5A9B72',
-      animation: 'pulse 1.5s infinite'
-    }
-  }), total, " resposta(s) ao vivo"));
-}
-
-/* ---- Resultado ao vivo: Escala ---- */
-function ResultadoEscala({
-  respostas
-}) {
-  const valores = respostas.map(r => parseInt(r.valor)).filter(v => v >= 1 && v <= 5);
-  const total = valores.length;
-  const media = total ? valores.reduce((a, b) => a + b, 0) / total : null;
-  const dist = [1, 2, 3, 4, 5].map(n => valores.filter(v => v === n).length);
-  const maxDist = Math.max(...dist, 1);
-  const corMedia = media ? media < 2.5 ? '#E05C4A' : media < 3.5 ? '#f59e0b' : '#5A9B72' : '#555';
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: '100%'
-    }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @keyframes mediaFade { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes barUp { from{height:0} }
-      `), media !== null && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      marginBottom: 28,
-      animation: 'mediaFade .5s ease'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 72,
-      fontWeight: 900,
-      color: corMedia,
-      lineHeight: 1,
-      textShadow: `0 0 40px ${corMedia}44`
-    }
-  }, media.toFixed(2)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: '#555',
-      marginTop: 4
-    }
-  }, total, " resposta(s)"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      margin: '14px auto',
-      width: 300,
-      height: 14,
-      background: '#1e2235',
-      borderRadius: 8,
-      overflow: 'hidden',
-      boxShadow: '0 0 12px rgba(0,0,0,0.3)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: '100%',
-      background: 'linear-gradient(90deg,#E05C4A,#f59e0b 50%,#5A9B72)',
-      width: `${(media - 1) / 4 * 100}%`,
-      borderRadius: 8,
-      transition: 'width .8s cubic-bezier(.34,1.56,.64,1)',
-      boxShadow: `0 0 16px ${corMedia}66`
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      width: 300,
-      margin: '0 auto',
-      fontSize: 11,
-      color: '#444'
-    }
-  }, /*#__PURE__*/React.createElement("span", null, "Discordo (1)"), /*#__PURE__*/React.createElement("span", null, "Neutro (3)"), /*#__PURE__*/React.createElement("span", null, "Concordo (5)"))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10,
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      height: 120
-    }
-  }, [1, 2, 3, 4, 5].map((n, i) => {
-    const h = maxDist ? Math.max(4, dist[i] / maxDist * 100) : 4;
-    const isMax = dist[i] === maxDist && dist[i] > 0;
-    const c = ['#E05C4A', '#f97316', '#f59e0b', '#84cc16', '#5A9B72'][i];
-    return /*#__PURE__*/React.createElement("div", {
-      key: n,
-      style: {
-        flex: 1,
-        textAlign: 'center',
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-end',
-        gap: 6
-      }
-    }, dist[i] > 0 && /*#__PURE__*/React.createElement("span", {
-      style: {
-        fontSize: 12,
-        fontWeight: 700,
-        color: c
-      }
-    }, dist[i]), /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: '100%',
-        maxWidth: 60,
-        background: isMax ? `linear-gradient(180deg,${c},${c}99)` : `${c}55`,
-        height: `${h}px`,
-        borderRadius: '6px 6px 0 0',
-        transition: 'height .7s cubic-bezier(.34,1.56,.64,1)',
-        boxShadow: isMax ? `0 0 20px ${c}55` : 'none',
-        animation: dist[i] > 0 ? 'barUp .6s ease' : 'none'
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontSize: 20,
-        fontWeight: 900,
-        color: isMax ? '#fff' : '#666'
-      }
-    }, n));
-  })));
-}
-
-/* ---- Resultado ao vivo: Pergunta aberta ---- */
-function ResultadoAberta({
-  respostas
-}) {
-  const {
-    useRef,
-    useEffect
-  } = React;
-  const endRef = useRef(null);
-  useEffect(() => {
-    endRef.current?.scrollIntoView({
-      behavior: 'smooth'
     });
-  }, [respostas.length]);
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: '100%'
+    // Linha de meta
+    if (meta) {
+      const metaPlugin = {
+        id: 'metaLine',
+        afterDraw(chart) {
+          const {
+            ctx,
+            chartArea,
+            scales
+          } = chart;
+          if (!chartArea) return;
+          const y = scales.y.getPixelForValue(meta);
+          ctx.save();
+          ctx.strokeStyle = metaDir === 'abaixo' ? '#E24B4A' : '#47448E';
+          ctx.setLineDash([5, 4]);
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.moveTo(chartArea.left, y);
+          ctx.lineTo(chartArea.right, y);
+          ctx.stroke();
+          ctx.restore();
+        }
+      };
+      chartRef.current.options.plugins.metaLine = {};
+      Chart.register(metaPlugin);
+      chartRef.current.update();
     }
-  }, /*#__PURE__*/React.createElement("style", null, `
-        @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
-      `), respostas.length === 0 && /*#__PURE__*/React.createElement("div", {
+    return () => {
+      if (chartRef.current) chartRef.current.destroy();
+    };
+  }, [JSON.stringify(dados), cor]);
+  return React.createElement('canvas', {
+    ref: canvasRef,
     style: {
-      textAlign: 'center',
-      color: '#555',
-      padding: '40px 20px',
-      fontSize: 14
+      width: '100%',
+      height: '100%'
     }
-  }, "💬 Aguardando respostas..."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      maxHeight: 340,
-      overflowY: 'auto',
-      paddingRight: 4
-    }
-  }, respostas.map((r, i) => /*#__PURE__*/React.createElement("div", {
-    key: r.id || i,
-    style: {
-      background: 'linear-gradient(135deg,#1e2235,#1a1d27)',
-      border: '1px solid #2a2d3a',
-      borderRadius: 12,
-      padding: '12px 16px',
-      marginBottom: 10,
-      animation: `slideUp .4s ease ${Math.min(i, 5) * 0.06}s both`,
-      borderLeft: `3px solid ${'#7B5FC4 #2E9CCA #b8976a #5A9B72 #E05C4A #e879a0'.split(' ')[i % 6]}`
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 15,
-      color: '#e8e4dc',
-      lineHeight: 1.5
-    }
-  }, "\"", r.valor, "\""), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: '#444',
-      marginTop: 6
-    }
-  }, r.nomeColaborador || 'Anônimo', r.cargo ? ` · ${r.cargo}` : ''))), /*#__PURE__*/React.createElement("div", {
-    ref: endRef
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      fontSize: 12,
-      color: '#555',
-      marginTop: 8
-    }
-  }, respostas.length, " resposta(s)"));
+  });
 }
 
-/* ---- Modal: Criar/Editar apresentação ---- */
-function ModalCriarApresentacao({
-  empresas,
-  apresentacaoExistente,
+/* ---- Modal de entrada de dados ---- */
+function ModalDadosIndicador({
+  empresa,
+  categoria,
+  indicador,
+  dadosExistentes,
   onClose
 }) {
-  const [titulo, setTitulo] = useState(apresentacaoExistente?.titulo || '');
-  const [empresaId, setEmpresaId] = useState(apresentacaoExistente?.empresaId || empresas[0]?.id || '');
-  const [slides, setSlides] = useState(apresentacaoExistente?.slides || []);
+  const anoAtual = new Date().getFullYear();
+  const [ano, setAno] = useState(String(anoAtual));
+  const [valores, setValores] = useState(() => {
+    const v = {};
+    MESES_LABELS.forEach((_, i) => {
+      const chave = `${ano}_${String(i).padStart(2, '0')}`;
+      v[i] = dadosExistentes?.[chave]?.valor ?? '';
+    });
+    return v;
+  });
   const [saving, setSaving] = useState(false);
-  const TIPOS_SLIDE = [{
-    id: 'multipla',
-    label: 'Múltipla escolha',
-    icon: '📊'
-  }, {
-    id: 'escala',
-    label: 'Escala 1-5',
-    icon: '⭐'
-  }, {
-    id: 'nuvem',
-    label: 'Nuvem de palavras',
-    icon: '☁️'
-  }, {
-    id: 'aberta',
-    label: 'Pergunta aberta',
-    icon: '💬'
-  }];
-  const adicionarSlide = tipo => {
-    const novoSlide = {
-      id: Date.now().toString(),
-      tipo,
-      pergunta: '',
-      opcoes: tipo === 'multipla' ? ['Opção A', 'Opção B', 'Opção C'] : []
-    };
-    setSlides(s => [...s, novoSlide]);
-  };
-  const atualizarSlide = (id, campo, valor) => {
-    setSlides(s => s.map(sl => sl.id === id ? {
-      ...sl,
-      [campo]: valor
-    } : sl));
-  };
-  const removerSlide = id => setSlides(s => s.filter(sl => sl.id !== id));
-  const moverSlide = (idx, dir) => {
-    const novoArray = [...slides];
-    const alvo = idx + dir;
-    if (alvo < 0 || alvo >= novoArray.length) return;
-    [novoArray[idx], novoArray[alvo]] = [novoArray[alvo], novoArray[idx]];
-    setSlides(novoArray);
-  };
+  const [saved, setSaved] = useState(false);
+
+  // Recarregar ao trocar ano
+  useEffect(() => {
+    const v = {};
+    MESES_LABELS.forEach((_, i) => {
+      const chave = `${ano}_${String(i).padStart(2, '0')}`;
+      v[i] = dadosExistentes?.[chave]?.valor ?? '';
+    });
+    setValores(v);
+  }, [ano]);
   const handleSave = async () => {
-    if (!titulo.trim() || !slides.length) return;
     setSaving(true);
-    const dados = {
-      titulo: titulo.trim(),
-      empresaId,
-      slides,
-      slideAtual: 0,
-      ativa: false,
-      codigo: apresentacaoExistente?.codigo || gerarCodigo(),
-      criadaEm: apresentacaoExistente?.criadaEm || firebase.firestore.FieldValue.serverTimestamp(),
-      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-    };
-    if (apresentacaoExistente?.id) {
-      await db.collection('presentations').doc(apresentacaoExistente.id).update(dados);
-    } else {
-      await db.collection('presentations').add(dados);
-    }
+    const batch = db.batch();
+    MESES_LABELS.forEach((_, i) => {
+      const chave = `${ano}_${String(i).padStart(2, '0')}`;
+      const ref = db.collection('companies').doc(empresa.id).collection('kpi_dados').doc(`${categoria.id}_${indicador.id}_${chave}`);
+      const v = valores[i];
+      if (v !== '' && v !== null && v !== undefined) {
+        batch.set(ref, {
+          categoriaId: categoria.id,
+          indicadorId: indicador.id,
+          ano: parseInt(ano),
+          mes: i,
+          chave,
+          valor: parseFloat(v),
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {
+          merge: true
+        });
+      }
+    });
+    await batch.commit();
     setSaving(false);
-    onClose();
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
   const inputStyle = {
     width: '100%',
-    background: '#f8f9fb',
-    border: '1px solid #e8eaf0',
-    borderRadius: 8,
-    padding: '9px 12px',
-    color: '#374151',
+    background: '#fff',
+    border: '1.5px solid #E2E4EE',
+    borderRadius: 6,
+    padding: '6px 8px',
+    fontFamily: 'Nunito',
     fontSize: 13,
-    fontFamily: 'inherit',
+    fontWeight: 700,
+    color: '#343434',
     outline: 'none',
-    boxSizing: 'border-box'
+    textAlign: 'right'
   };
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4663,264 +4218,113 @@ function ModalCriarApresentacao({
       inset: 0,
       background: 'rgba(0,0,0,0.5)',
       display: 'flex',
-      alignItems: 'flex-start',
+      alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 100,
-      padding: 20,
-      overflowY: 'auto'
+      zIndex: 200,
+      padding: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       background: '#fff',
-      borderRadius: 20,
+      borderRadius: 14,
       padding: 28,
       width: '100%',
-      maxWidth: 680,
-      marginTop: 20,
-      marginBottom: 20
+      maxWidth: 640,
+      boxShadow: '0 20px 60px rgba(0,0,0,0.2)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
-      marginBottom: 22
+      marginBottom: 20
     }
-  }, /*#__PURE__*/React.createElement("h3", {
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: 0,
-      color: '#111827',
-      fontSize: 18
+      fontSize: 16,
+      fontWeight: 800,
+      color: '#343434'
     }
-  }, "🎯 ", apresentacaoExistente ? 'Editar' : 'Nova', " apresentação"), /*#__PURE__*/React.createElement("button", {
+  }, indicador.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: '#888'
+    }
+  }, categoria.label, " · ", empresa.nome)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("select", {
+    value: ano,
+    onChange: e => setAno(e.target.value),
+    style: {
+      fontFamily: 'Nunito',
+      fontWeight: 700,
+      fontSize: 13,
+      padding: '5px 10px',
+      border: '1.5px solid #E2E4EE',
+      borderRadius: 8,
+      cursor: 'pointer'
+    }
+  }, ANOS_DISP.map(a => /*#__PURE__*/React.createElement("option", {
+    key: a,
+    value: a
+  }, a))), /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     style: {
-      background: '#ebeef3',
+      background: '#F4F5FA',
       border: 'none',
       borderRadius: 8,
       padding: '6px 10px',
       cursor: 'pointer',
-      color: '#6b7280'
+      color: '#888',
+      fontSize: 14
     }
-  }, "✕")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: 14,
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'block',
-      fontSize: 11,
-      color: '#6b7280',
-      marginBottom: 6,
-      textTransform: 'uppercase',
-      fontWeight: 600
-    }
-  }, "Título"), /*#__PURE__*/React.createElement("input", {
-    value: titulo,
-    onChange: e => setTitulo(e.target.value),
-    style: inputStyle,
-    placeholder: "Ex: Clima da Equipe",
-    autoFocus: true
-  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'block',
-      fontSize: 11,
-      color: '#6b7280',
-      marginBottom: 6,
-      textTransform: 'uppercase',
-      fontWeight: 600
-    }
-  }, "Empresa"), /*#__PURE__*/React.createElement("select", {
-    value: empresaId,
-    onChange: e => setEmpresaId(e.target.value),
-    style: inputStyle
-  }, empresas.map(e => /*#__PURE__*/React.createElement("option", {
-    key: e.id,
-    value: e.id
-  }, e.nome))))), slides.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 20
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'block',
-      fontSize: 11,
-      color: '#6b7280',
-      marginBottom: 10,
-      textTransform: 'uppercase',
-      fontWeight: 600
-    }
-  }, "Slides (", slides.length, ")"), slides.map((sl, idx) => /*#__PURE__*/React.createElement("div", {
-    key: sl.id,
-    style: {
-      background: '#f8f9fb',
-      border: '1px solid #e8eaf0',
-      borderRadius: 12,
-      padding: '14px 16px',
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      marginBottom: 10
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 16
-    }
-  }, TIPOS_SLIDE.find(t => t.id === sl.tipo)?.icon), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12,
-      color: '#6b7280',
-      fontWeight: 600,
-      textTransform: 'uppercase'
-    }
-  }, TIPOS_SLIDE.find(t => t.id === sl.tipo)?.label), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginLeft: 'auto',
-      display: 'flex',
-      gap: 6
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => moverSlide(idx, -1),
-    disabled: idx === 0,
-    style: {
-      background: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#9ca3af',
-      fontSize: 14,
-      padding: '2px 6px'
-    }
-  }, "↑"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => moverSlide(idx, 1),
-    disabled: idx === slides.length - 1,
-    style: {
-      background: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#9ca3af',
-      fontSize: 14,
-      padding: '2px 6px'
-    }
-  }, "↓"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => removerSlide(sl.id),
-    style: {
-      background: '#fef2f2',
-      border: 'none',
-      borderRadius: 6,
-      cursor: 'pointer',
-      color: '#ef4444',
-      fontSize: 11,
-      padding: '4px 8px'
-    }
-  }, "Remover"))), /*#__PURE__*/React.createElement("input", {
-    value: sl.pergunta,
-    onChange: e => atualizarSlide(sl.id, 'pergunta', e.target.value),
-    placeholder: "Digite a pergunta...",
-    style: {
-      ...inputStyle,
-      marginBottom: sl.tipo === 'multipla' ? 8 : 0
-    }
-  }), sl.tipo === 'multipla' && /*#__PURE__*/React.createElement("div", null, sl.opcoes.map((op, oi) => /*#__PURE__*/React.createElement("div", {
-    key: oi,
-    style: {
-      display: 'flex',
-      gap: 8,
-      marginBottom: 6
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: op,
-    onChange: e => {
-      const novas = [...sl.opcoes];
-      novas[oi] = e.target.value;
-      atualizarSlide(sl.id, 'opcoes', novas);
-    },
-    style: {
-      ...inputStyle,
-      flex: 1
-    },
-    placeholder: `Opção ${oi + 1}`
-  }), sl.opcoes.length > 2 && /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      const novas = sl.opcoes.filter((_, i) => i !== oi);
-      atualizarSlide(sl.id, 'opcoes', novas);
-    },
-    style: {
-      background: 'transparent',
-      border: 'none',
-      cursor: 'pointer',
-      color: '#ef4444',
-      fontSize: 16
-    }
-  }, "×"))), sl.opcoes.length < 6 && /*#__PURE__*/React.createElement("button", {
-    onClick: () => atualizarSlide(sl.id, 'opcoes', [...sl.opcoes, `Opção ${sl.opcoes.length + 1}`]),
-    style: {
-      background: 'transparent',
-      border: '1px dashed #e8eaf0',
-      borderRadius: 8,
-      padding: '6px 12px',
-      cursor: 'pointer',
-      color: '#b8976a',
-      fontSize: 12,
-      width: '100%'
-    }
-  }, "+ Adicionar opção"))))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 22
-    }
-  }, /*#__PURE__*/React.createElement("label", {
-    style: {
-      display: 'block',
-      fontSize: 11,
-      color: '#6b7280',
-      marginBottom: 10,
-      textTransform: 'uppercase',
-      fontWeight: 600
-    }
-  }, "Adicionar slide"), /*#__PURE__*/React.createElement("div", {
+  }, "✕"))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
       gridTemplateColumns: 'repeat(4,1fr)',
-      gap: 10
+      gap: 8,
+      marginBottom: 20
     }
-  }, TIPOS_SLIDE.map(t => /*#__PURE__*/React.createElement("button", {
-    key: t.id,
-    onClick: () => adicionarSlide(t.id),
+  }, MESES_LABELS.map((m, i) => /*#__PURE__*/React.createElement("div", {
+    key: i
+  }, /*#__PURE__*/React.createElement("label", {
     style: {
-      background: '#f8f9fb',
-      border: '1px solid #e8eaf0',
-      borderRadius: 12,
-      padding: '14px 8px',
-      cursor: 'pointer',
-      textAlign: 'center',
-      transition: 'all .15s'
-    },
-    onMouseEnter: e => {
-      e.currentTarget.style.borderColor = '#b8976a';
-      e.currentTarget.style.background = '#fffbf5';
-    },
-    onMouseLeave: e => {
-      e.currentTarget.style.borderColor = '#e8eaf0';
-      e.currentTarget.style.background = '#f8f9fb';
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 22,
+      display: 'block',
+      fontSize: 10,
+      fontWeight: 800,
+      color: '#888',
+      textTransform: 'uppercase',
+      letterSpacing: '.05em',
       marginBottom: 4
     }
-  }, t.icon), /*#__PURE__*/React.createElement("div", {
+  }, m), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    step: "0.01",
+    value: valores[i],
+    onChange: e => setValores(v => ({
+      ...v,
+      [i]: e.target.value
+    })),
+    placeholder: "—",
+    style: inputStyle,
+    onFocus: e => e.target.style.borderColor = categoria.cor,
+    onBlur: e => e.target.style.borderColor = '#E2E4EE'
+  })))), indicador.meta && /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 11,
-      color: '#6b7280',
-      fontWeight: 500
+      background: '#F4F5FA',
+      borderRadius: 8,
+      padding: '8px 12px',
+      marginBottom: 16,
+      fontSize: 12,
+      fontWeight: 700,
+      color: '#888'
     }
-  }, t.label))))), /*#__PURE__*/React.createElement("div", {
+  }, "Meta: ", indicador.metaDir === 'abaixo' ? '< ' : '> ', indicador.meta, indicador.unidade, " · Valores acima da meta ficam em vermelho"), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 10,
@@ -4929,344 +4333,572 @@ function ModalCriarApresentacao({
   }, /*#__PURE__*/React.createElement("button", {
     onClick: onClose,
     style: {
-      background: '#ebeef3',
+      background: '#F4F5FA',
       border: 'none',
-      borderRadius: 10,
-      padding: '10px 18px',
+      borderRadius: 8,
+      padding: '9px 18px',
       cursor: 'pointer',
-      color: '#6b7280',
-      fontWeight: 600
+      fontFamily: 'Nunito',
+      fontWeight: 700,
+      fontSize: 13,
+      color: '#888'
     }
   }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
     onClick: handleSave,
-    disabled: saving || !titulo.trim() || !slides.length,
+    disabled: saving,
     style: {
-      background: '#b8976a',
+      background: categoria.cor,
       color: '#fff',
       border: 'none',
-      borderRadius: 10,
-      padding: '10px 20px',
+      borderRadius: 8,
+      padding: '9px 20px',
       cursor: 'pointer',
-      fontWeight: 700,
-      opacity: !titulo.trim() || !slides.length ? 0.5 : 1
+      fontFamily: 'Nunito',
+      fontWeight: 800,
+      fontSize: 13
     }
-  }, saving ? 'Salvando...' : '💾 Salvar apresentação'))));
+  }, saving ? 'Salvando...' : saved ? '✅ Salvo!' : 'Salvar dados'))));
 }
 
-/* ---- Tela de controle da apresentação (admin ao vivo) ---- */
-function ControleApresentacao({
-  apresentacao,
-  onFechar
+/* ---- Card de KPI com gráfico sparkline ---- */
+function KpiCard({
+  empresa,
+  categoria,
+  indicador,
+  dadosPorChave,
+  anoSel,
+  onEditar
 }) {
-  const [slideAtual, setSlideAtual] = useState(apresentacao.slideAtual || 0);
-  const [respostas, setRespostas] = useState([]);
-  const [ativa, setAtiva] = useState(apresentacao.ativa || false);
-  const [copiado, setCopiado] = useState(false);
-  const slides = apresentacao.slides || [];
-  const slide = slides[slideAtual];
-  useEffect(() => {
-    if (!slide) return;
-    const unsub = db.collection('presentations').doc(apresentacao.id).collection('respostas').where('slideId', '==', slide.id).onSnapshot(s => setRespostas(s.docs.map(d => ({
-      id: d.id,
-      ...d.data()
-    }))));
-    return unsub;
-  }, [apresentacao.id, slide?.id]);
-  const avancar = async dir => {
-    const novoIdx = Math.max(0, Math.min(slides.length - 1, slideAtual + dir));
-    setSlideAtual(novoIdx);
-    setRespostas([]);
-    await db.collection('presentations').doc(apresentacao.id).update({
-      slideAtual: novoIdx
-    });
-  };
-  const toggleAtiva = async () => {
-    const novoEstado = !ativa;
-    setAtiva(novoEstado);
-    await db.collection('presentations').doc(apresentacao.id).update({
-      ativa: novoEstado,
-      slideAtual
-    });
-  };
-  const linkParticipante = `${window.location.origin}${window.location.pathname}?sala=${apresentacao.codigo}`;
-  const copiarLink = () => {
-    navigator.clipboard.writeText(linkParticipante);
-    setCopiado(true);
-    setTimeout(() => setCopiado(false), 2000);
-  };
+  const vals = MESES_LABELS.map((_, i) => {
+    const chave = `${anoSel}_${String(i).padStart(2, '0')}`;
+    const d = dadosPorChave[`${categoria.id}_${indicador.id}_${chave}`];
+    return d?.valor ?? null;
+  });
+  const ultimo = vals.filter(v => v !== null).slice(-1)[0];
+  const penultimo = vals.filter(v => v !== null).slice(-2, -1)[0];
+  const variacao = ultimo !== undefined && penultimo !== undefined ? (parseFloat(ultimo) - parseFloat(penultimo)).toFixed(2) : null;
+  const corStatus = statusCor(ultimo, indicador);
+  const badge = statusBadge(ultimo, indicador);
   return /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'fixed',
-      inset: 0,
-      background: '#0f1117',
-      zIndex: 200,
+      background: '#fff',
+      borderRadius: 12,
+      border: '1px solid #E2E4EE',
+      padding: '14px 16px',
       display: 'flex',
       flexDirection: 'column',
-      fontFamily: "'Segoe UI',system-ui,sans-serif"
+      gap: 10
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#1a1d27',
-      borderBottom: '1px solid #2a2d3a',
-      padding: '0 24px',
-      height: 56,
       display: 'flex',
-      alignItems: 'center',
-      gap: 16,
-      flexShrink: 0
+      justifyContent: 'space-between',
+      alignItems: 'flex-start'
     }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: onFechar,
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#2a2d3a',
-      border: 'none',
-      color: '#9ca3af',
-      borderRadius: 8,
-      padding: '6px 12px',
-      cursor: 'pointer',
-      fontSize: 13
-    }
-  }, "← Sair"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: '#fff',
-      fontWeight: 700,
-      fontSize: 15
-    }
-  }, apresentacao.titulo), /*#__PURE__*/React.createElement("span", {
-    style: {
-      background: '#2a2d3a',
-      color: '#9ca3af',
-      borderRadius: 20,
-      padding: '3px 10px',
-      fontSize: 11
-    }
-  }, "Slide ", slideAtual + 1, "/", slides.length)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 8,
-      background: '#0f1117',
-      border: '1px solid #2a2d3a',
-      borderRadius: 10,
-      padding: '6px 12px'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      color: '#9ca3af'
-    }
-  }, "Código:"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 14,
+      fontSize: 10,
       fontWeight: 800,
-      color: '#b8976a',
-      letterSpacing: 2
-    }
-  }, apresentacao.codigo), /*#__PURE__*/React.createElement("button", {
-    onClick: copiarLink,
-    style: {
-      background: '#b8976a',
-      border: 'none',
-      borderRadius: 6,
-      padding: '3px 8px',
-      cursor: 'pointer',
-      color: '#1a1200',
-      fontSize: 11,
-      fontWeight: 700
-    }
-  }, copiado ? '✓' : 'Copiar')), /*#__PURE__*/React.createElement("button", {
-    onClick: toggleAtiva,
-    style: {
-      background: ativa ? '#E05C4A22' : '#5A9B7222',
-      border: `1px solid ${ativa ? '#E05C4A55' : '#5A9B7255'}`,
-      color: ativa ? '#E05C4A' : '#5A9B72',
-      borderRadius: 8,
-      padding: '6px 14px',
-      cursor: 'pointer',
-      fontWeight: 700,
-      fontSize: 13
-    }
-  }, ativa ? '⏹ Pausar' : '▶ Iniciar')), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      display: 'grid',
-      gridTemplateColumns: '1fr 1.6fr',
-      overflow: 'hidden'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      borderRight: '1px solid #2a2d3a',
-      overflowY: 'auto',
-      padding: 16,
-      background: '#141620'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: '#555',
+      color: '#888',
       textTransform: 'uppercase',
-      letterSpacing: 1,
-      marginBottom: 12
-    }
-  }, "Slides"), slides.map((sl, i) => /*#__PURE__*/React.createElement("button", {
-    key: sl.id,
-    onClick: () => avancar(i - slideAtual),
-    style: {
-      width: '100%',
-      background: i === slideAtual ? '#b8976a22' : '#1a1d27',
-      border: `1px solid ${i === slideAtual ? '#b8976a55' : '#2a2d3a'}`,
-      borderRadius: 10,
-      padding: '12px 14px',
-      marginBottom: 8,
-      cursor: 'pointer',
-      textAlign: 'left',
-      transition: 'all .15s'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: '#555',
+      letterSpacing: '.05em',
       marginBottom: 4
     }
-  }, "Slide ", i + 1), /*#__PURE__*/React.createElement("div", {
+  }, indicador.label), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
-      color: i === slideAtual ? '#b8976a' : '#ccc',
-      fontWeight: i === slideAtual ? 700 : 400,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
+      fontSize: 22,
+      fontWeight: 900,
+      color: ultimo !== null ? corStatus : '#ccc',
+      lineHeight: 1
     }
-  }, sl.pergunta || '(sem pergunta)'), /*#__PURE__*/React.createElement("div", {
+  }, fmtValor(ultimo, indicador)), variacao !== null && /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: '#444',
-      marginTop: 4
+      fontWeight: 700,
+      color: parseFloat(variacao) > 0 ? '#5A8A1A' : '#B83030',
+      marginTop: 3
     }
-  }, ['📊', '⭐', '☁️', '💬'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(sl.tipo)], " ", sl.tipo)))), /*#__PURE__*/React.createElement("div", {
+  }, parseFloat(variacao) > 0 ? '▲' : '▼', " ", Math.abs(variacao), indicador.unidade, " vs mês ant."), badge && indicador.meta && /*#__PURE__*/React.createElement("div", {
     style: {
-      display: 'flex',
-      flexDirection: 'column',
-      overflow: 'hidden'
+      display: 'inline-block',
+      marginTop: 4,
+      background: badge.bg,
+      color: badge.cor,
+      fontSize: 10,
+      fontWeight: 800,
+      padding: '2px 6px',
+      borderRadius: 4
+    }
+  }, "Meta: ", indicador.metaDir === 'abaixo' ? '<' : '>', " ", indicador.meta, indicador.unidade)), /*#__PURE__*/React.createElement("button", {
+    onClick: onEditar,
+    style: {
+      background: categoria.corBg,
+      border: 'none',
+      borderRadius: 8,
+      padding: '5px 10px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 700,
+      color: categoria.cor,
+      whiteSpace: 'nowrap'
+    }
+  }, "+ Dados")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 70,
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(SparkLine, {
+    dados: vals,
+    cor: categoria.cor,
+    meta: indicador.meta,
+    metaDir: indicador.metaDir
+  })));
+}
+
+/* ---- Tabela de KPIs por categoria ---- */
+function TabelaCategoria({
+  empresa,
+  categoria,
+  dadosPorChave,
+  anoSel,
+  onEditarIndicador
+}) {
+  const mesesComDados = MESES_LABELS.map((m, i) => {
+    const temAlgo = categoria.indicadores.some(ind => {
+      const chave = `${anoSel}_${String(i).padStart(2, '0')}`;
+      return dadosPorChave[`${categoria.id}_${ind.id}_${chave}`] !== undefined;
+    });
+    return {
+      m,
+      i,
+      temAlgo
+    };
+  }).filter(d => d.temAlgo);
+  const mesesExibir = mesesComDados.length ? mesesComDados : MESES_LABELS.slice(0, 5).map((m, i) => ({
+    m,
+    i
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      borderRadius: 12,
+      border: '1px solid #E2E4EE',
+      padding: '16px 18px',
+      marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      padding: '32px 40px',
-      overflowY: 'auto'
-    }
-  }, slide ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'center',
       gap: 10,
-      marginBottom: 20
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 10,
+      background: categoria.corBg,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 18,
+      flexShrink: 0
+    }
+  }, categoria.icone), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: '#343434'
+    }
+  }, categoria.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      fontWeight: 600,
+      color: '#888'
+    }
+  }, anoSel, " · ", mesesComDados.length, " meses com dados")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onEditarIndicador(categoria, categoria.indicadores[0]),
+    style: {
+      marginLeft: 'auto',
+      background: categoria.corBg,
+      border: 'none',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      fontFamily: 'Nunito',
+      fontWeight: 700,
+      fontSize: 12,
+      color: categoria.cor
+    }
+  }, "+ Inserir dados")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      overflowX: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("table", {
+    style: {
+      width: '100%',
+      borderCollapse: 'collapse',
+      fontSize: 12
+    }
+  }, /*#__PURE__*/React.createElement("thead", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("th", {
+    style: {
+      padding: '8px 10px',
+      fontSize: 11,
+      fontWeight: 800,
+      color: '#888',
+      textTransform: 'uppercase',
+      letterSpacing: '.04em',
+      borderBottom: '2px solid #E2E4EE',
+      textAlign: 'left',
+      whiteSpace: 'nowrap'
+    }
+  }, "Indicador"), /*#__PURE__*/React.createElement("th", {
+    style: {
+      padding: '8px 10px',
+      fontSize: 11,
+      fontWeight: 800,
+      color: '#888',
+      textTransform: 'uppercase',
+      letterSpacing: '.04em',
+      borderBottom: '2px solid #E2E4EE',
+      whiteSpace: 'nowrap'
+    }
+  }, "Meta"), MESES_LABELS.map((m, i) => /*#__PURE__*/React.createElement("th", {
+    key: i,
+    style: {
+      padding: '8px 10px',
+      fontSize: 11,
+      fontWeight: 800,
+      color: '#888',
+      borderBottom: '2px solid #E2E4EE',
+      textAlign: 'right',
+      whiteSpace: 'nowrap'
+    }
+  }, m)), /*#__PURE__*/React.createElement("th", {
+    style: {
+      padding: '8px 10px',
+      fontSize: 11,
+      fontWeight: 800,
+      color: '#888',
+      borderBottom: '2px solid #E2E4EE',
+      textAlign: 'center',
+      whiteSpace: 'nowrap'
+    }
+  }, "Tendência"), /*#__PURE__*/React.createElement("th", {
+    style: {
+      padding: '8px 10px',
+      borderBottom: '2px solid #E2E4EE'
+    }
+  }))), /*#__PURE__*/React.createElement("tbody", null, categoria.indicadores.map((ind, ii) => {
+    const vals = MESES_LABELS.map((_, i) => {
+      const chave = `${anoSel}_${String(i).padStart(2, '0')}`;
+      return dadosPorChave[`${categoria.id}_${ind.id}_${chave}`]?.valor ?? null;
+    });
+    const ultimo = vals.filter(v => v !== null).slice(-1)[0];
+    const badge = statusBadge(ultimo, ind);
+    const subiu = vals.filter(v => v !== null).length >= 2 ? parseFloat(vals.filter(v => v !== null).slice(-1)[0]) > parseFloat(vals.filter(v => v !== null).slice(-2, -1)[0]) : null;
+    return /*#__PURE__*/React.createElement("tr", {
+      key: ind.id,
+      style: {
+        background: ii % 2 === 0 ? '#fff' : '#FAFAFE'
+      }
+    }, /*#__PURE__*/React.createElement("td", {
+      style: {
+        padding: '7px 10px',
+        borderBottom: '1px solid #E2E4EE',
+        fontWeight: 700,
+        whiteSpace: 'nowrap'
+      }
+    }, ind.label), /*#__PURE__*/React.createElement("td", {
+      style: {
+        padding: '7px 10px',
+        borderBottom: '1px solid #E2E4EE',
+        color: '#888',
+        whiteSpace: 'nowrap'
+      }
+    }, ind.meta ? `${ind.metaDir === 'abaixo' ? '<' : '>'} ${ind.meta}${ind.unidade}` : '—'), MESES_LABELS.map((_, i) => {
+      const v = vals[i];
+      const corV = statusCor(v, ind);
+      const badgeV = statusBadge(v, ind);
+      return /*#__PURE__*/React.createElement("td", {
+        key: i,
+        style: {
+          padding: '7px 10px',
+          borderBottom: '1px solid #E2E4EE',
+          textAlign: 'right',
+          whiteSpace: 'nowrap',
+          fontWeight: 700
+        }
+      }, v !== null ? /*#__PURE__*/React.createElement("span", {
+        style: {
+          background: badgeV?.bg || 'transparent',
+          color: badgeV?.cor || '#343434',
+          borderRadius: 4,
+          padding: badgeV ? '2px 6px' : 0,
+          fontSize: 12,
+          fontWeight: 800
+        }
+      }, fmtValor(v, ind)) : /*#__PURE__*/React.createElement("span", {
+        style: {
+          color: '#ddd'
+        }
+      }, "—"));
+    }), /*#__PURE__*/React.createElement("td", {
+      style: {
+        padding: '7px 10px',
+        borderBottom: '1px solid #E2E4EE',
+        textAlign: 'center'
+      }
+    }, subiu !== null ? /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 14
+      }
+    }, subiu ? '📈' : '📉') : '—'), /*#__PURE__*/React.createElement("td", {
+      style: {
+        padding: '7px 10px',
+        borderBottom: '1px solid #E2E4EE'
+      }
+    }, /*#__PURE__*/React.createElement("button", {
+      onClick: () => onEditarIndicador(categoria, ind),
+      style: {
+        background: categoria.corBg,
+        border: 'none',
+        borderRadius: 6,
+        padding: '3px 8px',
+        cursor: 'pointer',
+        fontSize: 11,
+        fontWeight: 700,
+        color: categoria.cor
+      }
+    }, "Editar")));
+  })))));
+}
+
+/* ---- ABA INDICADORES PRINCIPAL ---- */
+function AbaIndicadores({
+  empresas,
+  tarefas,
+  respostas
+}) {
+  const [empresaSel, setEmpresaSel] = useState(null);
+  const [dadosPorChave, setDadosPorChave] = useState({});
+  const [anoSel, setAnoSel] = useState(String(new Date().getFullYear()));
+  const [abaCat, setAbaCat] = useState('rh');
+  const [editando, setEditando] = useState(null); // { categoria, indicador }
+  const [loading, setLoading] = useState(false);
+  useEffect(() => {
+    if (!empresaSel) return;
+    setLoading(true);
+    const unsub = db.collection('companies').doc(empresaSel.id).collection('kpi_dados').onSnapshot(snap => {
+      const dados = {};
+      snap.docs.forEach(d => {
+        dados[d.id] = d.data();
+      });
+      setDadosPorChave(dados);
+      setLoading(false);
+    });
+    return unsub;
+  }, [empresaSel?.id]);
+  const catAtual = KPI_CATEGORIAS.find(c => c.id === abaCat);
+
+  // Tela de seleção de empresa
+  if (!empresaSel) return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 24,
+      fontWeight: 900,
+      margin: '0 0 4px',
+      color: '#343434'
+    }
+  }, "Indicadores"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#888',
+      fontSize: 13,
+      fontWeight: 600,
+      margin: 0
+    }
+  }, "Selecione uma empresa para gerenciar KPIs")), empresas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      border: '1px dashed #E2E4EE',
+      borderRadius: 12,
+      padding: '50px 20px',
+      textAlign: 'center',
+      color: '#888'
+    }
+  }, "Nenhuma empresa cadastrada.") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))',
+      gap: 14
+    }
+  }, empresas.map(emp => /*#__PURE__*/React.createElement("button", {
+    key: emp.id,
+    onClick: () => setEmpresaSel(emp),
+    style: {
+      background: '#fff',
+      border: '1px solid #E2E4EE',
+      borderRadius: 12,
+      padding: 22,
+      textAlign: 'left',
+      cursor: 'pointer',
+      fontFamily: 'Nunito',
+      transition: 'all .15s'
+    },
+    onMouseEnter: e => e.currentTarget.style.borderColor = '#47448E',
+    onMouseLeave: e => e.currentTarget.style.borderColor = '#E2E4EE'
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 42,
+      height: 42,
+      borderRadius: 10,
+      background: '#EEEEF8',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 20,
+      marginBottom: 12
+    }
+  }, "🏢"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 800,
+      color: '#343434',
+      marginBottom: 2
+    }
+  }, emp.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: '#888'
+    }
+  }, "Desde ", formatDate(emp.dataCriacao))))));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: 'Nunito, sans-serif'
+    }
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap');
+        .kpi-ind-tab { padding:8px 14px;font-size:12px;background:none;border:none;cursor:pointer;color:#888;border-bottom:3px solid transparent;margin-bottom:-2px;font-family:Nunito,sans-serif;font-weight:700;transition:all .15s; }
+        .kpi-ind-tab.active { color:#47448E;border-bottom-color:#47448E; }
+        .kpi-ind-tab:hover:not(.active) { color:#343434; background:#F4F5FA; border-radius:6px 6px 0 0; }
+      `), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      marginBottom: 20,
+      flexWrap: 'wrap'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEmpresaSel(null),
+    style: {
+      background: '#F4F5FA',
+      border: 'none',
+      borderRadius: 8,
+      padding: '7px 14px',
+      cursor: 'pointer',
+      fontFamily: 'Nunito',
+      fontWeight: 700,
+      fontSize: 13,
+      color: '#888'
+    }
+  }, "← Voltar"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 20,
+      fontWeight: 900,
+      margin: 0,
+      color: '#343434'
+    }
+  }, empresaSel.nome), /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      fontWeight: 600,
+      color: '#888',
+      margin: 0
+    }
+  }, "Dashboard de Indicadores")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
-      background: '#b8976a22',
-      border: '1px solid #b8976a44',
+      fontSize: 11,
+      fontWeight: 800,
+      color: '#888',
+      textTransform: 'uppercase'
+    }
+  }, "Ano"), /*#__PURE__*/React.createElement("select", {
+    value: anoSel,
+    onChange: e => setAnoSel(e.target.value),
+    style: {
+      fontFamily: 'Nunito',
+      fontWeight: 700,
+      fontSize: 13,
+      padding: '5px 10px',
+      border: '1.5px solid #E2E4EE',
       borderRadius: 8,
-      padding: '4px 12px',
-      fontSize: 12,
-      color: '#b8976a',
-      fontWeight: 700
+      cursor: 'pointer',
+      background: '#fff'
     }
-  }, ['📊 Múltipla escolha', '⭐ Escala 1-5', '☁️ Nuvem de palavras', '💬 Pergunta aberta'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(slide.tipo)]), /*#__PURE__*/React.createElement("span", {
+  }, ANOS_DISP.map(a => /*#__PURE__*/React.createElement("option", {
+    key: a,
+    value: a
+  }, a))))), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      color: '#555'
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill,minmax(200px,1fr))',
+      gap: 12,
+      marginBottom: 16
     }
-  }, respostas.length, " resposta(s) ao vivo"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 8,
-      height: 8,
-      borderRadius: '50%',
-      background: '#5A9B72',
-      marginLeft: 4,
-      animation: ativa ? 'pulse 1.5s infinite' : 'none'
-    }
-  })), /*#__PURE__*/React.createElement("h2", {
-    style: {
-      color: '#fff',
-      fontSize: 24,
-      margin: '0 0 28px',
-      lineHeight: 1.3
-    }
-  }, slide.pergunta || 'Sem pergunta'), slide.tipo === 'multipla' && /*#__PURE__*/React.createElement(ResultadoMultipla, {
-    opcoes: slide.opcoes || [],
-    respostas: respostas
-  }), slide.tipo === 'escala' && /*#__PURE__*/React.createElement(ResultadoEscala, {
-    respostas: respostas
-  }), slide.tipo === 'nuvem' && /*#__PURE__*/React.createElement(NuvemPalavras, {
-    palavras: respostas.map(r => r.valor).filter(Boolean),
-    width: 540,
-    height: 280
-  }), slide.tipo === 'aberta' && /*#__PURE__*/React.createElement(ResultadoAberta, {
-    respostas: respostas
-  })) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      color: '#555',
-      marginTop: 80
-    }
-  }, "Sem slides")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      borderTop: '1px solid #2a2d3a',
-      padding: '16px 32px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      background: '#141620'
-    }
-  }, /*#__PURE__*/React.createElement("button", {
-    onClick: () => avancar(-1),
-    disabled: slideAtual === 0,
-    style: {
-      background: '#2a2d3a',
-      border: 'none',
-      color: slideAtual === 0 ? '#333' : '#ccc',
-      borderRadius: 10,
-      padding: '10px 20px',
-      cursor: slideAtual === 0 ? 'default' : 'pointer',
-      fontSize: 14,
-      fontWeight: 600
-    }
-  }, "← Anterior"), /*#__PURE__*/React.createElement("div", {
+  }, catAtual?.indicadores.map(ind => /*#__PURE__*/React.createElement(KpiCard, {
+    key: ind.id,
+    empresa: empresaSel,
+    categoria: catAtual,
+    indicador: ind,
+    dadosPorChave: dadosPorChave,
+    anoSel: anoSel,
+    onEditar: () => setEditando({
+      categoria: catAtual,
+      indicador: ind
+    })
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      gap: 6
+      borderBottom: '1.5px solid #E2E4EE',
+      marginBottom: 16,
+      flexWrap: 'wrap'
     }
-  }, slides.map((_, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      width: i === slideAtual ? 20 : 8,
-      height: 8,
-      borderRadius: 4,
-      background: i === slideAtual ? '#b8976a' : '#2a2d3a',
-      transition: 'all .3s'
-    }
-  }))), /*#__PURE__*/React.createElement("button", {
-    onClick: () => avancar(1),
-    disabled: slideAtual === slides.length - 1,
-    style: {
-      background: slideAtual === slides.length - 1 ? '#2a2d3a' : '#b8976a',
-      border: 'none',
-      color: slideAtual === slides.length - 1 ? '#333' : '#1a1200',
-      borderRadius: 10,
-      padding: '10px 20px',
-      cursor: slideAtual === slides.length - 1 ? 'default' : 'pointer',
-      fontSize: 14,
-      fontWeight: 700
-    }
-  }, "Próximo →")))));
+  }, KPI_CATEGORIAS.map(cat => /*#__PURE__*/React.createElement("button", {
+    key: cat.id,
+    className: `kpi-ind-tab${abaCat === cat.id ? ' active' : ''}`,
+    onClick: () => setAbaCat(cat.id)
+  }, cat.icone, " ", cat.label))), catAtual && /*#__PURE__*/React.createElement(TabelaCategoria, {
+    empresa: empresaSel,
+    categoria: catAtual,
+    dadosPorChave: dadosPorChave,
+    anoSel: anoSel,
+    onEditarIndicador: (cat, ind) => setEditando({
+      categoria: cat,
+      indicador: ind
+    })
+  }), editando && /*#__PURE__*/React.createElement(ModalDadosIndicador, {
+    empresa: empresaSel,
+    categoria: editando.categoria,
+    indicador: editando.indicador,
+    dadosExistentes: dadosPorChave,
+    onClose: () => setEditando(null)
+  }));
 }
 
 /* ---- ABA APRESENTAÇÕES ---- */
