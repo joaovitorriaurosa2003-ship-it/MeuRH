@@ -4201,28 +4201,44 @@ function NuvemPalavras({
   height
 }) {
   width = width || 560;
-  height = height || 280;
-  if (!palavras || !palavras.length) return /*#__PURE__*/React.createElement("div", {
+  height = height || 300;
+  const {
+    useRef,
+    useEffect,
+    useState
+  } = React;
+  const [entradas, setEntradas] = useState([]);
+
+  // Calcula frequência e posições
+  const freq = {};
+  (palavras || []).forEach(p => {
+    const w = (p || '').trim().toLowerCase().replace(/[^\w\sáéíóúâêîôûãõàèìòùç]/g, '');
+    if (w.length > 1) freq[w] = (freq[w] || 0) + 1;
+  });
+  const lista = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 50);
+  const maxF = lista[0]?.[1] || 1;
+  const cores = ['#7B5FC4', '#2E9CCA', '#b8976a', '#5A9B72', '#E05C4A', '#e879a0', '#f59e0b', '#06b6d4'];
+  const tamanho = f => Math.round(13 + f / maxF * 36);
+  const peso = f => f === maxF ? 900 : f > maxF * 0.6 ? 700 : 500;
+
+  // Anima palavras novas
+  useEffect(() => {
+    setEntradas(lista.map(([w], i) => ({
+      w,
+      i
+    })));
+  }, [palavras?.length]);
+  if (!lista.length) return /*#__PURE__*/React.createElement("div", {
     style: {
       width,
       height,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      color: '#c0c4ce',
+      color: '#555',
       fontSize: 14
     }
-  }, "Aguardando respostas...");
-  const freq = {};
-  palavras.forEach(p => {
-    const w = p.trim().toLowerCase();
-    if (w) freq[w] = (freq[w] || 0) + 1;
-  });
-  const entries = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 40);
-  const maxF = entries[0]?.[1] || 1;
-  const cores = ['#7B5FC4', '#2E9CCA', '#b8976a', '#5A9B72', '#E05C4A', '#e879a0', '#f59e0b'];
-  // Layout simples em grid
-  const tamanho = f => 12 + Math.round(f / maxF * 28);
+  }, "☁️ Aguardando respostas...");
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width,
@@ -4231,20 +4247,34 @@ function NuvemPalavras({
       flexWrap: 'wrap',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: '8px 14px',
-      padding: 16,
-      overflow: 'hidden'
+      gap: '10px 18px',
+      padding: 20,
+      overflow: 'hidden',
+      position: 'relative'
     }
-  }, entries.map(([word, f], i) => /*#__PURE__*/React.createElement("span", {
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @keyframes wordPop { 0%{transform:scale(0) rotate(-15deg);opacity:0} 70%{transform:scale(1.2) rotate(3deg)} 100%{transform:scale(1) rotate(0);opacity:1} }
+        @keyframes wordGrow { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+      `), lista.map(([word, f], i) => /*#__PURE__*/React.createElement("span", {
     key: word,
     style: {
       fontSize: tamanho(f),
-      fontWeight: f === maxF ? 800 : f > maxF * 0.6 ? 700 : 500,
+      fontWeight: peso(f),
       color: cores[i % cores.length],
-      lineHeight: 1.2,
-      transition: 'all .3s'
+      lineHeight: 1.1,
+      display: 'inline-block',
+      animation: `wordPop .5s ease ${i * 0.04}s both`,
+      transition: 'font-size .6s cubic-bezier(.34,1.56,.64,1), color .3s',
+      cursor: 'default',
+      textShadow: f === maxF ? `0 0 20px ${cores[i % cores.length]}66` : 'none'
     }
-  }, word)));
+  }, word, f > 1 && /*#__PURE__*/React.createElement("sup", {
+    style: {
+      fontSize: '55%',
+      opacity: .6,
+      marginLeft: 2
+    }
+  }, f))));
 }
 
 /* ---- Resultado ao vivo: Múltipla escolha ---- */
@@ -4260,211 +4290,288 @@ function ResultadoMultipla({
   respostas.forEach(r => {
     if (r.valor && contagem[r.valor] !== undefined) contagem[r.valor]++;
   });
+  const maxQtd = Math.max(...Object.values(contagem), 1);
   const cores = ['#7B5FC4', '#2E9CCA', '#5A9B72', '#E05C4A', '#b8976a', '#e879a0'];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width: '100%'
     }
-  }, opcoes.map((op, i) => {
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @keyframes barGrow { from{width:0} }
+        @keyframes countPulse { 0%{transform:scale(1)} 50%{transform:scale(1.3)} 100%{transform:scale(1)} }
+      `), opcoes.map((op, i) => {
     const qtd = contagem[op] || 0;
     const pct = total ? Math.round(qtd / total * 100) : 0;
+    const isLider = qtd === maxQtd && qtd > 0;
     return /*#__PURE__*/React.createElement("div", {
       key: i,
       style: {
-        marginBottom: 12
+        marginBottom: 16
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         justifyContent: 'space-between',
-        fontSize: 14,
-        marginBottom: 5
+        alignItems: 'center',
+        fontSize: 15,
+        marginBottom: 6
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        color: '#374151',
-        fontWeight: 500
+        color: isLider ? '#fff' : '#9ca3af',
+        fontWeight: isLider ? 700 : 400,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6
       }
-    }, op), /*#__PURE__*/React.createElement("span", {
+    }, isLider && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 16
+      }
+    }, "🏆"), op), /*#__PURE__*/React.createElement("span", {
       style: {
         color: cores[i % cores.length],
-        fontWeight: 800
+        fontWeight: 900,
+        fontSize: 18,
+        animation: qtd > 0 ? 'countPulse .4s ease' : 'none',
+        display: 'inline-block'
       }
-    }, pct, "% ", /*#__PURE__*/React.createElement("span", {
+    }, pct, "%", /*#__PURE__*/React.createElement("span", {
       style: {
-        color: '#c0c4ce',
-        fontWeight: 400
+        color: '#555',
+        fontWeight: 400,
+        fontSize: 13
       }
-    }, "(", qtd, ")"))), /*#__PURE__*/React.createElement("div", {
+    }, " (", qtd, ")"))), /*#__PURE__*/React.createElement("div", {
       style: {
-        background: '#f0f2f5',
-        borderRadius: 8,
-        height: 28,
-        overflow: 'hidden'
+        background: '#1e2235',
+        borderRadius: 10,
+        height: isLider ? 40 : 32,
+        overflow: 'hidden',
+        boxShadow: isLider ? `0 0 20px ${cores[i % cores.length]}44` : 'none'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         height: '100%',
-        background: `linear-gradient(90deg,${cores[i % cores.length]},${cores[i % cores.length]}cc)`,
+        background: isLider ? `linear-gradient(90deg,${cores[i % cores.length]},${cores[i % cores.length]}dd)` : `linear-gradient(90deg,${cores[i % cores.length]}88,${cores[i % cores.length]}55)`,
         width: `${pct}%`,
-        borderRadius: 8,
-        transition: 'width .5s ease',
+        borderRadius: 10,
+        transition: 'width .6s cubic-bezier(.34,1.56,.64,1)',
         display: 'flex',
         alignItems: 'center',
-        paddingLeft: 10
+        paddingLeft: 12,
+        boxShadow: isLider ? `inset 0 1px 0 rgba(255,255,255,0.2)` : 'none'
       }
-    }, pct > 10 && /*#__PURE__*/React.createElement("span", {
+    }, pct > 8 && /*#__PURE__*/React.createElement("span", {
       style: {
         color: '#fff',
-        fontSize: 12,
-        fontWeight: 700
+        fontSize: 13,
+        fontWeight: 800
       }
     }, pct, "%"))));
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
-      fontSize: 12,
-      color: '#c0c4ce',
-      marginTop: 8
+      fontSize: 13,
+      color: '#555',
+      marginTop: 12,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6
     }
-  }, total, " resposta(s)"));
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      background: '#5A9B72',
+      animation: 'pulse 1.5s infinite'
+    }
+  }), total, " resposta(s) ao vivo"));
 }
 
 /* ---- Resultado ao vivo: Escala ---- */
 function ResultadoEscala({
   respostas
 }) {
-  const total = respostas.length;
   const valores = respostas.map(r => parseInt(r.valor)).filter(v => v >= 1 && v <= 5);
-  const media = valores.length ? (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2) : null;
+  const total = valores.length;
+  const media = total ? valores.reduce((a, b) => a + b, 0) / total : null;
   const dist = [1, 2, 3, 4, 5].map(n => valores.filter(v => v === n).length);
   const maxDist = Math.max(...dist, 1);
+  const corMedia = media ? media < 2.5 ? '#E05C4A' : media < 3.5 ? '#f59e0b' : '#5A9B72' : '#555';
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width: '100%'
     }
-  }, media && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @keyframes mediaFade { from{opacity:0;transform:translateY(-20px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes barUp { from{height:0} }
+      `), media !== null && /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
-      marginBottom: 24
+      marginBottom: 28,
+      animation: 'mediaFade .5s ease'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 64,
+      fontSize: 72,
       fontWeight: 900,
-      color: '#b8976a',
-      lineHeight: 1
+      color: corMedia,
+      lineHeight: 1,
+      textShadow: `0 0 40px ${corMedia}44`
     }
-  }, media), /*#__PURE__*/React.createElement("div", {
+  }, media.toFixed(2)), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 13,
-      color: '#c0c4ce'
+      color: '#555',
+      marginTop: 4
     }
-  }, "média de ", total, " resposta(s)"), /*#__PURE__*/React.createElement("div", {
+  }, total, " resposta(s)"), /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: '16px auto',
-      width: 280,
-      height: 16,
-      background: '#f0f2f5',
+      margin: '14px auto',
+      width: 300,
+      height: 14,
+      background: '#1e2235',
       borderRadius: 8,
-      overflow: 'hidden'
+      overflow: 'hidden',
+      boxShadow: '0 0 12px rgba(0,0,0,0.3)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       height: '100%',
-      background: 'linear-gradient(90deg,#E05C4A,#b8976a,#5A9B72)',
-      width: `${(parseFloat(media) - 1) / 4 * 100}%`,
+      background: 'linear-gradient(90deg,#E05C4A,#f59e0b 50%,#5A9B72)',
+      width: `${(media - 1) / 4 * 100}%`,
       borderRadius: 8,
-      transition: 'width .5s ease'
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      justifyContent: 'center'
-    }
-  }, [1, 2, 3, 4, 5].map((n, i) => /*#__PURE__*/React.createElement("div", {
-    key: n,
-    style: {
-      flex: 1,
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: 80,
-      display: 'flex',
-      alignItems: 'flex-end',
-      justifyContent: 'center',
-      marginBottom: 4
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: '70%',
-      background: `linear-gradient(180deg,#b8976a,#8a6d48)`,
-      height: `${dist[i] / maxDist * 80}px`,
-      borderRadius: '4px 4px 0 0',
-      transition: 'height .5s ease',
-      minHeight: dist[i] ? 4 : 0
+      transition: 'width .8s cubic-bezier(.34,1.56,.64,1)',
+      boxShadow: `0 0 16px ${corMedia}66`
     }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 18,
-      fontWeight: 800,
-      color: '#374151'
-    }
-  }, n), /*#__PURE__*/React.createElement("div", {
-    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      width: 300,
+      margin: '0 auto',
       fontSize: 11,
-      color: '#c0c4ce'
+      color: '#444'
     }
-  }, dist[i])))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("span", null, "Discordo (1)"), /*#__PURE__*/React.createElement("span", null, "Neutro (3)"), /*#__PURE__*/React.createElement("span", null, "Concordo (5)"))), /*#__PURE__*/React.createElement("div", {
     style: {
-      textAlign: 'center',
-      fontSize: 11,
-      color: '#c0c4ce',
-      marginTop: 12
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'center',
+      alignItems: 'flex-end',
+      height: 120
     }
-  }, "1 = Discordo · 5 = Concordo"));
+  }, [1, 2, 3, 4, 5].map((n, i) => {
+    const h = maxDist ? Math.max(4, dist[i] / maxDist * 100) : 4;
+    const isMax = dist[i] === maxDist && dist[i] > 0;
+    const c = ['#E05C4A', '#f97316', '#f59e0b', '#84cc16', '#5A9B72'][i];
+    return /*#__PURE__*/React.createElement("div", {
+      key: n,
+      style: {
+        flex: 1,
+        textAlign: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        gap: 6
+      }
+    }, dist[i] > 0 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 12,
+        fontWeight: 700,
+        color: c
+      }
+    }, dist[i]), /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: '100%',
+        maxWidth: 60,
+        background: isMax ? `linear-gradient(180deg,${c},${c}99)` : `${c}55`,
+        height: `${h}px`,
+        borderRadius: '6px 6px 0 0',
+        transition: 'height .7s cubic-bezier(.34,1.56,.64,1)',
+        boxShadow: isMax ? `0 0 20px ${c}55` : 'none',
+        animation: dist[i] > 0 ? 'barUp .6s ease' : 'none'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 20,
+        fontWeight: 900,
+        color: isMax ? '#fff' : '#666'
+      }
+    }, n));
+  })));
 }
 
 /* ---- Resultado ao vivo: Pergunta aberta ---- */
 function ResultadoAberta({
   respostas
 }) {
+  const {
+    useRef,
+    useEffect
+  } = React;
+  const endRef = useRef(null);
+  useEffect(() => {
+    endRef.current?.scrollIntoView({
+      behavior: 'smooth'
+    });
+  }, [respostas.length]);
   return /*#__PURE__*/React.createElement("div", {
     style: {
-      width: '100%',
-      maxHeight: 320,
-      overflowY: 'auto'
+      width: '100%'
     }
-  }, respostas.length === 0 && /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("style", null, `
+        @keyframes slideUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+      `), respostas.length === 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
-      color: '#c0c4ce',
-      padding: 20
+      color: '#555',
+      padding: '40px 20px',
+      fontSize: 14
     }
-  }, "Aguardando respostas..."), respostas.slice().reverse().map((r, i) => /*#__PURE__*/React.createElement("div", {
+  }, "💬 Aguardando respostas..."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      maxHeight: 340,
+      overflowY: 'auto',
+      paddingRight: 4
+    }
+  }, respostas.map((r, i) => /*#__PURE__*/React.createElement("div", {
     key: r.id || i,
     style: {
-      background: '#f8f9fb',
-      border: '1px solid #e8eaf0',
-      borderRadius: 10,
-      padding: '10px 14px',
-      marginBottom: 8,
-      animation: 'slideIn .3s ease'
+      background: 'linear-gradient(135deg,#1e2235,#1a1d27)',
+      border: '1px solid #2a2d3a',
+      borderRadius: 12,
+      padding: '12px 16px',
+      marginBottom: 10,
+      animation: `slideUp .4s ease ${Math.min(i, 5) * 0.06}s both`,
+      borderLeft: `3px solid ${'#7B5FC4 #2E9CCA #b8976a #5A9B72 #E05C4A #e879a0'.split(' ')[i % 6]}`
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 14,
-      color: '#374151'
+      fontSize: 15,
+      color: '#e8e4dc',
+      lineHeight: 1.5
     }
-  }, r.valor), /*#__PURE__*/React.createElement("div", {
+  }, "\"", r.valor, "\""), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
-      color: '#c0c4ce',
-      marginTop: 4
+      color: '#444',
+      marginTop: 6
     }
-  }, r.nomeColaborador || 'Anônimo', " · ", r.cargo || ''))));
+  }, r.nomeColaborador || 'Anônimo', r.cargo ? ` · ${r.cargo}` : ''))), /*#__PURE__*/React.createElement("div", {
+    ref: endRef
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: '#555',
+      marginTop: 8
+    }
+  }, respostas.length, " resposta(s)"));
 }
 
 /* ---- Modal: Criar/Editar apresentação ---- */
@@ -5417,7 +5524,6 @@ function TelaSala({
   const [loading, setLoading] = useState(true);
   const [employeeId, setEmployeeId] = useState(localStorage.getItem(`sala_emp_${codigo}`));
   const [employeeData, setEmployeeData] = useState(null);
-  const [respondidos, setRespondidos] = useState({});
   const [respAtual, setRespAtual] = useState('');
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState(false);
@@ -5474,10 +5580,6 @@ function TelaSala({
       cargo: employeeData?.cargo || '',
       timestamp: firebase.firestore.FieldValue.serverTimestamp()
     });
-    setRespondidos(r => ({
-      ...r,
-      [slide.id]: true
-    }));
     setRespAtual('');
     setEnviando(false);
     setEnviado(true);
@@ -5570,7 +5672,6 @@ function TelaSala({
     apresentacao: apresentacao
   });
   const slide = apresentacao.slides?.[apresentacao.slideAtual];
-  const jaRespondeu = slide && respondidos[slide.id];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: '100vh',
@@ -5609,29 +5710,13 @@ function TelaSala({
       paddingTop: 60,
       color: '#555'
     }
-  }, "Aguardando próximo slide...") : jaRespondeu ? /*#__PURE__*/React.createElement("div", {
+  }, "Aguardando próximo slide...") : /*#__PURE__*/React.createElement("div", {
     style: {
-      textAlign: 'center',
-      paddingTop: 60
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 56,
-      marginBottom: 16
-    }
-  }, "✅"), /*#__PURE__*/React.createElement("h3", {
-    style: {
-      color: '#fff'
-    }
-  }, "Resposta enviada!"), /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: '#666'
-    }
-  }, "Aguarde o próximo slide.")) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      paddingTop: 20
-    }
-  }, /*#__PURE__*/React.createElement("div", {
+      paddingTop: 20,
+      animation: 'slideUp .35s ease'
+    },
+    key: slide.id
+  }, /*#__PURE__*/React.createElement("style", null, '@keyframes slideUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}'), /*#__PURE__*/React.createElement("div", {
     style: {
       fontSize: 11,
       color: '#b8976a',
