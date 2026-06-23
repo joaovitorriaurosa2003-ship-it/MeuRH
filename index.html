@@ -783,6 +783,10 @@ function PainelAdmin({
     id: 'resultados',
     label: 'Resultados',
     icon: '📈'
+  }, {
+    id: 'indicadores',
+    label: 'Indicadores',
+    icon: '🎯'
   }];
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -864,6 +868,10 @@ function PainelAdmin({
     empresas: empresas,
     respostas: respostas
   }), aba === 'resultados' && /*#__PURE__*/React.createElement(AbaResultados, {
+    empresas: empresas,
+    tarefas: tarefas,
+    respostas: respostas
+  }), aba === 'indicadores' && /*#__PURE__*/React.createElement(AbaIndicadores, {
     empresas: empresas,
     tarefas: tarefas,
     respostas: respostas
@@ -2531,6 +2539,839 @@ function TabelaIndividual({
       }
     }, "Escala")));
   }))));
+}
+
+/* ======================================================
+   ABA INDICADORES
+====================================================== */
+const INDICADORES_PADRAO = [{
+  id: 'absenteismo',
+  label: 'Absenteísmo',
+  unidade: '%',
+  cor: '#E05C4A',
+  icone: '📉'
+}, {
+  id: 'turnover',
+  label: 'Turnover',
+  unidade: '%',
+  cor: '#7B5FC4',
+  icone: '🔄'
+}, {
+  id: 'headcount',
+  label: 'Headcount',
+  unidade: 'pessoas',
+  cor: '#2E9CCA',
+  icone: '👥'
+}];
+const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+function GraficoLinha({
+  dados,
+  cor,
+  unidade,
+  height
+}) {
+  height = height || 120;
+  const width = 600;
+  const pad = {
+    top: 16,
+    bottom: 24,
+    left: 44,
+    right: 16
+  };
+  const vals = dados.map(d => parseFloat(d.valor) || 0);
+  if (!vals.length || vals.every(v => v === 0)) {
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        height,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: '#333',
+        fontSize: 12
+      }
+    }, "Sem dados para exibir");
+  }
+  const minV = Math.min(...vals) * 0.9;
+  const maxV = Math.max(...vals) * 1.1 || 1;
+  const W = width - pad.left - pad.right;
+  const H = height - pad.top - pad.bottom;
+  const x = i => pad.left + i / (dados.length - 1 || 1) * W;
+  const y = v => pad.top + H - (v - minV) / (maxV - minV || 1) * H;
+  const pontos = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const area = `M ${x(0).toFixed(1)},${y(vals[0]).toFixed(1)} ` + vals.map((v, i) => `L ${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ') + ` L ${x(vals.length - 1).toFixed(1)},${(pad.top + H).toFixed(1)} L ${pad.left},${(pad.top + H).toFixed(1)} Z`;
+  const gridLines = 4;
+  const grids = Array.from({
+    length: gridLines
+  }, (_, i) => {
+    const gv = minV + (maxV - minV) * (i / (gridLines - 1));
+    const gy = y(gv);
+    return {
+      gv,
+      gy
+    };
+  });
+  return /*#__PURE__*/React.createElement("svg", {
+    viewBox: `0 0 ${width} ${height}`,
+    style: {
+      width: '100%',
+      height
+    },
+    preserveAspectRatio: "none"
+  }, grids.map(({
+    gv,
+    gy
+  }, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, /*#__PURE__*/React.createElement("line", {
+    x1: pad.left,
+    y1: gy,
+    x2: width - pad.right,
+    y2: gy,
+    stroke: "#1f2235",
+    strokeWidth: "1"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: pad.left - 4,
+    y: gy,
+    textAnchor: "end",
+    dominantBaseline: "middle",
+    fontSize: "9",
+    fill: "#444"
+  }, gv.toFixed(1)))), /*#__PURE__*/React.createElement("defs", null, /*#__PURE__*/React.createElement("linearGradient", {
+    id: `grad_${cor.replace('#', '')}`,
+    x1: "0",
+    y1: "0",
+    x2: "0",
+    y2: "1"
+  }, /*#__PURE__*/React.createElement("stop", {
+    offset: "0%",
+    stopColor: cor,
+    stopOpacity: "0.3"
+  }), /*#__PURE__*/React.createElement("stop", {
+    offset: "100%",
+    stopColor: cor,
+    stopOpacity: "0.02"
+  }))), /*#__PURE__*/React.createElement("path", {
+    d: area,
+    fill: `url(#grad_${cor.replace('#', '')})`
+  }), /*#__PURE__*/React.createElement("polyline", {
+    points: pontos,
+    fill: "none",
+    stroke: cor,
+    strokeWidth: "2",
+    strokeLinejoin: "round",
+    strokeLinecap: "round"
+  }), vals.map((v, i) => /*#__PURE__*/React.createElement("g", {
+    key: i
+  }, /*#__PURE__*/React.createElement("circle", {
+    cx: x(i),
+    cy: y(v),
+    r: "4",
+    fill: cor,
+    stroke: "#0f1117",
+    strokeWidth: "1.5"
+  }), /*#__PURE__*/React.createElement("text", {
+    x: x(i),
+    y: pad.top + H + 14,
+    textAnchor: "middle",
+    fontSize: "9",
+    fill: "#555"
+  }, dados[i].mes))));
+}
+function ModalAdicionarIndicador({
+  empresaId,
+  indicadoresExistentes,
+  onClose
+}) {
+  const [novoLabel, setNovoLabel] = useState('');
+  const [novaUnidade, setNovaUnidade] = useState('%');
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    if (!novoLabel.trim()) return;
+    setSaving(true);
+    const id = novoLabel.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+    await db.collection('companies').doc(empresaId).collection('indicadores_config').doc(id).set({
+      id,
+      label: novoLabel.trim(),
+      unidade: novaUnidade,
+      cor: '#' + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'),
+      icone: '📊',
+      custom: true
+    });
+    setSaving(false);
+    onClose();
+  };
+  const inputStyle = {
+    width: '100%',
+    background: '#0f1117',
+    border: '1px solid #2a2d3a',
+    borderRadius: 8,
+    padding: '10px 12px',
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'inherit',
+    outline: 'none',
+    marginBottom: 14
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 16,
+      padding: 28,
+      width: '100%',
+      maxWidth: 400
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 20px',
+      color: '#fff'
+    }
+  }, "Novo indicador"), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Nome do indicador"), /*#__PURE__*/React.createElement("input", {
+    value: novoLabel,
+    onChange: e => setNovoLabel(e.target.value),
+    style: inputStyle,
+    placeholder: "Ex: NPS Interno, Horas Extras...",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Unidade de medida"), /*#__PURE__*/React.createElement("select", {
+    value: novaUnidade,
+    onChange: e => setNovaUnidade(e.target.value),
+    style: inputStyle
+  }, /*#__PURE__*/React.createElement("option", {
+    value: "%"
+  }, "Porcentagem (%)"), /*#__PURE__*/React.createElement("option", {
+    value: "pessoas"
+  }, "Pessoas"), /*#__PURE__*/React.createElement("option", {
+    value: "horas"
+  }, "Horas"), /*#__PURE__*/React.createElement("option", {
+    value: "R$"
+  }, "Reais (R$)"), /*#__PURE__*/React.createElement("option", {
+    value: "pts"
+  }, "Pontos"), /*#__PURE__*/React.createElement("option", {
+    value: "dias"
+  }, "Dias"), /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "Sem unidade")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end',
+      marginTop: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      background: 'transparent',
+      border: '1px solid #2a2d3a',
+      color: '#888',
+      borderRadius: 8,
+      padding: '9px 16px',
+      cursor: 'pointer'
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSave,
+    disabled: saving || !novoLabel.trim(),
+    style: {
+      background: '#b8976a',
+      color: '#1a1d27',
+      border: 'none',
+      borderRadius: 8,
+      padding: '9px 18px',
+      cursor: 'pointer',
+      fontWeight: 700
+    }
+  }, saving ? 'Salvando...' : 'Adicionar'))));
+}
+function ModalAdicionarValor({
+  empresaId,
+  indicador,
+  onClose
+}) {
+  const anoAtual = new Date().getFullYear();
+  const mesAtual = new Date().getMonth();
+  const [mes, setMes] = useState(String(mesAtual));
+  const [ano, setAno] = useState(String(anoAtual));
+  const [valor, setValor] = useState('');
+  const [saving, setSaving] = useState(false);
+  const handleSave = async () => {
+    if (!valor) return;
+    setSaving(true);
+    const chave = `${ano}_${String(mes).padStart(2, '0')}`;
+    await db.collection('companies').doc(empresaId).collection('indicadores').doc(indicador.id).collection('valores').doc(chave).set({
+      mes: parseInt(mes),
+      ano: parseInt(ano),
+      mesLabel: MESES[parseInt(mes)],
+      valor: parseFloat(valor),
+      chave,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setSaving(false);
+    onClose();
+  };
+  const inputStyle = {
+    width: '100%',
+    background: '#0f1117',
+    border: '1px solid #2a2d3a',
+    borderRadius: 8,
+    padding: '10px 12px',
+    color: '#fff',
+    fontSize: 14,
+    fontFamily: 'inherit',
+    outline: 'none'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.7)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 50,
+      padding: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 16,
+      padding: 28,
+      width: '100%',
+      maxWidth: 380
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: '0 0 6px',
+      color: '#fff'
+    }
+  }, indicador.icone, " ", indicador.label), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#666',
+      fontSize: 12,
+      margin: '0 0 20px'
+    }
+  }, "Adicionar valor mensal"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 12,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Mês"), /*#__PURE__*/React.createElement("select", {
+    value: mes,
+    onChange: e => setMes(e.target.value),
+    style: {
+      ...inputStyle
+    }
+  }, MESES.map((m, i) => /*#__PURE__*/React.createElement("option", {
+    key: i,
+    value: i
+  }, m)))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Ano"), /*#__PURE__*/React.createElement("select", {
+    value: ano,
+    onChange: e => setAno(e.target.value),
+    style: {
+      ...inputStyle
+    }
+  }, [anoAtual - 1, anoAtual, anoAtual + 1].map(a => /*#__PURE__*/React.createElement("option", {
+    key: a,
+    value: a
+  }, a))))), /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Valor (", indicador.unidade, ")"), /*#__PURE__*/React.createElement("input", {
+    value: valor,
+    onChange: e => setValor(e.target.value),
+    type: "number",
+    step: "0.01",
+    style: {
+      ...inputStyle,
+      marginBottom: 20
+    },
+    placeholder: `Ex: ${indicador.unidade === '%' ? '5.2' : '120'}`,
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      background: 'transparent',
+      border: '1px solid #2a2d3a',
+      color: '#888',
+      borderRadius: 8,
+      padding: '9px 16px',
+      cursor: 'pointer'
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSave,
+    disabled: saving || !valor,
+    style: {
+      background: '#b8976a',
+      color: '#1a1d27',
+      border: 'none',
+      borderRadius: 8,
+      padding: '9px 18px',
+      cursor: 'pointer',
+      fontWeight: 700
+    }
+  }, saving ? 'Salvando...' : 'Salvar'))));
+}
+function CardIndicador({
+  empresaId,
+  indicador,
+  onAddValor
+}) {
+  const [dados, setDados] = useState([]);
+  useEffect(() => {
+    const unsub = db.collection('companies').doc(empresaId).collection('indicadores').doc(indicador.id).collection('valores').orderBy('chave', 'asc').onSnapshot(snap => setDados(snap.docs.map(d => d.data())));
+    return unsub;
+  }, [empresaId, indicador.id]);
+  const ultimo = dados[dados.length - 1];
+  const penultimo = dados[dados.length - 2];
+  const variacao = ultimo && penultimo ? (parseFloat(ultimo.valor) - parseFloat(penultimo.valor)).toFixed(1) : null;
+  const subiu = variacao !== null ? parseFloat(variacao) > 0 : null;
+  const isNegativo = ['absenteismo', 'turnover'].includes(indicador.id); // subida = ruim para esses
+
+  const dadosGrafico = dados.slice(-12).map(d => ({
+    mes: d.mesLabel || MESES[d.mes],
+    valor: d.valor
+  }));
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 16,
+      padding: '20px 22px',
+      borderTop: `3px solid ${indicador.cor}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#555',
+      marginBottom: 4,
+      textTransform: 'uppercase',
+      letterSpacing: .5
+    }
+  }, indicador.icone, " ", indicador.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'baseline',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 36,
+      fontWeight: 800,
+      color: '#fff',
+      lineHeight: 1
+    }
+  }, ultimo ? parseFloat(ultimo.valor).toLocaleString('pt-BR') : '—'), ultimo && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 13,
+      color: '#555'
+    }
+  }, indicador.unidade)), variacao !== null && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: subiu === (isNegativo ? false : true) ? '#5A9B72' : '#E05C4A',
+      fontWeight: 700
+    }
+  }, subiu ? '▲' : '▼', " ", Math.abs(variacao), " ", indicador.unidade), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: '#444'
+    }
+  }, "vs mês anterior"))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => onAddValor(indicador),
+    style: {
+      background: '#2a2d3a',
+      border: 'none',
+      color: '#b8976a',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      fontSize: 12,
+      fontWeight: 600,
+      whiteSpace: 'nowrap'
+    }
+  }, "+ Valor")), /*#__PURE__*/React.createElement(GraficoLinha, {
+    dados: dadosGrafico,
+    cor: indicador.cor,
+    unidade: indicador.unidade,
+    height: 100
+  }), dadosGrafico.length === 0 && /*#__PURE__*/React.createElement("p", {
+    style: {
+      fontSize: 12,
+      color: '#333',
+      textAlign: 'center',
+      marginTop: 8
+    }
+  }, "Clique em \"+ Valor\" para começar a registrar"));
+}
+function AbaIndicadores({
+  empresas,
+  tarefas,
+  respostas
+}) {
+  const [empresaSelecionada, setEmpresaSelecionada] = useState(null);
+  const [indicadoresCustom, setIndicadoresCustom] = useState([]);
+  const [modalValor, setModalValor] = useState(null);
+  const [modalNovoIndicador, setModalNovoIndicador] = useState(false);
+  useEffect(() => {
+    if (!empresaSelecionada) return;
+    const unsub = db.collection('companies').doc(empresaSelecionada.id).collection('indicadores_config').onSnapshot(snap => {
+      setIndicadoresCustom(snap.docs.map(d => d.data()));
+    });
+    return unsub;
+  }, [empresaSelecionada?.id]);
+  const todosIndicadores = [...INDICADORES_PADRAO, ...indicadoresCustom];
+
+  // Dados de questionários da empresa selecionada
+  const respostasEmpresa = empresaSelecionada ? respostas.filter(r => r.companyId === empresaSelecionada.id) : [];
+  const tarefasEmpresa = empresaSelecionada ? tarefas.filter(t => t.companyId === empresaSelecionada.id) : [];
+  const contagemPerfis = {
+    aguia: 0,
+    golfinho: 0,
+    lobo: 0,
+    tubarao: 0
+  };
+  respostasEmpresa.filter(r => r.formato === 'perfil_comportamental').forEach(r => {
+    if (r.perfilDominante && contagemPerfis[r.perfilDominante] !== undefined) contagemPerfis[r.perfilDominante]++;
+  });
+  const totalPerfis = Object.values(contagemPerfis).reduce((a, b) => a + b, 0);
+  if (!empresaSelecionada) {
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+      style: {
+        fontSize: 22,
+        fontWeight: 700,
+        margin: '0 0 4px',
+        color: '#fff'
+      }
+    }, "Indicadores"), /*#__PURE__*/React.createElement("p", {
+      style: {
+        color: '#555',
+        fontSize: 13,
+        marginBottom: 28
+      }
+    }, "Selecione uma empresa para visualizar e registrar indicadores"), empresas.length === 0 ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: '#1a1d27',
+        border: '1px solid #2a2d3a',
+        borderRadius: 14,
+        padding: '50px 20px',
+        textAlign: 'center',
+        color: '#444'
+      }
+    }, "Nenhuma empresa cadastrada ainda.") : /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
+        gap: 14
+      }
+    }, empresas.map(emp => {
+      const respEmp = respostas.filter(r => r.companyId === emp.id).length;
+      const tarefasEmp = tarefas.filter(t => t.companyId === emp.id).length;
+      return /*#__PURE__*/React.createElement("button", {
+        key: emp.id,
+        onClick: () => setEmpresaSelecionada(emp),
+        style: {
+          background: '#1a1d27',
+          border: '1px solid #2a2d3a',
+          borderRadius: 16,
+          padding: 22,
+          textAlign: 'left',
+          cursor: 'pointer',
+          transition: 'border-color .15s'
+        },
+        onMouseEnter: e => e.currentTarget.style.borderColor = '#b8976a',
+        onMouseLeave: e => e.currentTarget.style.borderColor = '#2a2d3a'
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          width: 44,
+          height: 44,
+          borderRadius: 12,
+          background: '#b8976a22',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 22,
+          marginBottom: 14
+        }
+      }, "🏢"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 17,
+          fontWeight: 700,
+          color: '#fff',
+          marginBottom: 4
+        }
+      }, emp.nome), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 12,
+          color: '#555',
+          marginBottom: 14
+        }
+      }, "Desde ", formatDate(emp.dataCriacao)), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 14
+        }
+      }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 18,
+          fontWeight: 800,
+          color: '#b8976a'
+        }
+      }, respEmp), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: '#444'
+        }
+      }, "respostas")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 18,
+          fontWeight: 800,
+          color: '#7B5FC4'
+        }
+      }, tarefasEmp), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontSize: 11,
+          color: '#444'
+        }
+      }, "tarefas"))));
+    })));
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 14,
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setEmpresaSelecionada(null);
+      setIndicadoresCustom([]);
+    },
+    style: {
+      background: '#2a2d3a',
+      border: 'none',
+      color: '#b8976a',
+      borderRadius: 8,
+      padding: '7px 12px',
+      cursor: 'pointer',
+      fontSize: 13
+    }
+  }, "← Voltar"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 22,
+      fontWeight: 700,
+      margin: 0,
+      color: '#fff'
+    }
+  }, empresaSelecionada.nome), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#555',
+      fontSize: 12,
+      margin: 0
+    }
+  }, "Dashboard de indicadores")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalNovoIndicador(true),
+    style: {
+      marginLeft: 'auto',
+      background: '#b8976a',
+      color: '#1a1d27',
+      border: 'none',
+      borderRadius: 10,
+      padding: '9px 16px',
+      cursor: 'pointer',
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, "+ Novo indicador")), respostasEmpresa.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 14,
+      padding: '18px 20px',
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#b8976a',
+      textTransform: 'uppercase',
+      letterSpacing: .5,
+      marginBottom: 14,
+      fontWeight: 700
+    }
+  }, "📝 Dados dos questionários (", respostasEmpresa.length, " respostas · ", tarefasEmpresa.length, " tarefas)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 24,
+      flexWrap: 'wrap'
+    }
+  }, totalPerfis > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 200
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#555',
+      marginBottom: 10
+    }
+  }, "Perfis comportamentais"), Object.entries(PERFIS_COMPORTAMENTAIS).map(([k, p]) => /*#__PURE__*/React.createElement("div", {
+    key: k,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      width: 20
+    }
+  }, p.emoji), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      width: 70,
+      color: '#888'
+    }
+  }, p.nome), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: '#0f1117',
+      borderRadius: 4,
+      height: 6,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: p.cor,
+      width: `${totalPerfis ? Math.round(contagemPerfis[k] / totalPerfis * 100) : 0}%`
+    }
+  })), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: p.cor,
+      fontWeight: 700,
+      width: 36,
+      textAlign: 'right'
+    }
+  }, totalPerfis ? Math.round(contagemPerfis[k] / totalPerfis * 100) : 0, "%")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 14,
+      flexWrap: 'wrap'
+    }
+  }, [['Total de respostas', respostasEmpresa.length, '#b8976a'], ['Tarefas cadastradas', tarefasEmpresa.length, '#7B5FC4'], ['Perfis mapeados', totalPerfis, '#2E9CCA']].map(([l, v, c]) => /*#__PURE__*/React.createElement("div", {
+    key: l,
+    style: {
+      background: '#0f1117',
+      borderRadius: 10,
+      padding: '12px 16px',
+      minWidth: 120
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      fontWeight: 800,
+      color: c
+    }
+  }, v), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#444',
+      marginTop: 2
+    }
+  }, l)))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
+      gap: 18
+    }
+  }, todosIndicadores.map(ind => /*#__PURE__*/React.createElement(CardIndicador, {
+    key: ind.id,
+    empresaId: empresaSelecionada.id,
+    indicador: ind,
+    onAddValor: setModalValor
+  }))), modalValor && /*#__PURE__*/React.createElement(ModalAdicionarValor, {
+    empresaId: empresaSelecionada.id,
+    indicador: modalValor,
+    onClose: () => setModalValor(null)
+  }), modalNovoIndicador && /*#__PURE__*/React.createElement(ModalAdicionarIndicador, {
+    empresaId: empresaSelecionada.id,
+    indicadoresExistentes: todosIndicadores,
+    onClose: () => setModalNovoIndicador(false)
+  }));
 }
 
 /* ======================================================
