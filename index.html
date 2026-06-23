@@ -597,6 +597,7 @@ function gerarPDFTarefa(tarefa, respostas, empresaNome) {
 /* ======================================================
    ADMIN — LOGIN
 ====================================================== */
+
 function LoginScreen() {
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -616,47 +617,89 @@ function LoginScreen() {
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: '100vh',
-      background: '#0f1117',
+      background: 'linear-gradient(135deg,#0a0c14 0%,#0f1117 50%,#12100e 100%)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: 20
+      padding: 20,
+      position: 'relative',
+      overflow: 'hidden'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#1a1d27',
-      border: '1px solid #2a2d3a',
-      borderRadius: 20,
-      padding: '40px 36px',
+      position: 'absolute',
+      top: '15%',
+      left: '10%',
+      width: 300,
+      height: 300,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle,#b8976a18 0%,transparent 70%)',
+      pointerEvents: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      bottom: '10%',
+      right: '8%',
+      width: 400,
+      height: 400,
+      borderRadius: '50%',
+      background: 'radial-gradient(circle,#7B5FC418 0%,transparent 70%)',
+      pointerEvents: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: 'linear-gradient(145deg,#1e2130 0%,#181b26 100%)',
+      border: '1px solid #2e3147',
+      borderRadius: 24,
+      padding: '44px 40px',
       width: '100%',
-      maxWidth: 400
+      maxWidth: 420,
+      boxShadow: '0 32px 80px rgba(0,0,0,0.6),0 0 0 1px rgba(184,151,106,0.1)',
+      position: 'relative',
+      zIndex: 1
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
-      marginBottom: 32
+      marginBottom: 36
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
-      color: '#b8976a',
-      fontWeight: 700,
-      letterSpacing: 2,
-      marginBottom: 8
+      display: 'inline-flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      width: 64,
+      height: 64,
+      borderRadius: 18,
+      background: 'linear-gradient(135deg,#b8976a33,#b8976a11)',
+      border: '1px solid #b8976a44',
+      marginBottom: 20,
+      fontSize: 28
     }
-  }, "INSTITUTO PROPAGARE"), /*#__PURE__*/React.createElement("h2", {
+  }, "🧠"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#b8976a',
+      fontWeight: 800,
+      letterSpacing: 3,
+      marginBottom: 10,
+      textTransform: 'uppercase'
+    }
+  }, "Instituto Propagare"), /*#__PURE__*/React.createElement("h2", {
     style: {
       color: '#fff',
-      fontSize: 22,
-      margin: 0
+      fontSize: 26,
+      margin: '0 0 6px',
+      fontWeight: 800
     }
   }, "Painel Administrativo"), /*#__PURE__*/React.createElement("p", {
     style: {
-      color: '#666',
+      color: '#555',
       fontSize: 13,
-      marginTop: 6
+      margin: 0
     }
-  }, "Acesso restrito")), /*#__PURE__*/React.createElement("form", {
+  }, "Acesso restrito · Psicologia Organizacional")), /*#__PURE__*/React.createElement("form", {
     onSubmit: handleLogin
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -665,11 +708,12 @@ function LoginScreen() {
   }, /*#__PURE__*/React.createElement("label", {
     style: {
       display: 'block',
-      fontSize: 12,
+      fontSize: 11,
       color: '#888',
-      marginBottom: 6,
+      marginBottom: 8,
       textTransform: 'uppercase',
-      letterSpacing: .5
+      letterSpacing: 1,
+      fontWeight: 600
     }
   }, "E-mail"), /*#__PURE__*/React.createElement("input", {
     value: email,
@@ -679,25 +723,29 @@ function LoginScreen() {
     style: {
       width: '100%',
       background: '#0f1117',
-      border: '1px solid #2a2d3a',
-      borderRadius: 10,
-      padding: '11px 14px',
+      border: '1px solid #2e3147',
+      borderRadius: 12,
+      padding: '13px 16px',
       color: '#fff',
       fontSize: 14,
-      outline: 'none'
-    }
+      outline: 'none',
+      boxSizing: 'border-box'
+    },
+    onFocus: e => e.target.style.borderColor = '#b8976a',
+    onBlur: e => e.target.style.borderColor = '#2e3147'
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 24
+      marginBottom: 28
     }
   }, /*#__PURE__*/React.createElement("label", {
     style: {
       display: 'block',
-      fontSize: 12,
+      fontSize: 11,
       color: '#888',
-      marginBottom: 6,
+      marginBottom: 8,
       textTransform: 'uppercase',
-      letterSpacing: .5
+      letterSpacing: 1,
+      fontWeight: 600
     }
   }, "Senha"), /*#__PURE__*/React.createElement("input", {
     value: senha,
@@ -707,18 +755,25 @@ function LoginScreen() {
     style: {
       width: '100%',
       background: '#0f1117',
-      border: '1px solid #2a2d3a',
-      borderRadius: 10,
-      padding: '11px 14px',
+      border: '1px solid #2e3147',
+      borderRadius: 12,
+      padding: '13px 16px',
       color: '#fff',
       fontSize: 14,
-      outline: 'none'
-    }
-  })), erro && /*#__PURE__*/React.createElement("p", {
+      outline: 'none',
+      boxSizing: 'border-box'
+    },
+    onFocus: e => e.target.style.borderColor = '#b8976a',
+    onBlur: e => e.target.style.borderColor = '#2e3147'
+  })), erro && /*#__PURE__*/React.createElement("div", {
     style: {
-      color: '#e05c4a',
+      background: '#E05C4A18',
+      border: '1px solid #E05C4A44',
+      borderRadius: 10,
+      padding: '10px 14px',
+      marginBottom: 20,
+      color: '#E05C4A',
       fontSize: 13,
-      marginBottom: 16,
       textAlign: 'center'
     }
   }, erro), /*#__PURE__*/React.createElement("button", {
@@ -726,16 +781,18 @@ function LoginScreen() {
     disabled: loading,
     style: {
       width: '100%',
-      background: '#b8976a',
-      color: '#1a1d27',
+      background: 'linear-gradient(135deg,#c9a87a,#b8976a,#a07848)',
+      color: '#1a1200',
       border: 'none',
-      borderRadius: 10,
-      padding: '13px',
+      borderRadius: 12,
+      padding: '14px',
       fontSize: 15,
-      fontWeight: 700,
-      cursor: 'pointer'
+      fontWeight: 800,
+      cursor: loading ? 'not-allowed' : 'pointer',
+      boxShadow: '0 8px 24px rgba(184,151,106,0.35)',
+      letterSpacing: .5
     }
-  }, loading ? 'Entrando...' : 'Entrar'))));
+  }, loading ? '...' : 'Entrar →'))));
 }
 
 /* ======================================================
@@ -770,89 +827,167 @@ function PainelAdmin({
   const abas = [{
     id: 'dashboard',
     label: 'Dashboard',
-    icon: '📊'
+    icon: '📊',
+    cor: '#7B5FC4'
   }, {
     id: 'empresas',
     label: 'Empresas',
-    icon: '🏢'
+    icon: '🏢',
+    cor: '#2E9CCA'
   }, {
     id: 'tarefas',
     label: 'Tarefas',
-    icon: '📋'
+    icon: '📋',
+    cor: '#b8976a'
   }, {
     id: 'resultados',
     label: 'Resultados',
-    icon: '📈'
+    icon: '📈',
+    cor: '#5A9B72'
   }, {
     id: 'indicadores',
     label: 'Indicadores',
-    icon: '🎯'
+    icon: '🎯',
+    cor: '#E05C4A'
   }];
+  const abaAtual = abas.find(a => a.id === aba);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: '100vh',
-      background: '#0f1117',
+      background: 'linear-gradient(160deg,#0a0c14 0%,#0d0f1a 40%,#0f1117 100%)',
       color: '#e8e4dc',
-      fontFamily: "'Segoe UI', system-ui, sans-serif",
+      fontFamily: "'Segoe UI',system-ui,sans-serif",
       display: 'flex',
       flexDirection: 'column'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#1a1d27',
-      borderBottom: '1px solid #2a2d3a',
-      padding: '0 24px',
+      background: 'linear-gradient(90deg,#141620 0%,#1a1d2e 100%)',
+      borderBottom: '1px solid #252840',
+      padding: '0 28px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
-      height: 56
+      height: 66,
+      boxShadow: '0 4px 24px rgba(0,0,0,0.4)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 100
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 13,
-      fontWeight: 700,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 10,
+      background: 'linear-gradient(135deg,#b8976a,#8a6d48)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 16
+    }
+  }, "🧠"), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      fontWeight: 800,
       color: '#b8976a',
+      letterSpacing: 2
+    }
+  }, "PROPAGARE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: '#444',
       letterSpacing: 1
     }
-  }, "PROPAGARE · AVALIAÇÃO"), /*#__PURE__*/React.createElement("div", {
+  }, "AVALIAÇÃO ORGANIZACIONAL"))), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      gap: 4
+      gap: 2,
+      background: '#0f1117',
+      borderRadius: 14,
+      padding: 4,
+      border: '1px solid #1e2135'
     }
   }, abas.map(a => /*#__PURE__*/React.createElement("button", {
     key: a.id,
     onClick: () => setAba(a.id),
     style: {
-      background: aba === a.id ? '#b8976a' : 'transparent',
-      color: aba === a.id ? '#1a1d27' : '#888',
-      border: 'none',
-      borderRadius: 8,
-      padding: '6px 14px',
+      background: aba === a.id ? `linear-gradient(135deg,${a.cor}22,${a.cor}11)` : 'transparent',
+      color: aba === a.id ? '#fff' : '#555',
+      border: aba === a.id ? `1px solid ${a.cor}55` : '1px solid transparent',
+      borderRadius: 10,
+      padding: '8px 16px',
       cursor: 'pointer',
       fontWeight: aba === a.id ? 700 : 400,
       fontSize: 13,
       display: 'flex',
       alignItems: 'center',
-      gap: 6
+      gap: 7,
+      transition: 'all .2s',
+      boxShadow: aba === a.id ? `0 4px 12px ${a.cor}22` : 'none'
     }
-  }, /*#__PURE__*/React.createElement("span", null, a.icon), /*#__PURE__*/React.createElement("span", null, a.label)))), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, a.icon), /*#__PURE__*/React.createElement("span", null, a.label)))), /*#__PURE__*/React.createElement("button", {
     onClick: () => auth.signOut(),
     style: {
       background: 'transparent',
-      border: '1px solid #2a2d3a',
-      color: '#666',
-      padding: '5px 12px',
-      borderRadius: 8,
+      border: '1px solid #252840',
+      color: '#444',
+      padding: '6px 14px',
+      borderRadius: 10,
       cursor: 'pointer',
-      fontSize: 12
+      fontSize: 12,
+      transition: 'all .2s'
+    },
+    onMouseEnter: e => {
+      e.target.style.borderColor = '#E05C4A55';
+      e.target.style.color = '#E05C4A';
+    },
+    onMouseLeave: e => {
+      e.target.style.borderColor = '#252840';
+      e.target.style.color = '#444';
     }
   }, "Sair")), /*#__PURE__*/React.createElement("div", {
     style: {
+      background: '#0d0f1a',
+      borderBottom: '1px solid #151726',
+      padding: '10px 28px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: '#333'
+    }
+  }, "Propagare"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: '#252840'
+    }
+  }, "›"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: abaAtual?.cor || '#b8976a',
+      fontWeight: 600
+    }
+  }, abaAtual?.icon, " ", abaAtual?.label)), /*#__PURE__*/React.createElement("div", {
+    style: {
       flex: 1,
-      padding: '28px 28px',
-      maxWidth: 1300,
+      padding: '32px 28px',
+      maxWidth: 1360,
       width: '100%',
-      margin: '0 auto'
+      margin: '0 auto',
+      boxSizing: 'border-box'
     }
   }, aba === 'dashboard' && /*#__PURE__*/React.createElement(AbaDashboard, {
     empresas: empresas,
@@ -877,8 +1012,6 @@ function PainelAdmin({
     respostas: respostas
   })));
 }
-
-/* ---- ABA DASHBOARD ---- */
 function AbaDashboard({
   empresas,
   tarefas,
@@ -903,71 +1036,103 @@ function AbaDashboard({
     label: 'Respostas recebidas',
     value: totalRespostas,
     icon: '📝',
-    cor: '#7B5FC4'
+    cor: '#7B5FC4',
+    grad: 'linear-gradient(135deg,#7B5FC422,#7B5FC411)',
+    shadow: '0 8px 32px #7B5FC422'
   }, {
     label: 'Empresas cadastradas',
     value: totalEmpresas,
     icon: '🏢',
-    cor: '#2E9CCA'
+    cor: '#2E9CCA',
+    grad: 'linear-gradient(135deg,#2E9CCA22,#2E9CCA11)',
+    shadow: '0 8px 32px #2E9CCA22'
   }, {
     label: 'Tarefas ativas',
     value: tarefasPendentes,
     icon: '📋',
-    cor: '#b8976a'
+    cor: '#b8976a',
+    grad: 'linear-gradient(135deg,#b8976a22,#b8976a11)',
+    shadow: '0 8px 32px #b8976a22'
   }, {
     label: 'Tarefas totais',
     value: totalTarefas,
     icon: '✅',
-    cor: '#5A9B72'
+    cor: '#5A9B72',
+    grad: 'linear-gradient(135deg,#5A9B7222,#5A9B7211)',
+    shadow: '0 8px 32px #5A9B7222'
   }];
-  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 22,
-      fontWeight: 700,
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 28,
+      fontWeight: 800,
       margin: '0 0 4px',
-      color: '#fff'
+      color: '#fff',
+      letterSpacing: -.5
     }
-  }, "Dashboard"), /*#__PURE__*/React.createElement("p", {
+  }, "Bom dia 👋"), /*#__PURE__*/React.createElement("p", {
     style: {
-      color: '#555',
-      fontSize: 13,
-      marginBottom: 24
+      color: '#444',
+      fontSize: 14,
+      margin: 0
     }
-  }, "Visão geral da plataforma"), /*#__PURE__*/React.createElement("div", {
+  }, "Aqui está o resumo da sua plataforma de avaliação")), /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
-      gridTemplateColumns: 'repeat(4, 1fr)',
+      gridTemplateColumns: 'repeat(4,1fr)',
       gap: 16,
       marginBottom: 28
     }
   }, kpis.map((k, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
-      background: '#1a1d27',
-      border: '1px solid #2a2d3a',
-      borderRadius: 14,
-      padding: '18px 20px',
-      borderTop: `3px solid ${k.cor}`
+      background: k.grad,
+      border: `1px solid ${k.cor}33`,
+      borderRadius: 18,
+      padding: '22px 20px',
+      boxShadow: k.shadow,
+      position: 'relative',
+      overflow: 'hidden'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 24,
-      marginBottom: 8
+      position: 'absolute',
+      top: -10,
+      right: -10,
+      fontSize: 52,
+      opacity: .1
     }
   }, k.icon), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 32,
-      fontWeight: 800,
+      width: 40,
+      height: 40,
+      borderRadius: 12,
+      background: `${k.cor}22`,
+      border: `1px solid ${k.cor}44`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontSize: 18,
+      marginBottom: 14
+    }
+  }, k.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 38,
+      fontWeight: 900,
       color: '#fff',
-      lineHeight: 1
+      lineHeight: 1,
+      marginBottom: 6
     }
   }, k.value), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontSize: 12,
-      color: '#666',
-      marginTop: 6,
+      fontSize: 11,
+      color: `${k.cor}cc`,
       textTransform: 'uppercase',
-      letterSpacing: .4
+      letterSpacing: .8,
+      fontWeight: 600
     }
   }, k.label)))), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -977,137 +1142,175 @@ function AbaDashboard({
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#1a1d27',
-      border: '1px solid #2a2d3a',
-      borderRadius: 14,
-      padding: 20
+      background: 'linear-gradient(145deg,#1a1d2e,#161825)',
+      border: '1px solid #252840',
+      borderRadius: 18,
+      padding: '22px 24px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
     style: {
-      margin: '0 0 16px',
-      fontSize: 14,
+      margin: 0,
+      fontSize: 13,
       color: '#b8976a',
       textTransform: 'uppercase',
-      letterSpacing: .5
+      letterSpacing: 1,
+      fontWeight: 700
     }
-  }, "Respostas por empresa"), adesaoPorEmpresa.length === 0 ? /*#__PURE__*/React.createElement("p", {
+  }, "Respostas por empresa"), /*#__PURE__*/React.createElement("span", {
     style: {
-      color: '#444',
+      fontSize: 11,
+      color: '#333',
+      background: '#1a1d2e',
+      border: '1px solid #252840',
+      borderRadius: 20,
+      padding: '3px 10px'
+    }
+  }, adesaoPorEmpresa.length, " empresas")), adesaoPorEmpresa.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#333',
       fontSize: 13
     }
   }, "Nenhuma resposta ainda.") : adesaoPorEmpresa.map((e, i) => /*#__PURE__*/React.createElement("div", {
     key: i,
     style: {
-      marginBottom: 12
+      marginBottom: 14
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'space-between',
       fontSize: 13,
-      marginBottom: 4
+      marginBottom: 6
     }
   }, /*#__PURE__*/React.createElement("span", {
     style: {
-      color: '#ccc'
+      color: '#ccc',
+      fontWeight: 500
     }
   }, e.nome), /*#__PURE__*/React.createElement("span", {
     style: {
       color: '#b8976a',
-      fontWeight: 700
+      fontWeight: 800
     }
   }, e.qtd)), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#0f1117',
-      borderRadius: 4,
-      height: 8,
+      background: '#0a0c14',
+      borderRadius: 6,
+      height: 6,
       overflow: 'hidden'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       height: '100%',
-      background: '#b8976a',
+      background: 'linear-gradient(90deg,#b8976a,#c9a87a)',
       width: `${e.qtd / maxQtd * 100}%`,
-      borderRadius: 4
+      borderRadius: 6,
+      boxShadow: '0 0 8px #b8976a44'
     }
   }))))), /*#__PURE__*/React.createElement("div", {
     style: {
-      background: '#1a1d27',
-      border: '1px solid #2a2d3a',
-      borderRadius: 14,
-      padding: 20
+      background: 'linear-gradient(145deg,#1a1d2e,#161825)',
+      border: '1px solid #252840',
+      borderRadius: 18,
+      padding: '22px 24px',
+      boxShadow: '0 8px 32px rgba(0,0,0,0.3)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 18
     }
   }, /*#__PURE__*/React.createElement("h3", {
     style: {
-      margin: '0 0 16px',
-      fontSize: 14,
+      margin: 0,
+      fontSize: 13,
       color: '#b8976a',
       textTransform: 'uppercase',
-      letterSpacing: .5
+      letterSpacing: 1,
+      fontWeight: 700
     }
-  }, "Últimas respostas"), ultimasRespostas.length === 0 ? /*#__PURE__*/React.createElement("p", {
-    style: {
-      color: '#444',
-      fontSize: 13
-    }
-  }, "Nenhuma resposta ainda.") : ultimasRespostas.map(r => /*#__PURE__*/React.createElement("div", {
-    key: r.id,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 10,
-      padding: '8px 0',
-      borderBottom: '1px solid #1f2235'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 34,
-      height: 34,
-      borderRadius: '50%',
-      background: '#2a2d3a',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontSize: 14
-    }
-  }, r.formato === 'perfil_comportamental' ? PERFIS_COMPORTAMENTAIS[r.perfilDominante]?.emoji || '🎭' : '📝'), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 13,
-      color: '#ddd',
-      fontWeight: 600,
-      overflow: 'hidden',
-      textOverflow: 'ellipsis',
-      whiteSpace: 'nowrap'
-    }
-  }, r.nomeColaborador || 'Anônimo'), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontSize: 11,
-      color: '#555'
-    }
-  }, empresaNome(r.companyId), " · ", formatDate(r.dataResposta))), r.perfilDominante && /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 11,
-      background: '#2a2d3a',
-      padding: '2px 8px',
-      borderRadius: 20,
-      color: PERFIS_COMPORTAMENTAIS[r.perfilDominante]?.cor || '#888'
-    }
-  }, PERFIS_COMPORTAMENTAIS[r.perfilDominante]?.nome))), respostas.length > 6 && /*#__PURE__*/React.createElement("button", {
+  }, "Últimas respostas"), respostas.length > 6 && /*#__PURE__*/React.createElement("button", {
     onClick: () => setAba('resultados'),
     style: {
-      marginTop: 12,
       background: 'transparent',
       border: 'none',
       color: '#b8976a',
-      fontSize: 12,
-      cursor: 'pointer'
+      fontSize: 11,
+      cursor: 'pointer',
+      fontWeight: 600
     }
-  }, "Ver todas →"))));
+  }, "Ver todas →")), ultimasRespostas.length === 0 ? /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#333',
+      fontSize: 13
+    }
+  }, "Nenhuma resposta ainda.") : ultimasRespostas.map(r => {
+    const p = PERFIS_COMPORTAMENTAIS[r.perfilDominante];
+    return /*#__PURE__*/React.createElement("div", {
+      key: r.id,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '10px 0',
+        borderBottom: '1px solid #1a1d2e'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 38,
+        height: 38,
+        borderRadius: 12,
+        background: p ? `${p.cor}22` : '#1e2135',
+        border: `1px solid ${p ? p.cor + '44' : '#252840'}`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: 16,
+        flexShrink: 0
+      }
+    }, r.formato === 'perfil_comportamental' ? p?.emoji || '🎭' : '📝'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 13,
+        color: '#ddd',
+        fontWeight: 700,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, r.nomeColaborador || 'Anônimo'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontSize: 11,
+        color: '#444',
+        marginTop: 2
+      }
+    }, empresaNome(r.companyId), " · ", formatDate(r.dataResposta))), p && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: 10,
+        background: `${p.cor}22`,
+        border: `1px solid ${p.cor}44`,
+        padding: '3px 10px',
+        borderRadius: 20,
+        color: p.cor,
+        fontWeight: 700,
+        whiteSpace: 'nowrap'
+      }
+    }, p.emoji, " ", p.nome));
+  }))));
 }
 
 /* ---- ABA EMPRESAS ---- */
