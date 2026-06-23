@@ -856,6 +856,12 @@ function PainelAdmin({
     icon: '🎯',
     cor: '#E05C4A',
     desc: 'RH e painéis'
+  }, {
+    id: 'apresentacoes',
+    label: 'Apresentações',
+    icon: '🎤',
+    cor: '#e879a0',
+    desc: 'Dinâmicas ao vivo'
   }];
   const abaAtual = abas.find(a => a.id === aba);
   const sw = recolhido ? 72 : 240;
@@ -1167,6 +1173,8 @@ function PainelAdmin({
     empresas: empresas,
     tarefas: tarefas,
     respostas: respostas
+  }), aba === 'apresentacoes' && /*#__PURE__*/React.createElement(AbaApresentacoes, {
+    empresas: empresas
   }))));
 }
 function AbaDashboard({
@@ -4178,6 +4186,1701 @@ function AbaIndicadores({
 }
 
 /* ======================================================
+   ABA APRESENTAÇÕES — MODO MENTIMETER
+====================================================== */
+
+/* ---- Utilitário: gera código de sala ---- */
+function gerarCodigo() {
+  return 'PROP-' + Math.random().toString(36).substring(2, 6).toUpperCase();
+}
+
+/* ---- Nuvem de palavras SVG ---- */
+function NuvemPalavras({
+  palavras,
+  width,
+  height
+}) {
+  width = width || 560;
+  height = height || 280;
+  if (!palavras || !palavras.length) return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width,
+      height,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      color: '#c0c4ce',
+      fontSize: 14
+    }
+  }, "Aguardando respostas...");
+  const freq = {};
+  palavras.forEach(p => {
+    const w = p.trim().toLowerCase();
+    if (w) freq[w] = (freq[w] || 0) + 1;
+  });
+  const entries = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 40);
+  const maxF = entries[0]?.[1] || 1;
+  const cores = ['#7B5FC4', '#2E9CCA', '#b8976a', '#5A9B72', '#E05C4A', '#e879a0', '#f59e0b'];
+  // Layout simples em grid
+  const tamanho = f => 12 + Math.round(f / maxF * 28);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width,
+      height,
+      display: 'flex',
+      flexWrap: 'wrap',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: '8px 14px',
+      padding: 16,
+      overflow: 'hidden'
+    }
+  }, entries.map(([word, f], i) => /*#__PURE__*/React.createElement("span", {
+    key: word,
+    style: {
+      fontSize: tamanho(f),
+      fontWeight: f === maxF ? 800 : f > maxF * 0.6 ? 700 : 500,
+      color: cores[i % cores.length],
+      lineHeight: 1.2,
+      transition: 'all .3s'
+    }
+  }, word)));
+}
+
+/* ---- Resultado ao vivo: Múltipla escolha ---- */
+function ResultadoMultipla({
+  opcoes,
+  respostas
+}) {
+  const total = respostas.length;
+  const contagem = {};
+  opcoes.forEach(o => {
+    contagem[o] = 0;
+  });
+  respostas.forEach(r => {
+    if (r.valor && contagem[r.valor] !== undefined) contagem[r.valor]++;
+  });
+  const cores = ['#7B5FC4', '#2E9CCA', '#5A9B72', '#E05C4A', '#b8976a', '#e879a0'];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%'
+    }
+  }, opcoes.map((op, i) => {
+    const qtd = contagem[op] || 0;
+    const pct = total ? Math.round(qtd / total * 100) : 0;
+    return /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: {
+        marginBottom: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        fontSize: 14,
+        marginBottom: 5
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#374151',
+        fontWeight: 500
+      }
+    }, op), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: cores[i % cores.length],
+        fontWeight: 800
+      }
+    }, pct, "% ", /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#c0c4ce',
+        fontWeight: 400
+      }
+    }, "(", qtd, ")"))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: '#f0f2f5',
+        borderRadius: 8,
+        height: 28,
+        overflow: 'hidden'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: '100%',
+        background: `linear-gradient(90deg,${cores[i % cores.length]},${cores[i % cores.length]}cc)`,
+        width: `${pct}%`,
+        borderRadius: 8,
+        transition: 'width .5s ease',
+        display: 'flex',
+        alignItems: 'center',
+        paddingLeft: 10
+      }
+    }, pct > 10 && /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: 700
+      }
+    }, pct, "%"))));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      fontSize: 12,
+      color: '#c0c4ce',
+      marginTop: 8
+    }
+  }, total, " resposta(s)"));
+}
+
+/* ---- Resultado ao vivo: Escala ---- */
+function ResultadoEscala({
+  respostas
+}) {
+  const total = respostas.length;
+  const valores = respostas.map(r => parseInt(r.valor)).filter(v => v >= 1 && v <= 5);
+  const media = valores.length ? (valores.reduce((a, b) => a + b, 0) / valores.length).toFixed(2) : null;
+  const dist = [1, 2, 3, 4, 5].map(n => valores.filter(v => v === n).length);
+  const maxDist = Math.max(...dist, 1);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%'
+    }
+  }, media && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      marginBottom: 24
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 64,
+      fontWeight: 900,
+      color: '#b8976a',
+      lineHeight: 1
+    }
+  }, media), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: '#c0c4ce'
+    }
+  }, "média de ", total, " resposta(s)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '16px auto',
+      width: 280,
+      height: 16,
+      background: '#f0f2f5',
+      borderRadius: 8,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: '100%',
+      background: 'linear-gradient(90deg,#E05C4A,#b8976a,#5A9B72)',
+      width: `${(parseFloat(media) - 1) / 4 * 100}%`,
+      borderRadius: 8,
+      transition: 'width .5s ease'
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      justifyContent: 'center'
+    }
+  }, [1, 2, 3, 4, 5].map((n, i) => /*#__PURE__*/React.createElement("div", {
+    key: n,
+    style: {
+      flex: 1,
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 80,
+      display: 'flex',
+      alignItems: 'flex-end',
+      justifyContent: 'center',
+      marginBottom: 4
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '70%',
+      background: `linear-gradient(180deg,#b8976a,#8a6d48)`,
+      height: `${dist[i] / maxDist * 80}px`,
+      borderRadius: '4px 4px 0 0',
+      transition: 'height .5s ease',
+      minHeight: dist[i] ? 4 : 0
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 800,
+      color: '#374151'
+    }
+  }, n), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#c0c4ce'
+    }
+  }, dist[i])))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      fontSize: 11,
+      color: '#c0c4ce',
+      marginTop: 12
+    }
+  }, "1 = Discordo · 5 = Concordo"));
+}
+
+/* ---- Resultado ao vivo: Pergunta aberta ---- */
+function ResultadoAberta({
+  respostas
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100%',
+      maxHeight: 320,
+      overflowY: 'auto'
+    }
+  }, respostas.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      color: '#c0c4ce',
+      padding: 20
+    }
+  }, "Aguardando respostas..."), respostas.slice().reverse().map((r, i) => /*#__PURE__*/React.createElement("div", {
+    key: r.id || i,
+    style: {
+      background: '#f8f9fb',
+      border: '1px solid #e8eaf0',
+      borderRadius: 10,
+      padding: '10px 14px',
+      marginBottom: 8,
+      animation: 'slideIn .3s ease'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 14,
+      color: '#374151'
+    }
+  }, r.valor), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#c0c4ce',
+      marginTop: 4
+    }
+  }, r.nomeColaborador || 'Anônimo', " · ", r.cargo || ''))));
+}
+
+/* ---- Modal: Criar/Editar apresentação ---- */
+function ModalCriarApresentacao({
+  empresas,
+  apresentacaoExistente,
+  onClose
+}) {
+  const [titulo, setTitulo] = useState(apresentacaoExistente?.titulo || '');
+  const [empresaId, setEmpresaId] = useState(apresentacaoExistente?.empresaId || empresas[0]?.id || '');
+  const [slides, setSlides] = useState(apresentacaoExistente?.slides || []);
+  const [saving, setSaving] = useState(false);
+  const TIPOS_SLIDE = [{
+    id: 'multipla',
+    label: 'Múltipla escolha',
+    icon: '📊'
+  }, {
+    id: 'escala',
+    label: 'Escala 1-5',
+    icon: '⭐'
+  }, {
+    id: 'nuvem',
+    label: 'Nuvem de palavras',
+    icon: '☁️'
+  }, {
+    id: 'aberta',
+    label: 'Pergunta aberta',
+    icon: '💬'
+  }];
+  const adicionarSlide = tipo => {
+    const novoSlide = {
+      id: Date.now().toString(),
+      tipo,
+      pergunta: '',
+      opcoes: tipo === 'multipla' ? ['Opção A', 'Opção B', 'Opção C'] : []
+    };
+    setSlides(s => [...s, novoSlide]);
+  };
+  const atualizarSlide = (id, campo, valor) => {
+    setSlides(s => s.map(sl => sl.id === id ? {
+      ...sl,
+      [campo]: valor
+    } : sl));
+  };
+  const removerSlide = id => setSlides(s => s.filter(sl => sl.id !== id));
+  const moverSlide = (idx, dir) => {
+    const novoArray = [...slides];
+    const alvo = idx + dir;
+    if (alvo < 0 || alvo >= novoArray.length) return;
+    [novoArray[idx], novoArray[alvo]] = [novoArray[alvo], novoArray[idx]];
+    setSlides(novoArray);
+  };
+  const handleSave = async () => {
+    if (!titulo.trim() || !slides.length) return;
+    setSaving(true);
+    const dados = {
+      titulo: titulo.trim(),
+      empresaId,
+      slides,
+      slideAtual: 0,
+      ativa: false,
+      codigo: apresentacaoExistente?.codigo || gerarCodigo(),
+      criadaEm: apresentacaoExistente?.criadaEm || firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    if (apresentacaoExistente?.id) {
+      await db.collection('presentations').doc(apresentacaoExistente.id).update(dados);
+    } else {
+      await db.collection('presentations').add(dados);
+    }
+    setSaving(false);
+    onClose();
+  };
+  const inputStyle = {
+    width: '100%',
+    background: '#f8f9fb',
+    border: '1px solid #e8eaf0',
+    borderRadius: 8,
+    padding: '9px 12px',
+    color: '#374151',
+    fontSize: 13,
+    fontFamily: 'inherit',
+    outline: 'none',
+    boxSizing: 'border-box'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: 'rgba(0,0,0,0.5)',
+      display: 'flex',
+      alignItems: 'flex-start',
+      justifyContent: 'center',
+      zIndex: 100,
+      padding: 20,
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      borderRadius: 20,
+      padding: 28,
+      width: '100%',
+      maxWidth: 680,
+      marginTop: 20,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    style: {
+      margin: 0,
+      color: '#111827',
+      fontSize: 18
+    }
+  }, "🎯 ", apresentacaoExistente ? 'Editar' : 'Nova', " apresentação"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      background: '#f0f2f5',
+      border: 'none',
+      borderRadius: 8,
+      padding: '6px 10px',
+      cursor: 'pointer',
+      color: '#6b7280'
+    }
+  }, "✕")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 14,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#6b7280',
+      marginBottom: 6,
+      textTransform: 'uppercase',
+      fontWeight: 600
+    }
+  }, "Título"), /*#__PURE__*/React.createElement("input", {
+    value: titulo,
+    onChange: e => setTitulo(e.target.value),
+    style: inputStyle,
+    placeholder: "Ex: Clima da Equipe",
+    autoFocus: true
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#6b7280',
+      marginBottom: 6,
+      textTransform: 'uppercase',
+      fontWeight: 600
+    }
+  }, "Empresa"), /*#__PURE__*/React.createElement("select", {
+    value: empresaId,
+    onChange: e => setEmpresaId(e.target.value),
+    style: inputStyle
+  }, empresas.map(e => /*#__PURE__*/React.createElement("option", {
+    key: e.id,
+    value: e.id
+  }, e.nome))))), slides.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#6b7280',
+      marginBottom: 10,
+      textTransform: 'uppercase',
+      fontWeight: 600
+    }
+  }, "Slides (", slides.length, ")"), slides.map((sl, idx) => /*#__PURE__*/React.createElement("div", {
+    key: sl.id,
+    style: {
+      background: '#f8f9fb',
+      border: '1px solid #e8eaf0',
+      borderRadius: 12,
+      padding: '14px 16px',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, TIPOS_SLIDE.find(t => t.id === sl.tipo)?.icon), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: '#6b7280',
+      fontWeight: 600,
+      textTransform: 'uppercase'
+    }
+  }, TIPOS_SLIDE.find(t => t.id === sl.tipo)?.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginLeft: 'auto',
+      display: 'flex',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => moverSlide(idx, -1),
+    disabled: idx === 0,
+    style: {
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      color: '#9ca3af',
+      fontSize: 14,
+      padding: '2px 6px'
+    }
+  }, "↑"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => moverSlide(idx, 1),
+    disabled: idx === slides.length - 1,
+    style: {
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      color: '#9ca3af',
+      fontSize: 14,
+      padding: '2px 6px'
+    }
+  }, "↓"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => removerSlide(sl.id),
+    style: {
+      background: '#fef2f2',
+      border: 'none',
+      borderRadius: 6,
+      cursor: 'pointer',
+      color: '#ef4444',
+      fontSize: 11,
+      padding: '4px 8px'
+    }
+  }, "Remover"))), /*#__PURE__*/React.createElement("input", {
+    value: sl.pergunta,
+    onChange: e => atualizarSlide(sl.id, 'pergunta', e.target.value),
+    placeholder: "Digite a pergunta...",
+    style: {
+      ...inputStyle,
+      marginBottom: sl.tipo === 'multipla' ? 8 : 0
+    }
+  }), sl.tipo === 'multipla' && /*#__PURE__*/React.createElement("div", null, sl.opcoes.map((op, oi) => /*#__PURE__*/React.createElement("div", {
+    key: oi,
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 6
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: op,
+    onChange: e => {
+      const novas = [...sl.opcoes];
+      novas[oi] = e.target.value;
+      atualizarSlide(sl.id, 'opcoes', novas);
+    },
+    style: {
+      ...inputStyle,
+      flex: 1
+    },
+    placeholder: `Opção ${oi + 1}`
+  }), sl.opcoes.length > 2 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      const novas = sl.opcoes.filter((_, i) => i !== oi);
+      atualizarSlide(sl.id, 'opcoes', novas);
+    },
+    style: {
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      color: '#ef4444',
+      fontSize: 16
+    }
+  }, "×"))), sl.opcoes.length < 6 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => atualizarSlide(sl.id, 'opcoes', [...sl.opcoes, `Opção ${sl.opcoes.length + 1}`]),
+    style: {
+      background: 'transparent',
+      border: '1px dashed #e8eaf0',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      color: '#b8976a',
+      fontSize: 12,
+      width: '100%'
+    }
+  }, "+ Adicionar opção"))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 22
+    }
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      fontSize: 11,
+      color: '#6b7280',
+      marginBottom: 10,
+      textTransform: 'uppercase',
+      fontWeight: 600
+    }
+  }, "Adicionar slide"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(4,1fr)',
+      gap: 10
+    }
+  }, TIPOS_SLIDE.map(t => /*#__PURE__*/React.createElement("button", {
+    key: t.id,
+    onClick: () => adicionarSlide(t.id),
+    style: {
+      background: '#f8f9fb',
+      border: '1px solid #e8eaf0',
+      borderRadius: 12,
+      padding: '14px 8px',
+      cursor: 'pointer',
+      textAlign: 'center',
+      transition: 'all .15s'
+    },
+    onMouseEnter: e => {
+      e.currentTarget.style.borderColor = '#b8976a';
+      e.currentTarget.style.background = '#fffbf5';
+    },
+    onMouseLeave: e => {
+      e.currentTarget.style.borderColor = '#e8eaf0';
+      e.currentTarget.style.background = '#f8f9fb';
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 22,
+      marginBottom: 4
+    }
+  }, t.icon), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#6b7280',
+      fontWeight: 500
+    }
+  }, t.label))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10,
+      justifyContent: 'flex-end'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      background: '#f0f2f5',
+      border: 'none',
+      borderRadius: 10,
+      padding: '10px 18px',
+      cursor: 'pointer',
+      color: '#6b7280',
+      fontWeight: 600
+    }
+  }, "Cancelar"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSave,
+    disabled: saving || !titulo.trim() || !slides.length,
+    style: {
+      background: '#b8976a',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: '10px 20px',
+      cursor: 'pointer',
+      fontWeight: 700,
+      opacity: !titulo.trim() || !slides.length ? 0.5 : 1
+    }
+  }, saving ? 'Salvando...' : '💾 Salvar apresentação'))));
+}
+
+/* ---- Tela de controle da apresentação (admin ao vivo) ---- */
+function ControleApresentacao({
+  apresentacao,
+  onFechar
+}) {
+  const [slideAtual, setSlideAtual] = useState(apresentacao.slideAtual || 0);
+  const [respostas, setRespostas] = useState([]);
+  const [ativa, setAtiva] = useState(apresentacao.ativa || false);
+  const [copiado, setCopiado] = useState(false);
+  const slides = apresentacao.slides || [];
+  const slide = slides[slideAtual];
+  useEffect(() => {
+    if (!slide) return;
+    const unsub = db.collection('presentations').doc(apresentacao.id).collection('respostas').where('slideId', '==', slide.id).onSnapshot(s => setRespostas(s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }))));
+    return unsub;
+  }, [apresentacao.id, slide?.id]);
+  const avancar = async dir => {
+    const novoIdx = Math.max(0, Math.min(slides.length - 1, slideAtual + dir));
+    setSlideAtual(novoIdx);
+    setRespostas([]);
+    await db.collection('presentations').doc(apresentacao.id).update({
+      slideAtual: novoIdx
+    });
+  };
+  const toggleAtiva = async () => {
+    const novoEstado = !ativa;
+    setAtiva(novoEstado);
+    await db.collection('presentations').doc(apresentacao.id).update({
+      ativa: novoEstado,
+      slideAtual
+    });
+  };
+  const linkParticipante = `${window.location.origin}${window.location.pathname}?sala=${apresentacao.codigo}`;
+  const copiarLink = () => {
+    navigator.clipboard.writeText(linkParticipante);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      background: '#0f1117',
+      zIndex: 200,
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: "'Segoe UI',system-ui,sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      borderBottom: '1px solid #2a2d3a',
+      padding: '0 24px',
+      height: 56,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 16,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onFechar,
+    style: {
+      background: '#2a2d3a',
+      border: 'none',
+      color: '#9ca3af',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      fontSize: 13
+    }
+  }, "← Sair"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#fff',
+      fontWeight: 700,
+      fontSize: 15
+    }
+  }, apresentacao.titulo), /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: '#2a2d3a',
+      color: '#9ca3af',
+      borderRadius: 20,
+      padding: '3px 10px',
+      fontSize: 11
+    }
+  }, "Slide ", slideAtual + 1, "/", slides.length)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      background: '#0f1117',
+      border: '1px solid #2a2d3a',
+      borderRadius: 10,
+      padding: '6px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: '#9ca3af'
+    }
+  }, "Código:"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 14,
+      fontWeight: 800,
+      color: '#b8976a',
+      letterSpacing: 2
+    }
+  }, apresentacao.codigo), /*#__PURE__*/React.createElement("button", {
+    onClick: copiarLink,
+    style: {
+      background: '#b8976a',
+      border: 'none',
+      borderRadius: 6,
+      padding: '3px 8px',
+      cursor: 'pointer',
+      color: '#1a1200',
+      fontSize: 11,
+      fontWeight: 700
+    }
+  }, copiado ? '✓' : 'Copiar')), /*#__PURE__*/React.createElement("button", {
+    onClick: toggleAtiva,
+    style: {
+      background: ativa ? '#E05C4A22' : '#5A9B7222',
+      border: `1px solid ${ativa ? '#E05C4A55' : '#5A9B7255'}`,
+      color: ativa ? '#E05C4A' : '#5A9B72',
+      borderRadius: 8,
+      padding: '6px 14px',
+      cursor: 'pointer',
+      fontWeight: 700,
+      fontSize: 13
+    }
+  }, ativa ? '⏹ Pausar' : '▶ Iniciar')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'grid',
+      gridTemplateColumns: '1fr 1.6fr',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRight: '1px solid #2a2d3a',
+      overflowY: 'auto',
+      padding: 16,
+      background: '#141620'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#555',
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 12
+    }
+  }, "Slides"), slides.map((sl, i) => /*#__PURE__*/React.createElement("button", {
+    key: sl.id,
+    onClick: () => avancar(i - slideAtual),
+    style: {
+      width: '100%',
+      background: i === slideAtual ? '#b8976a22' : '#1a1d27',
+      border: `1px solid ${i === slideAtual ? '#b8976a55' : '#2a2d3a'}`,
+      borderRadius: 10,
+      padding: '12px 14px',
+      marginBottom: 8,
+      cursor: 'pointer',
+      textAlign: 'left',
+      transition: 'all .15s'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#555',
+      marginBottom: 4
+    }
+  }, "Slide ", i + 1), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: i === slideAtual ? '#b8976a' : '#ccc',
+      fontWeight: i === slideAtual ? 700 : 400,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap'
+    }
+  }, sl.pergunta || '(sem pergunta)'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#444',
+      marginTop: 4
+    }
+  }, ['📊', '⭐', '☁️', '💬'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(sl.tipo)], " ", sl.tipo)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      padding: '32px 40px',
+      overflowY: 'auto'
+    }
+  }, slide ? /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      background: '#b8976a22',
+      border: '1px solid #b8976a44',
+      borderRadius: 8,
+      padding: '4px 12px',
+      fontSize: 12,
+      color: '#b8976a',
+      fontWeight: 700
+    }
+  }, ['📊 Múltipla escolha', '⭐ Escala 1-5', '☁️ Nuvem de palavras', '💬 Pergunta aberta'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(slide.tipo)]), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12,
+      color: '#555'
+    }
+  }, respostas.length, " resposta(s) ao vivo"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 8,
+      height: 8,
+      borderRadius: '50%',
+      background: '#5A9B72',
+      marginLeft: 4,
+      animation: ativa ? 'pulse 1.5s infinite' : 'none'
+    }
+  })), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      fontSize: 24,
+      margin: '0 0 28px',
+      lineHeight: 1.3
+    }
+  }, slide.pergunta || 'Sem pergunta'), slide.tipo === 'multipla' && /*#__PURE__*/React.createElement(ResultadoMultipla, {
+    opcoes: slide.opcoes || [],
+    respostas: respostas
+  }), slide.tipo === 'escala' && /*#__PURE__*/React.createElement(ResultadoEscala, {
+    respostas: respostas
+  }), slide.tipo === 'nuvem' && /*#__PURE__*/React.createElement(NuvemPalavras, {
+    palavras: respostas.map(r => r.valor).filter(Boolean),
+    width: 540,
+    height: 280
+  }), slide.tipo === 'aberta' && /*#__PURE__*/React.createElement(ResultadoAberta, {
+    respostas: respostas
+  })) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      color: '#555',
+      marginTop: 80
+    }
+  }, "Sem slides")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderTop: '1px solid #2a2d3a',
+      padding: '16px 32px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      background: '#141620'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => avancar(-1),
+    disabled: slideAtual === 0,
+    style: {
+      background: '#2a2d3a',
+      border: 'none',
+      color: slideAtual === 0 ? '#333' : '#ccc',
+      borderRadius: 10,
+      padding: '10px 20px',
+      cursor: slideAtual === 0 ? 'default' : 'pointer',
+      fontSize: 14,
+      fontWeight: 600
+    }
+  }, "← Anterior"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, slides.map((_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      width: i === slideAtual ? 20 : 8,
+      height: 8,
+      borderRadius: 4,
+      background: i === slideAtual ? '#b8976a' : '#2a2d3a',
+      transition: 'all .3s'
+    }
+  }))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => avancar(1),
+    disabled: slideAtual === slides.length - 1,
+    style: {
+      background: slideAtual === slides.length - 1 ? '#2a2d3a' : '#b8976a',
+      border: 'none',
+      color: slideAtual === slides.length - 1 ? '#333' : '#1a1200',
+      borderRadius: 10,
+      padding: '10px 20px',
+      cursor: slideAtual === slides.length - 1 ? 'default' : 'pointer',
+      fontSize: 14,
+      fontWeight: 700
+    }
+  }, "Próximo →")))));
+}
+
+/* ---- ABA APRESENTAÇÕES ---- */
+function AbaApresentacoes({
+  empresas
+}) {
+  const [apresentacoes, setApresentacoes] = useState([]);
+  const [modalCriar, setModalCriar] = useState(false);
+  const [editando, setEditando] = useState(null);
+  const [controlando, setControlando] = useState(null);
+  useEffect(() => {
+    const unsub = db.collection('presentations').orderBy('criadaEm', 'desc').onSnapshot(s => setApresentacoes(s.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    }))));
+    return unsub;
+  }, []);
+  const empresaNome = id => empresas.find(e => e.id === id)?.nome || '-';
+  const handleDeletar = async id => {
+    if (!window.confirm('Excluir esta apresentação?')) return;
+    await db.collection('presentations').doc(id).delete();
+  };
+  if (controlando) {
+    return /*#__PURE__*/React.createElement(ControleApresentacao, {
+      apresentacao: controlando,
+      onFechar: () => setControlando(null)
+    });
+  }
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 28
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h1", {
+    style: {
+      fontSize: 28,
+      fontWeight: 800,
+      margin: '0 0 4px',
+      color: '#111827'
+    }
+  }, "Apresentações"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#9ca3af',
+      fontSize: 13,
+      margin: 0
+    }
+  }, "Dinâmicas ao vivo com respostas em tempo real")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalCriar(true),
+    disabled: !empresas.length,
+    style: {
+      background: '#b8976a',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 12,
+      padding: '11px 20px',
+      cursor: 'pointer',
+      fontWeight: 700,
+      fontSize: 14,
+      boxShadow: '0 4px 12px rgba(184,151,106,0.35)',
+      opacity: !empresas.length ? 0.5 : 1
+    }
+  }, "+ Nova apresentação")), apresentacoes.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#fff',
+      border: '1px dashed #e8eaf0',
+      borderRadius: 16,
+      padding: '60px 20px',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 48,
+      marginBottom: 16
+    }
+  }, "🎯"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      color: '#374151',
+      fontWeight: 600,
+      marginBottom: 6
+    }
+  }, "Nenhuma apresentação criada"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      color: '#9ca3af',
+      marginBottom: 24
+    }
+  }, "Crie apresentações interativas com múltipla escolha, nuvem de palavras, escalas e perguntas abertas"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setModalCriar(true),
+    style: {
+      background: '#b8976a',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: '10px 20px',
+      cursor: 'pointer',
+      fontWeight: 700
+    }
+  }, "Criar primeira apresentação")) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fill, minmax(320px,1fr))',
+      gap: 16
+    }
+  }, apresentacoes.map(ap => /*#__PURE__*/React.createElement("div", {
+    key: ap.id,
+    style: {
+      background: '#fff',
+      border: '1px solid #e8eaf0',
+      borderRadius: 16,
+      padding: '20px 22px',
+      boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      fontWeight: 700,
+      color: '#111827',
+      marginBottom: 2
+    }
+  }, ap.titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#9ca3af'
+    }
+  }, empresaNome(ap.empresaId), " · ", (ap.slides || []).length, " slide(s)")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setEditando(ap),
+    style: {
+      background: '#f0f2f5',
+      border: 'none',
+      borderRadius: 8,
+      padding: '5px 8px',
+      cursor: 'pointer',
+      fontSize: 12
+    }
+  }, "✏️"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleDeletar(ap.id),
+    style: {
+      background: '#fef2f2',
+      border: 'none',
+      borderRadius: 8,
+      padding: '5px 8px',
+      cursor: 'pointer',
+      fontSize: 12
+    }
+  }, "🗑️"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#f8f9fb',
+      border: '1px solid #e8eaf0',
+      borderRadius: 10,
+      padding: '8px 12px',
+      marginBottom: 12,
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: '#9ca3af',
+      textTransform: 'uppercase',
+      letterSpacing: 1
+    }
+  }, "Código de acesso"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 18,
+      fontWeight: 800,
+      color: '#b8976a',
+      letterSpacing: 2
+    }
+  }, ap.codigo)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => navigator.clipboard.writeText(`${window.location.origin}${window.location.pathname}?sala=${ap.codigo}`),
+    style: {
+      background: '#b8976a',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      fontSize: 11,
+      fontWeight: 700
+    }
+  }, "Copiar link")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6,
+      flexWrap: 'wrap',
+      marginBottom: 14
+    }
+  }, (ap.slides || []).slice(0, 6).map((sl, i) => /*#__PURE__*/React.createElement("span", {
+    key: i,
+    style: {
+      background: '#f0f2f5',
+      borderRadius: 6,
+      padding: '3px 8px',
+      fontSize: 11,
+      color: '#6b7280'
+    }
+  }, ['📊', '⭐', '☁️', '💬'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(sl.tipo)], " ", sl.tipo)), (ap.slides || []).length > 6 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 11,
+      color: '#9ca3af'
+    }
+  }, "+", ap.slides.length - 6, " mais")), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setControlando(ap),
+    style: {
+      width: '100%',
+      background: 'linear-gradient(135deg,#111827,#1f2937)',
+      color: '#fff',
+      border: 'none',
+      borderRadius: 10,
+      padding: '12px',
+      cursor: 'pointer',
+      fontWeight: 700,
+      fontSize: 14,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 16
+    }
+  }, "▶"), " Apresentar ao vivo")))), (modalCriar || editando) && /*#__PURE__*/React.createElement(ModalCriarApresentacao, {
+    empresas: empresas,
+    apresentacaoExistente: editando,
+    onClose: () => {
+      setModalCriar(false);
+      setEditando(null);
+    }
+  }));
+}
+
+/* ---- TELA PARTICIPANTE (colaborador) ---- */
+function TelaSala({
+  codigo
+}) {
+  const [apresentacao, setApresentacao] = useState(null);
+  const [empresa, setEmpresa] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [employeeId, setEmployeeId] = useState(localStorage.getItem(`sala_emp_${codigo}`));
+  const [employeeData, setEmployeeData] = useState(null);
+  const [respondidos, setRespondidos] = useState({});
+  const [respAtual, setRespAtual] = useState('');
+  const [enviando, setEnviando] = useState(false);
+  const [enviado, setEnviado] = useState(false);
+  useEffect(() => {
+    const unsub = db.collection('presentations').where('codigo', '==', codigo).limit(1).onSnapshot(s => {
+      if (!s.empty) {
+        const ap = {
+          id: s.docs[0].id,
+          ...s.docs[0].data()
+        };
+        setApresentacao(ap);
+        // Buscar empresa
+        db.collection('companies').doc(ap.empresaId).get().then(d => {
+          if (d.exists) setEmpresa({
+            id: d.id,
+            ...d.data()
+          });
+        });
+      }
+      setLoading(false);
+    });
+    return unsub;
+  }, [codigo]);
+  useEffect(() => {
+    if (!employeeId) return;
+    db.collection('sala_participants').doc(employeeId).get().then(d => {
+      if (d.exists) setEmployeeData(d.data());
+    });
+  }, [employeeId]);
+  const handleCadastro = async (nome, cargo, sexo) => {
+    const data = {
+      nome,
+      cargo,
+      sexo,
+      codigo,
+      criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+    };
+    const ref = await db.collection('sala_participants').add(data);
+    localStorage.setItem(`sala_emp_${codigo}`, ref.id);
+    setEmployeeId(ref.id);
+    setEmployeeData(data);
+  };
+  const handleResponder = async () => {
+    if (!respAtual.toString().trim() || !apresentacao || !employeeId) return;
+    const slide = apresentacao.slides?.[apresentacao.slideAtual];
+    if (!slide) return;
+    setEnviando(true);
+    await db.collection('presentations').doc(apresentacao.id).collection('respostas').add({
+      slideId: slide.id,
+      slideIdx: apresentacao.slideAtual,
+      valor: respAtual.toString().trim(),
+      employeeId,
+      nomeColaborador: employeeData?.nome || 'Anônimo',
+      cargo: employeeData?.cargo || '',
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setRespondidos(r => ({
+      ...r,
+      [slide.id]: true
+    }));
+    setRespAtual('');
+    setEnviando(false);
+    setEnviado(true);
+    setTimeout(() => setEnviado(false), 2000);
+  };
+  const mobileWrap = {
+    minHeight: '100vh',
+    background: '#0f1117',
+    color: '#e8e4dc',
+    fontFamily: "'Segoe UI',system-ui,sans-serif",
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24
+  };
+  if (loading) return /*#__PURE__*/React.createElement("div", {
+    style: mobileWrap
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      color: '#b8976a'
+    }
+  }, "Conectando à sala..."));
+  if (!apresentacao) return /*#__PURE__*/React.createElement("div", {
+    style: mobileWrap
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 48,
+      marginBottom: 16
+    }
+  }, "❌"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff'
+    }
+  }, "Sala não encontrada"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#666'
+    }
+  }, "Verifique o código com o apresentador."));
+  if (!apresentacao.ativa) return /*#__PURE__*/React.createElement("div", {
+    style: mobileWrap
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 48,
+      marginBottom: 16
+    }
+  }, "⏳"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#b8976a',
+      fontWeight: 700,
+      letterSpacing: 2,
+      marginBottom: 12
+    }
+  }, "AGUARDANDO"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      margin: '0 0 8px'
+    }
+  }, apresentacao.titulo), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#666',
+      margin: '0 0 20px'
+    }
+  }, "A apresentação ainda não começou."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 12,
+      padding: '12px 24px',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 10,
+      color: '#666',
+      textTransform: 'uppercase',
+      letterSpacing: 1
+    }
+  }, "Código da sala"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 24,
+      fontWeight: 800,
+      color: '#b8976a',
+      letterSpacing: 3
+    }
+  }, codigo)));
+  if (!employeeId || !employeeData) return /*#__PURE__*/React.createElement(CadastroSala, {
+    onComplete: handleCadastro,
+    apresentacao: apresentacao
+  });
+  const slide = apresentacao.slides?.[apresentacao.slideAtual];
+  const jaRespondeu = slide && respondidos[slide.id];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      background: '#0f1117',
+      fontFamily: "'Segoe UI',system-ui,sans-serif"
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#1a1d27',
+      borderBottom: '1px solid #2a2d3a',
+      padding: '12px 20px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 13,
+      fontWeight: 700,
+      color: '#b8976a'
+    }
+  }, apresentacao.titulo), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#555'
+    }
+  }, apresentacao.slideAtual + 1, "/", (apresentacao.slides || []).length)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: 24,
+      maxWidth: 480,
+      margin: '0 auto'
+    }
+  }, !slide ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      paddingTop: 60,
+      color: '#555'
+    }
+  }, "Aguardando próximo slide...") : jaRespondeu ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      paddingTop: 60
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 56,
+      marginBottom: 16
+    }
+  }, "✅"), /*#__PURE__*/React.createElement("h3", {
+    style: {
+      color: '#fff'
+    }
+  }, "Resposta enviada!"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#666'
+    }
+  }, "Aguarde o próximo slide.")) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 11,
+      color: '#b8976a',
+      fontWeight: 700,
+      textTransform: 'uppercase',
+      letterSpacing: 1,
+      marginBottom: 10
+    }
+  }, ['📊 Múltipla escolha', '⭐ Escala', '☁️ Palavra', '💬 Resposta aberta'][['multipla', 'escala', 'nuvem', 'aberta'].indexOf(slide.tipo)]), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      fontSize: 20,
+      margin: '0 0 24px',
+      lineHeight: 1.4
+    }
+  }, slide.pergunta), slide.tipo === 'multipla' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, (slide.opcoes || []).map((op, i) => /*#__PURE__*/React.createElement("button", {
+    key: i,
+    onClick: () => setRespAtual(op),
+    style: {
+      background: respAtual === op ? '#b8976a22' : '#1a1d27',
+      border: `1px solid ${respAtual === op ? '#b8976a' : '#2a2d3a'}`,
+      borderRadius: 12,
+      padding: '14px 18px',
+      color: respAtual === op ? '#b8976a' : '#ccc',
+      fontSize: 15,
+      cursor: 'pointer',
+      textAlign: 'left',
+      fontFamily: 'inherit'
+    }
+  }, op))), slide.tipo === 'escala' && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 8
+    }
+  }, [1, 2, 3, 4, 5].map(n => /*#__PURE__*/React.createElement("button", {
+    key: n,
+    onClick: () => setRespAtual(n),
+    style: {
+      flex: 1,
+      background: respAtual === n ? '#b8976a' : '#1a1d27',
+      border: `1px solid ${respAtual === n ? '#b8976a' : '#2a2d3a'}`,
+      borderRadius: 10,
+      padding: '16px 0',
+      color: respAtual === n ? '#1a1200' : '#888',
+      fontSize: 20,
+      fontWeight: 700,
+      cursor: 'pointer'
+    }
+  }, n))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      fontSize: 11,
+      color: '#555',
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Discordo"), /*#__PURE__*/React.createElement("span", null, "Concordo"))), slide.tipo === 'nuvem' && /*#__PURE__*/React.createElement("input", {
+    value: respAtual,
+    onChange: e => setRespAtual(e.target.value),
+    placeholder: "Digite uma palavra...",
+    maxLength: 30,
+    style: {
+      width: '100%',
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 12,
+      padding: '16px',
+      color: '#fff',
+      fontSize: 18,
+      outline: 'none',
+      fontFamily: 'inherit',
+      boxSizing: 'border-box'
+    }
+  }), slide.tipo === 'aberta' && /*#__PURE__*/React.createElement("textarea", {
+    value: respAtual,
+    onChange: e => setRespAtual(e.target.value),
+    placeholder: "Digite sua resposta...",
+    rows: 4,
+    style: {
+      width: '100%',
+      background: '#1a1d27',
+      border: '1px solid #2a2d3a',
+      borderRadius: 12,
+      padding: '14px 16px',
+      color: '#fff',
+      fontSize: 15,
+      outline: 'none',
+      fontFamily: 'inherit',
+      resize: 'none',
+      boxSizing: 'border-box'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: handleResponder,
+    disabled: !respAtual.toString().trim() || enviando,
+    style: {
+      width: '100%',
+      marginTop: 16,
+      background: '#b8976a',
+      color: '#1a1200',
+      border: 'none',
+      borderRadius: 12,
+      padding: '15px',
+      fontSize: 16,
+      fontWeight: 800,
+      cursor: 'pointer',
+      opacity: !respAtual.toString().trim() ? 0.5 : 1
+    }
+  }, enviando ? 'Enviando...' : enviado ? '✅ Enviado!' : 'Enviar →'))));
+}
+function CadastroSala({
+  onComplete,
+  apresentacao
+}) {
+  const [nome, setNome] = useState('');
+  const [cargo, setCargo] = useState('');
+  const [sexo, setSexo] = useState('');
+  const [saving, setSaving] = useState(false);
+  const handleSubmit = async () => {
+    if (!nome.trim() || !cargo.trim() || !sexo) return;
+    setSaving(true);
+    await onComplete(nome.trim(), cargo.trim(), sexo);
+    setSaving(false);
+  };
+  const inputStyle = {
+    width: '100%',
+    background: '#1a1d27',
+    border: '1px solid #2a2d3a',
+    borderRadius: 14,
+    padding: 16,
+    color: '#fff',
+    fontSize: 16,
+    fontFamily: 'inherit',
+    outline: 'none',
+    marginBottom: 12,
+    boxSizing: 'border-box'
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      background: '#0f1117',
+      padding: 24,
+      display: 'flex',
+      flexDirection: 'column',
+      maxWidth: 420,
+      margin: '0 auto',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 12,
+      color: '#b8976a',
+      fontWeight: 700,
+      letterSpacing: 2,
+      marginBottom: 24
+    }
+  }, "INSTITUTO PROPAGARE"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 36,
+      marginBottom: 12
+    }
+  }, "👋"), /*#__PURE__*/React.createElement("h2", {
+    style: {
+      color: '#fff',
+      fontSize: 22,
+      margin: '0 0 4px'
+    }
+  }, "Bem-vindo(a)!"), /*#__PURE__*/React.createElement("p", {
+    style: {
+      color: '#666',
+      fontSize: 13,
+      marginBottom: 28
+    }
+  }, apresentacao?.titulo), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Nome completo"), /*#__PURE__*/React.createElement("input", {
+    value: nome,
+    onChange: e => setNome(e.target.value),
+    style: inputStyle,
+    placeholder: "Como você se chama?",
+    autoFocus: true
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 6,
+      textTransform: 'uppercase'
+    }
+  }, "Cargo"), /*#__PURE__*/React.createElement("input", {
+    value: cargo,
+    onChange: e => setCargo(e.target.value),
+    style: inputStyle,
+    placeholder: "Qual é o seu cargo?"
+  }), /*#__PURE__*/React.createElement("label", {
+    style: {
+      fontSize: 11,
+      color: '#888',
+      marginBottom: 8,
+      textTransform: 'uppercase'
+    }
+  }, "Sexo"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 28
+    }
+  }, ['Feminino', 'Masculino', 'Prefiro não informar'].map(s => /*#__PURE__*/React.createElement("button", {
+    key: s,
+    onClick: () => setSexo(s),
+    style: {
+      flex: 1,
+      background: sexo === s ? '#b8976a' : '#1a1d27',
+      color: sexo === s ? '#1a1200' : '#888',
+      border: `1px solid ${sexo === s ? '#b8976a' : '#2a2d3a'}`,
+      borderRadius: 10,
+      padding: '11px 4px',
+      cursor: 'pointer',
+      fontSize: 11,
+      fontWeight: sexo === s ? 700 : 400
+    }
+  }, s === 'Prefiro não informar' ? 'Prefiro\nnão informar' : s))), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSubmit,
+    disabled: saving || !nome.trim() || !cargo.trim() || !sexo,
+    style: {
+      background: '#b8976a',
+      color: '#1a1200',
+      border: 'none',
+      borderRadius: 14,
+      padding: 16,
+      fontSize: 16,
+      fontWeight: 700,
+      cursor: 'pointer',
+      opacity: !nome.trim() || !cargo.trim() || !sexo ? 0.5 : 1
+    }
+  }, saving ? 'Salvando...' : 'Entrar na sala →'));
+}
+
+/* ======================================================
    FLUXO PÚBLICO — COLABORADOR (MOBILE-FIRST)
 ====================================================== */
 function FluxoPublico({
@@ -4959,10 +6662,14 @@ function App() {
   const [user, setUser] = useState(undefined);
   const params = new URLSearchParams(window.location.search);
   const empresaSlug = params.get('empresa');
+  const salaCode = params.get('sala');
   useEffect(() => {
     const unsub = auth.onAuthStateChanged(u => setUser(u));
     return unsub;
   }, []);
+  if (salaCode) return /*#__PURE__*/React.createElement(TelaSala, {
+    codigo: salaCode
+  });
   if (empresaSlug) return /*#__PURE__*/React.createElement(FluxoPublico, {
     slug: empresaSlug
   });
