@@ -1554,67 +1554,107 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
 // Fluxo público com autenticação
 function FluxoPublico({slug}){
   const [empresa,setEmpresa]=useState(null);
-  const [loading,setLoading]=useState(true);
-  const [authUser,setAuthUser]=useState(undefined); // undefined=carregando, null=não logado
+  const [loadingEmpresa,setLoadingEmpresa]=useState(true);
+  const [authUser,setAuthUser]=useState(undefined); // undefined=verificando, null=não logado, objeto=logado
   const [employeeData,setEmployeeData]=useState(null);
+  const [loadingEmployee,setLoadingEmployee]=useState(false);
 
-  // Carregar empresa pelo slug
+  // 1. Carregar empresa pelo slug
   useEffect(()=>{
     db.collection('companies').where('slug','==',slug).limit(1).get().then(snap=>{
       if(!snap.empty)setEmpresa({id:snap.docs[0].id,...snap.docs[0].data()});
-      setLoading(false);
+      setLoadingEmpresa(false);
     });
   },[slug]);
 
-  // Monitorar auth estado
+  // 2. Listener de auth — independente da empresa, só resolve quem é o usuário
   useEffect(()=>{
-    const unsub=auth.onAuthStateChanged(async u=>{
+    const unsub=auth.onAuthStateChanged(u=>{
       setAuthUser(u||null);
-      if(u&&empresa){
-        const doc=await db.collection('employees').doc(u.uid).get();
-        if(doc.exists)setEmployeeData(doc.data());
-      }
     });
     return unsub;
-  },[empresa?.id]);
+  },[]); // sem dependências — monta uma vez só
 
-  // Quando empresa carrega e já tem usuário logado, carregar dados
+  // 3. Quando AMBOS empresa e authUser estiverem resolvidos, buscar dados do employee
   useEffect(()=>{
-    if(!authUser||!empresa)return;
+    if(!authUser||!empresa)return; // authUser null = não logado, authUser undefined = ainda carregando
+    setLoadingEmployee(true);
     db.collection('employees').doc(authUser.uid).get().then(doc=>{
       if(doc.exists)setEmployeeData(doc.data());
-    });
+      else setEmployeeData(null);
+      setLoadingEmployee(false);
+    }).catch(()=>setLoadingEmployee(false));
   },[authUser?.uid,empresa?.id]);
 
   const handleAutenticado=(user,data)=>{
-    setAuthUser(user);setEmployeeData(data);
+    setAuthUser(user);
+    setEmployeeData(data);
   };
   const handlePerfilCompleto=(patch)=>{
     setEmployeeData(d=>({...d,...patch}));
   };
   const handleLogout=async()=>{
-    await auth.signOut();setAuthUser(null);setEmployeeData(null);
+    await auth.signOut();
+    setAuthUser(null);
+    setEmployeeData(null);
   };
 
   const mobileWrap={minHeight:'100vh',background:'#f8f9fb',fontFamily:"'Segoe UI',system-ui,sans-serif"};
-  if(loading||authUser===undefined)return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement("div",{style:{color:'#b8976a'}},"Carregando..."));
-  if(!empresa)return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},React.createElement("div",{style:{textAlign:'center'}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"❌"),React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Link inválido"),React.createElement("p",{style:{color:'#6b7280'}},"Empresa não encontrada.")));
-  // Não logado → tela de auth
-  if(!authUser)return React.createElement(AuthColaborador,{empresa,onAutenticado:handleAutenticado});
-  // Verificar se pertence a esta empresa
-  if(employeeData&&employeeData.companyId!==empresa.id)return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
-    React.createElement("div",{style:{textAlign:'center'}},
-      React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),
-      React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),
-      React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),
-      React.createElement("button",{onClick:handleLogout,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair e tentar novamente")
-    )
-  );
-  // Aguardando dados do employee
-  if(!employeeData)return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement("div",{style:{color:'#b8976a'}},"Carregando dados..."));
-  // Perfil incompleto → completar
-  if(!employeeData.perfilCompleto)return React.createElement(CompletarPerfil,{user:authUser,empresa,onConcluido:handlePerfilCompleto});
-  // Painel do colaborador
+
+  // Ainda carregando empresa OU ainda verificando auth
+  if(loadingEmpresa||authUser===undefined){
+    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
+      React.createElement("div",{style:{textAlign:'center'}},
+        React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
+        React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},"Carregando...")
+      )
+    );
+  }
+
+  // Empresa não encontrada
+  if(!empresa){
+    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+      React.createElement("div",{style:{textAlign:'center'}},
+        React.createElement("div",{style:{fontSize:48,marginBottom:16}},"❌"),
+        React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Link inválido"),
+        React.createElement("p",{style:{color:'#6b7280'}},"Empresa não encontrada.")
+      )
+    );
+  }
+
+  // Não logado → tela de login/cadastro
+  if(!authUser){
+    return React.createElement(AuthColaborador,{empresa,onAutenticado:handleAutenticado});
+  }
+
+  // Logado mas ainda buscando dados do employee
+  if(loadingEmployee||(!employeeData&&authUser)){
+    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
+      React.createElement("div",{style:{textAlign:'center'}},
+        React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
+        React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},"Carregando seus dados...")
+      )
+    );
+  }
+
+  // Employee de outra empresa tentando acessar
+  if(employeeData&&employeeData.companyId!==empresa.id){
+    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+      React.createElement("div",{style:{textAlign:'center'}},
+        React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),
+        React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),
+        React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),
+        React.createElement("button",{onClick:handleLogout,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair e tentar novamente")
+      )
+    );
+  }
+
+  // Perfil incompleto → completar nome/cargo/sexo
+  if(!employeeData||!employeeData.perfilCompleto){
+    return React.createElement(CompletarPerfil,{user:authUser,empresa,onConcluido:handlePerfilCompleto});
+  }
+
+  // Tudo certo → painel do colaborador
   return React.createElement(PainelColaborador,{user:authUser,empresa,employeeData,onLogout:handleLogout});
 }
 
