@@ -448,7 +448,7 @@ function AbaDashboard({empresas,tarefas,respostas,setAba}){
 /* AbaEmpresas */
 function AbaEmpresas({empresas,tarefas,respostas}){
   const [showModal,setShowModal]=useState(false);const [selecionada,setSelecionada]=useState(null);
-  const getLink=slug=>`${window.location.origin}${window.location.pathname}?empresa=${slug}`;
+  const getLink=slug=>`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`;
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}},
       React.createElement("div",null,React.createElement("h1",{style:{fontSize:22,fontWeight:700,margin:'0 0 4px',color:'#1a1d2e'}},"Empresas"),React.createElement("p",{style:{color:'#6b7280',fontSize:13}},empresas.length," empresa(s)")),
@@ -479,7 +479,7 @@ function AbaEmpresas({empresas,tarefas,respostas}){
 }
 function ModalNovaEmpresa({onClose}){
   const [nome,setNome]=useState('');const [saving,setSaving]=useState(false);const [link,setLink]=useState(null);
-  const handleSave=async()=>{if(!nome.trim())return;setSaving(true);const slug=slugify(nome)+'-'+Math.random().toString(36).substring(2,6);await db.collection('companies').add({nome:nome.trim(),slug,dataCriacao:firebase.firestore.FieldValue.serverTimestamp()});setLink(`${window.location.origin}${window.location.pathname}?empresa=${slug}`);setSaving(false);};
+  const handleSave=async()=>{if(!nome.trim())return;setSaving(true);const slug=slugify(nome)+'-'+Math.random().toString(36).substring(2,6);await db.collection('companies').add({nome:nome.trim(),slug,dataCriacao:firebase.firestore.FieldValue.serverTimestamp()});setLink(`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`);setSaving(false);};
   return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:20}},
     React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:16,padding:28,width:'100%',maxWidth:440}},
       !link?React.createElement(React.Fragment,null,
@@ -1453,7 +1453,7 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
         React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
           React.createElement("div",{style:{fontSize:32,marginBottom:10}},"🏢"),
           React.createElement("div",{style:{fontSize:18,fontWeight:800,color:'#1a1d2e',marginBottom:4}},empresa.nome),
-          empresa.slug&&React.createElement("div",{style:{fontSize:11,color:'#9ca3af',fontFamily:'monospace'}},window.location.origin+'/?empresa='+empresa.slug)
+          empresa.slug&&React.createElement("div",{style:{fontSize:11,color:'#9ca3af',fontFamily:'monospace'}},window.location.origin+'/?colaborador&empresa='+empresa.slug)
         ),
         // Contato RH/Psicólogo
         (empresa.contatoNome||empresa.contatoEmail||empresa.contatoTel)&&React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
@@ -1847,9 +1847,44 @@ function App(){
   const [user,setUser]=useState(undefined);
   const params=new URLSearchParams(window.location.search);
   const empresaSlug=params.get('empresa');
+  const isColaborador=params.has('colaborador');
   const salaCode=params.get('sala');
+
+  useEffect(()=>{
+    // Injetar CSS mobile quando no portal do colaborador
+    if(isColaborador){
+      document.title='Portal do Colaborador · Propagare';
+      const meta=document.querySelector('meta[name=theme-color]')||document.createElement('meta');
+      meta.name='theme-color';meta.content='#f5f6fa';document.head.appendChild(meta);
+      // CSS mobile-first dedicado
+      const style=document.createElement('style');
+      style.id='mobile-portal-css';
+      style.textContent=`
+        body{background:#f5f6fa!important;-webkit-tap-highlight-color:transparent;}
+        *{-webkit-font-smoothing:antialiased;}
+        input,textarea,select,button{font-family:'Segoe UI',system-ui,sans-serif;}
+        button:active{transform:scale(.97);}
+        input[type=range]{-webkit-appearance:none;appearance:none;height:8px;border-radius:4px;background:#e2e5ec;outline:none;}
+        input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:#2563eb;cursor:pointer;box-shadow:0 2px 6px rgba(37,99,235,.4);}
+        input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#2563eb;cursor:pointer;border:none;box-shadow:0 2px 6px rgba(37,99,235,.4);}
+        @media(max-width:480px){
+          body{font-size:15px;}
+        }
+      `;
+      document.head.appendChild(style);
+    }
+  },[isColaborador]);
+
   useEffect(()=>{const unsub=auth.onAuthStateChanged(u=>setUser(u));return unsub;},[]);
-  if(empresaSlug)return React.createElement(FluxoPublico,{slug:empresaSlug});
+
+  // Portal do colaborador — detecta tanto ?colaborador&empresa=slug quanto ?empresa=slug (legacy)
+  if(isColaborador&&empresaSlug)return React.createElement(FluxoPublico,{slug:empresaSlug});
+  // Legacy: link antigo sem ?colaborador — redireciona para nova URL
+  if(!isColaborador&&empresaSlug){
+    const novaUrl=window.location.pathname+'?colaborador&empresa='+empresaSlug;
+    window.history.replaceState({},'',novaUrl);
+    return React.createElement(FluxoPublico,{slug:empresaSlug});
+  }
   if(user===undefined)return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement("div",{style:{color:'#b8976a'}},"Carregando..."));
   if(!user)return React.createElement(LoginScreen,null);
   return React.createElement(PainelAdmin,{user});
