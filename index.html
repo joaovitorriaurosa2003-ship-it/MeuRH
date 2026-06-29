@@ -447,8 +447,22 @@ function AbaDashboard({empresas,tarefas,respostas,setAba}){
 
 /* AbaEmpresas */
 function AbaEmpresas({empresas,tarefas,respostas}){
-  const [showModal,setShowModal]=useState(false);const [selecionada,setSelecionada]=useState(null);
+  const [showModal,setShowModal]=useState(false);
+  const [selecionada,setSelecionada]=useState(null);
+  const [verColabs,setVerColabs]=useState(null); // empresa selecionada para ver colaboradores
+  const [contagemColabs,setContagemColabs]=useState({}); // {empresaId: n}
   const getLink=slug=>`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`;
+
+  // Buscar contagem de colaboradores por empresa
+  useEffect(()=>{
+    if(!empresas.length)return;
+    empresas.forEach(emp=>{
+      db.collection('employees').where('companyId','==',emp.id).get().then(snap=>{
+        setContagemColabs(prev=>({...prev,[emp.id]:snap.size}));
+      });
+    });
+  },[empresas.map(e=>e.id).join(',')]);
+
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}},
       React.createElement("div",null,React.createElement("h1",{style:{fontSize:22,fontWeight:700,margin:'0 0 4px',color:'#1a1d2e'}},"Empresas"),React.createElement("p",{style:{color:'#6b7280',fontSize:13}},empresas.length," empresa(s)")),
@@ -457,15 +471,28 @@ function AbaEmpresas({empresas,tarefas,respostas}){
     empresas.length===0?React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:'50px 20px',textAlign:'center',color:'#9ca3af'}},"Nenhuma empresa cadastrada."):
     React.createElement("div",{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))',gap:16}},
       empresas.map(emp=>{
-        const tarefasEmp=tarefas.filter(t=>t.companyId===emp.id);const respEmp=respostas.filter(r=>r.companyId===emp.id);
+        const tarefasEmp=tarefas.filter(t=>t.companyId===emp.id);
+        const respEmp=respostas.filter(r=>r.companyId===emp.id);
+        const nColabs=contagemColabs[emp.id]??'—';
         return React.createElement("div",{key:emp.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20}},
           React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:14}},
-            React.createElement("div",null,React.createElement("div",{style:{fontSize:17,fontWeight:700,color:'#1a1d2e',marginBottom:2}},emp.nome),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"Desde ",formatDate(emp.dataCriacao))),
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:17,fontWeight:700,color:'#1a1d2e',marginBottom:2}},emp.nome),
+              React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"Desde ",formatDate(emp.dataCriacao))
+            ),
             React.createElement("button",{onClick:()=>setSelecionada(emp),style:{background:'#f0f2f5',border:'none',color:'#b8976a',borderRadius:8,padding:'5px 10px',cursor:'pointer',fontSize:12}},"Detalhes")
           ),
-          React.createElement("div",{style:{display:'flex',gap:12,marginBottom:16}},
-            [['Tarefas',tarefasEmp.length,'#7B5FC4'],['Respostas',respEmp.length,'#b8976a']].map(([l,v,c])=>React.createElement("div",{key:l,style:{flex:1,background:'#f8f9fb',borderRadius:8,padding:'10px 12px'}},React.createElement("div",{style:{fontSize:20,fontWeight:800,color:c}},v),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},l)))
+          React.createElement("div",{style:{display:'flex',gap:10,marginBottom:14}},
+            [['Tarefas',tarefasEmp.length,'#7B5FC4'],['Respostas',respEmp.length,'#b8976a'],['Colaboradores',nColabs,'#059669']].map(([l,v,c])=>
+              React.createElement("div",{key:l,style:{flex:1,background:'#f8f9fb',borderRadius:8,padding:'8px 10px'}},
+                React.createElement("div",{style:{fontSize:18,fontWeight:800,color:c}},v),
+                React.createElement("div",{style:{fontSize:10,color:'#6b7280'}},l)
+              )
+            )
           ),
+          // Botão ver colaboradores
+          React.createElement("button",{onClick:()=>setVerColabs(emp),style:{width:'100%',background:'#f0f7ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px',cursor:'pointer',fontSize:12,fontWeight:700,color:'#2563eb',marginBottom:10}},"👥 Ver colaboradores"),
+          // Link
           React.createElement("div",{style:{background:'#f8f9fb',borderRadius:8,padding:'8px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}},
             React.createElement("span",{style:{fontSize:11,color:'#9ca3af',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},getLink(emp.slug)),
             React.createElement("button",{onClick:()=>navigator.clipboard.writeText(getLink(emp.slug)),style:{background:'#b8976a',border:'none',color:'#1a1d27',borderRadius:6,padding:'4px 10px',cursor:'pointer',fontSize:11,fontWeight:700,whiteSpace:'nowrap'}},"Copiar")
@@ -474,9 +501,125 @@ function AbaEmpresas({empresas,tarefas,respostas}){
       })
     ),
     showModal&&React.createElement(ModalNovaEmpresa,{onClose:()=>setShowModal(false)}),
-    selecionada&&React.createElement(ModalDetalheEmpresa,{empresa:selecionada,onClose:()=>setSelecionada(null)})
+    selecionada&&React.createElement(ModalDetalheEmpresa,{empresa:selecionada,onClose:()=>setSelecionada(null)}),
+    verColabs&&React.createElement(ModalColaboradores,{empresa:verColabs,onClose:()=>setVerColabs(null)})
   );
 }
+/* ---- MODAL COLABORADORES ---- */
+function ModalColaboradores({empresa,onClose}){
+  const [colaboradores,setColaboradores]=useState([]);
+  const [loading,setLoading]=useState(true);
+  const [acao,setAcao]=useState(null); // {tipo:'desativar'|'reativar'|'remover', colab}
+  const [processando,setProcessando]=useState(false);
+  const [busca,setBusca]=useState('');
+
+  useEffect(()=>{
+    const unsub=db.collection('employees')
+      .where('companyId','==',empresa.id)
+      .orderBy('dataCadastro','desc')
+      .onSnapshot(snap=>{
+        setColaboradores(snap.docs.map(d=>({id:d.id,...d.data()})));
+        setLoading(false);
+      },()=>setLoading(false));
+    return unsub;
+  },[empresa.id]);
+
+  const handleDesativar=async(colab)=>{
+    setProcessando(true);
+    await db.collection('employees').doc(colab.id).update({ativo:false});
+    setProcessando(false);setAcao(null);
+  };
+  const handleReativar=async(colab)=>{
+    setProcessando(true);
+    await db.collection('employees').doc(colab.id).update({ativo:true});
+    setProcessando(false);setAcao(null);
+  };
+  const handleRemover=async(colab)=>{
+    setProcessando(true);
+    await db.collection('employees').doc(colab.id).delete();
+    setProcessando(false);setAcao(null);
+  };
+
+  const filtrados=colaboradores.filter(c=>{
+    if(!busca.trim())return true;
+    const q=busca.toLowerCase();
+    return (c.nome||'').toLowerCase().includes(q)||(c.email||'').toLowerCase().includes(q)||(c.cargo||'').toLowerCase().includes(q);
+  });
+  const ativos=filtrados.filter(c=>c.ativo!==false);
+  const inativos=filtrados.filter(c=>c.ativo===false);
+
+  const StatusBadge=({ativo})=>React.createElement("span",{style:{
+    background:ativo!==false?'#ecfdf5':'#fef2f2',color:ativo!==false?'#059669':'#e05c4a',
+    borderRadius:20,padding:'2px 8px',fontSize:10,fontWeight:700
+  }},ativo!==false?'Ativo':'Inativo');
+
+  const CardColab=({c})=>React.createElement("div",{style:{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #f0f2f5'}},
+    React.createElement("div",{style:{width:38,height:38,borderRadius:'50%',background:c.ativo!==false?'#ecfdf5':'#fef2f2',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,flexShrink:0}},c.ativo!==false?'👤':'🚫'),
+    React.createElement("div",{style:{flex:1,minWidth:0}},
+      React.createElement("div",{style:{fontSize:13,fontWeight:700,color:'#1a1d2e',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},c.nome||'(perfil incompleto)'),
+      React.createElement("div",{style:{fontSize:11,color:'#9ca3af',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},c.cargo||'',c.cargo&&c.email?' · ':'',c.email||''),
+      React.createElement("div",{style:{fontSize:10,color:'#c0c4ce',marginTop:1}},"Cadastro: ",formatDate(c.dataCadastro))
+    ),
+    React.createElement(StatusBadge,{ativo:c.ativo}),
+    React.createElement("div",{style:{display:'flex',gap:6,flexShrink:0}},
+      c.ativo!==false
+        ?React.createElement("button",{onClick:()=>setAcao({tipo:'desativar',colab:c}),title:"Desativar acesso",style:{background:'#fff8ec',border:'1px solid #fed7aa',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:12,color:'#d97706'}},"⏸ Desativar")
+        :React.createElement("button",{onClick:()=>setAcao({tipo:'reativar',colab:c}),title:"Reativar acesso",style:{background:'#ecfdf5',border:'1px solid #a7f3d0',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:12,color:'#059669'}},"▶ Reativar"),
+      React.createElement("button",{onClick:()=>setAcao({tipo:'remover',colab:c}),title:"Remover do sistema",style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'5px 8px',cursor:'pointer',fontSize:12,color:'#e05c4a'}},"🗑")
+    )
+  );
+
+  return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:20}},
+    React.createElement("div",{style:{background:'#fff',borderRadius:18,width:'100%',maxWidth:640,maxHeight:'88vh',display:'flex',flexDirection:'column',overflow:'hidden'}},
+      // Header
+      React.createElement("div",{style:{padding:'18px 22px',borderBottom:'1px solid #e2e5ec',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}},
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:16,fontWeight:800,color:'#1a1d2e'}},"👥 Colaboradores"),
+          React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},empresa.nome,' · ',colaboradores.length,' cadastro(s)')
+        ),
+        React.createElement("button",{onClick:onClose,style:{background:'#f0f2f5',border:'none',borderRadius:8,padding:'7px 12px',cursor:'pointer',color:'#6b7280'}},"✕")
+      ),
+      // Busca
+      React.createElement("div",{style:{padding:'12px 22px',borderBottom:'1px solid #f0f2f5',flexShrink:0}},
+        React.createElement("input",{value:busca,onChange:e=>setBusca(e.target.value),placeholder:"Buscar por nome, e-mail ou cargo...",style:{width:'100%',border:'1px solid #e2e5ec',borderRadius:8,padding:'8px 12px',fontSize:13,fontFamily:'inherit',outline:'none',boxSizing:'border-box',background:'#fafafa'}})
+      ),
+      // Lista
+      React.createElement("div",{style:{flex:1,overflowY:'auto',padding:'0 22px'}},
+        loading?React.createElement("div",{style:{textAlign:'center',padding:'40px 20px',color:'#9ca3af'}},"Carregando..."):
+        filtrados.length===0?React.createElement("div",{style:{textAlign:'center',padding:'40px 20px',color:'#9ca3af'}},
+          React.createElement("div",{style:{fontSize:36,marginBottom:8}},"👤"),
+          busca?'Nenhum resultado para "'+busca+'"':'Nenhum colaborador cadastrado ainda.'
+        ):React.createElement("div",null,
+          ativos.length>0&&React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#059669',textTransform:'uppercase',letterSpacing:.5,padding:'12px 0 4px'}},"Ativos (",ativos.length,")"),
+            ativos.map(c=>React.createElement(CardColab,{key:c.id,c}))
+          ),
+          inativos.length>0&&React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#e05c4a',textTransform:'uppercase',letterSpacing:.5,padding:'16px 0 4px'}},"Inativos (",inativos.length,")"),
+            inativos.map(c=>React.createElement(CardColab,{key:c.id,c}))
+          )
+        )
+      ),
+      // Confirmação de ação
+      acao&&React.createElement("div",{style:{padding:'14px 22px',borderTop:'1px solid #e2e5ec',background:acao.tipo==='remover'?'#fef2f2':'#fff8ec',flexShrink:0}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:600,color:acao.tipo==='remover'?'#e05c4a':'#d97706',marginBottom:10}},
+          acao.tipo==='desativar'&&`Desativar acesso de "${acao.colab.nome||acao.colab.email}"? Ele não conseguirá entrar na plataforma.`,
+          acao.tipo==='reativar'&&`Reativar acesso de "${acao.colab.nome||acao.colab.email}"?`,
+          acao.tipo==='remover'&&`Remover "${acao.colab.nome||acao.colab.email}" do sistema? Esta ação não pode ser desfeita. As respostas serão mantidas.`
+        ),
+        React.createElement("div",{style:{display:'flex',gap:8}},
+          React.createElement("button",{onClick:()=>setAcao(null),style:{background:'#f0f2f5',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontSize:13,color:'#6b7280'}},"Cancelar"),
+          React.createElement("button",{
+            onClick:()=>acao.tipo==='desativar'?handleDesativar(acao.colab):acao.tipo==='reativar'?handleReativar(acao.colab):handleRemover(acao.colab),
+            disabled:processando,
+            style:{background:acao.tipo==='remover'?'#e05c4a':acao.tipo==='reativar'?'#059669':'#d97706',color:'#fff',border:'none',borderRadius:8,padding:'8px 18px',cursor:'pointer',fontWeight:700,fontSize:13}
+          },processando?'...':{desativar:'Desativar',reativar:'Reativar',remover:'Remover'}[acao.tipo])
+        )
+      )
+    )
+  );
+}
+
 function ModalNovaEmpresa({onClose}){
   const [nome,setNome]=useState('');const [saving,setSaving]=useState(false);const [link,setLink]=useState(null);
   const handleSave=async()=>{if(!nome.trim())return;setSaving(true);const slug=slugify(nome)+'-'+Math.random().toString(36).substring(2,6);await db.collection('companies').add({nome:nome.trim(),slug,dataCriacao:firebase.firestore.FieldValue.serverTimestamp()});setLink(`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`);setSaving(false);};
@@ -1555,106 +1698,76 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
 function FluxoPublico({slug}){
   const [empresa,setEmpresa]=useState(null);
   const [loadingEmpresa,setLoadingEmpresa]=useState(true);
-  const [authUser,setAuthUser]=useState(undefined); // undefined=verificando, null=não logado, objeto=logado
+  const [authUser,setAuthUser]=useState(undefined);
   const [employeeData,setEmployeeData]=useState(null);
-  const [loadingEmployee,setLoadingEmployee]=useState(false);
+  const [employeeChecked,setEmployeeChecked]=useState(false);
 
-  // 1. Carregar empresa pelo slug
   useEffect(()=>{
     db.collection('companies').where('slug','==',slug).limit(1).get().then(snap=>{
       if(!snap.empty)setEmpresa({id:snap.docs[0].id,...snap.docs[0].data()});
       setLoadingEmpresa(false);
-    });
+    }).catch(()=>setLoadingEmpresa(false));
   },[slug]);
 
-  // 2. Listener de auth — independente da empresa, só resolve quem é o usuário
   useEffect(()=>{
     const unsub=auth.onAuthStateChanged(u=>{
       setAuthUser(u||null);
+      if(!u){setEmployeeData(null);setEmployeeChecked(true);} // não logado → já resolvido
     });
     return unsub;
-  },[]); // sem dependências — monta uma vez só
+  },[]);
 
-  // 3. Quando AMBOS empresa e authUser estiverem resolvidos, buscar dados do employee
+  // Buscar employee apenas quando authUser E empresa estiverem prontos
   useEffect(()=>{
-    if(!authUser||!empresa)return; // authUser null = não logado, authUser undefined = ainda carregando
-    setLoadingEmployee(true);
-    db.collection('employees').doc(authUser.uid).get().then(doc=>{
-      if(doc.exists)setEmployeeData(doc.data());
-      else setEmployeeData(null);
-      setLoadingEmployee(false);
-    }).catch(()=>setLoadingEmployee(false));
+    if(!authUser||!empresa)return;
+    setEmployeeChecked(false);
+    db.collection('employees').doc(authUser.uid).get()
+      .then(doc=>{setEmployeeData(doc.exists?doc.data():null);setEmployeeChecked(true);})
+      .catch(()=>{setEmployeeData(null);setEmployeeChecked(true);});
   },[authUser?.uid,empresa?.id]);
 
-  const handleAutenticado=(user,data)=>{
-    setAuthUser(user);
-    setEmployeeData(data);
-  };
-  const handlePerfilCompleto=(patch)=>{
-    setEmployeeData(d=>({...d,...patch}));
-  };
-  const handleLogout=async()=>{
-    await auth.signOut();
-    setAuthUser(null);
-    setEmployeeData(null);
-  };
+  const handleAutenticado=(user,data)=>{setAuthUser(user);setEmployeeData(data);setEmployeeChecked(true);};
+  const handlePerfilCompleto=(patch)=>{setEmployeeData(d=>({...d,...patch}));};
+  const handleLogout=async()=>{await auth.signOut();setAuthUser(null);setEmployeeData(null);setEmployeeChecked(false);};
 
   const mobileWrap={minHeight:'100vh',background:'#f8f9fb',fontFamily:"'Segoe UI',system-ui,sans-serif"};
+  const Spin=({msg})=>React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
+    React.createElement("div",{style:{textAlign:'center'}},
+      React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
+      React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},msg)
+    )
+  );
 
-  // Ainda carregando empresa OU ainda verificando auth
-  if(loadingEmpresa||authUser===undefined){
-    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
-      React.createElement("div",{style:{textAlign:'center'}},
-        React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
-        React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},"Carregando...")
-      )
-    );
-  }
-
-  // Empresa não encontrada
-  if(!empresa){
-    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
-      React.createElement("div",{style:{textAlign:'center'}},
-        React.createElement("div",{style:{fontSize:48,marginBottom:16}},"❌"),
-        React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Link inválido"),
-        React.createElement("p",{style:{color:'#6b7280'}},"Empresa não encontrada.")
-      )
-    );
-  }
-
-  // Não logado → tela de login/cadastro
-  if(!authUser){
-    return React.createElement(AuthColaborador,{empresa,onAutenticado:handleAutenticado});
-  }
-
-  // Logado mas ainda buscando dados do employee
-  if(loadingEmployee||(!employeeData&&authUser)){
-    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
-      React.createElement("div",{style:{textAlign:'center'}},
-        React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
-        React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},"Carregando seus dados...")
-      )
-    );
-  }
-
-  // Employee de outra empresa tentando acessar
-  if(employeeData&&employeeData.companyId!==empresa.id){
-    return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
-      React.createElement("div",{style:{textAlign:'center'}},
-        React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),
-        React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),
-        React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),
-        React.createElement("button",{onClick:handleLogout,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair e tentar novamente")
-      )
-    );
-  }
-
-  // Perfil incompleto → completar nome/cargo/sexo
-  if(!employeeData||!employeeData.perfilCompleto){
-    return React.createElement(CompletarPerfil,{user:authUser,empresa,onConcluido:handlePerfilCompleto});
-  }
-
-  // Tudo certo → painel do colaborador
+  if(loadingEmpresa||authUser===undefined) return React.createElement(Spin,{msg:"Carregando..."});
+  if(!empresa) return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+    React.createElement("div",{style:{textAlign:'center'}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"❌"),React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Link inválido"),React.createElement("p",{style:{color:'#6b7280'}},"Empresa não encontrada."))
+  );
+  // Não logado — employeeChecked é true aqui (setado no onAuthStateChanged quando u=null)
+  if(!authUser) return React.createElement(AuthColaborador,{empresa,onAutenticado:handleAutenticado});
+  // Logado mas ainda buscando dados
+  if(!employeeChecked) return React.createElement(Spin,{msg:"Carregando seus dados..."});
+  // Conta de outra empresa
+  if(employeeData&&employeeData.companyId!==empresa.id) return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+    React.createElement("div",{style:{textAlign:'center'}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),React.createElement("button",{onClick:handleLogout,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair"))
+  );
+  // Conta desativada
+  if(employeeData&&employeeData.ativo===false) return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
+    React.createElement("div",{style:{textAlign:'center'}},
+      React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🚫"),
+      React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso suspenso"),
+      React.createElement("p",{style:{color:'#6b7280',marginBottom:8}},"Seu acesso a ",empresa.nome," foi desativado."),
+      React.createElement("p",{style:{color:'#9ca3af',fontSize:13,marginBottom:20}},"Entre em contato com o responsável de RH para mais informações."),
+      empresa.contatoNome&&React.createElement("div",{style:{background:'#f8f9fb',borderRadius:10,padding:'12px 16px',marginBottom:20,textAlign:'left'}},
+        React.createElement("div",{style:{fontSize:13,fontWeight:700,color:'#1a1d2e',marginBottom:2}},empresa.contatoNome),
+        empresa.contatoCargo&&React.createElement("div",{style:{fontSize:12,color:'#9ca3af',marginBottom:6}},empresa.contatoCargo),
+        empresa.contatoEmail&&React.createElement("a",{href:'mailto:'+empresa.contatoEmail,style:{display:'block',fontSize:13,color:'#2563eb'}},empresa.contatoEmail),
+        empresa.contatoTel&&React.createElement("a",{href:'https://wa.me/55'+empresa.contatoTel.replace(/\D/g,''),target:'_blank',style:{display:'block',fontSize:13,color:'#059669',marginTop:4}},empresa.contatoTel)
+      ),
+      React.createElement("button",{onClick:handleLogout,style:{background:'#f0f2f5',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontSize:13,color:'#6b7280'}},"Sair")
+    )
+  );
+  // Sem perfil completo (doc não existe ou perfilCompleto=false)
+  if(!employeeData||!employeeData.perfilCompleto) return React.createElement(CompletarPerfil,{user:authUser,empresa,onConcluido:handlePerfilCompleto});
   return React.createElement(PainelColaborador,{user:authUser,empresa,employeeData,onLogout:handleLogout});
 }
 
