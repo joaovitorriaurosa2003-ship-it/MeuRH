@@ -804,25 +804,39 @@ function ModalNovaTarefa({empresas,onClose}){
     if(tipo==='Formulário Personalizado'){setFase('builder');return;}
     handleSaveFinal();
   };
+  const [erroSave,setErroSave]=useState('');
+
   const handleSaveFinal=async(camposFinais)=>{
-    setSaving(true);
-    const ehPerfil=tipo==='Perfil Comportamental';
-    const ehCopsoq=tipo==='Riscos Psicossociais (COPSOQ II)';
-    const ehForm=tipo==='Formulário Personalizado';
-    await db.collection('tasks').add({
-      titulo:titulo.trim(),tipo,companyId,status:'pendente',
-      formato:ehPerfil?'perfil_comportamental':ehCopsoq?'copsoq2':ehForm?'formulario':'escala',
-      campos:ehForm?(camposFinais||campos):null,
-      perguntas:ehPerfil?PERGUNTAS_PERFIL:ehCopsoq?COPSOQ_QUESTOES:ehForm?null:PERGUNTAS_PADRAO,
-      dataCriacao:firebase.firestore.FieldValue.serverTimestamp()
-    });
-    setSaving(false);onClose();
+    setSaving(true);setErroSave('');
+    try{
+      const ehPerfil=tipo==='Perfil Comportamental';
+      const ehCopsoq=tipo==='Riscos Psicossociais (COPSOQ II)';
+      const ehForm=tipo==='Formulário Personalizado';
+      // Sanitizar campos — remover undefined que o Firestore rejeita
+      const camposLimpos=(camposFinais||[]).map(c=>{
+        const obj={id:c.id,tipo:c.tipo,pergunta:c.pergunta||'',obrigatorio:c.obrigatorio!==false};
+        if(c.tipo==='multipla')obj.opcoes=c.opcoes||[];
+        if(c.tipo==='barra'){obj.min=c.min??0;obj.max=c.max??100;if(c.rotulo)obj.rotulo=c.rotulo;}
+        return obj;
+      });
+      await db.collection('tasks').add({
+        titulo:titulo.trim(),tipo,companyId,status:'pendente',
+        formato:ehPerfil?'perfil_comportamental':ehCopsoq?'copsoq2':ehForm?'formulario':'escala',
+        campos:ehForm?camposLimpos:null,
+        perguntas:ehPerfil?PERGUNTAS_PERFIL:ehCopsoq?COPSOQ_QUESTOES:ehForm?null:PERGUNTAS_PADRAO,
+        dataCriacao:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setSaving(false);onClose();
+    }catch(e){
+      setSaving(false);
+      setErroSave('Erro ao salvar: '+(e.message||e.code||'verifique as regras do Firestore'));
+    }
   };
   const inputStyle={width:'100%',background:'#f8f9fb',border:'1px solid #e2e5ec',borderRadius:8,padding:'10px 12px',color:'#1a1d2e',fontSize:14,marginBottom:16,fontFamily:'inherit'};
   const labelStyle={display:'block',fontSize:12,color:'#6b7280',marginBottom:6,textTransform:'uppercase'};
   const tipo_=tipo==='Riscos Psicossociais (COPSOQ II)';
 
-  if(fase==='builder')return React.createElement(BuilderFormulario,{titulo,onSalvar:handleSaveFinal,onVoltar:()=>setFase('meta'),saving});
+  if(fase==='builder')return React.createElement(BuilderFormulario,{titulo,onSalvar:handleSaveFinal,onVoltar:()=>setFase('meta'),saving,erro:erroSave});
 
   return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:20}},
     React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:16,padding:28,width:'100%',maxWidth:460}},
@@ -868,9 +882,9 @@ const TIPOS_CAMPO = [
   {id:'escala',       label:'Escala 1–5',        icon:'⭐'},
 ];
 
-function BuilderFormulario({titulo,onSalvar,onVoltar,saving}){
+function BuilderFormulario({titulo,onSalvar,onVoltar,saving,erro}){
   const [campos,setCampos]=useState([]);
-  const [editIdx,setEditIdx]=useState(null); // índice do campo em edição
+  const [editIdx,setEditIdx]=useState(null);
   const [novoTipo,setNovoTipo]=useState('texto_curto');
 
   const addCampo=()=>{
@@ -893,17 +907,20 @@ function BuilderFormulario({titulo,onSalvar,onVoltar,saving}){
   return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:16,overflowY:'auto'}},
     React.createElement("div",{style:{background:'#fff',borderRadius:18,width:'100%',maxWidth:680,maxHeight:'94vh',display:'flex',flexDirection:'column',overflow:'hidden'}},
       // Header
-      React.createElement("div",{style:{padding:'18px 22px',borderBottom:'1px solid #e2e5ec',display:'flex',alignItems:'center',justifyContent:'space-between',flexShrink:0}},
-        React.createElement("div",null,
-          React.createElement("div",{style:{fontSize:16,fontWeight:800,color:'#1a1d2e'}},"📝 Montar formulário"),
-          React.createElement("div",{style:{fontSize:12,color:'#6b7280',marginTop:2}},titulo)
+      React.createElement("div",{style:{padding:'18px 22px',borderBottom:'1px solid #e2e5ec',flexShrink:0}},
+        React.createElement("div",{style:{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:erro?10:0}},
+          React.createElement("div",null,
+            React.createElement("div",{style:{fontSize:16,fontWeight:800,color:'#1a1d2e'}},"📝 Montar formulário"),
+            React.createElement("div",{style:{fontSize:12,color:'#6b7280',marginTop:2}},titulo)
+          ),
+          React.createElement("div",{style:{display:'flex',gap:8}},
+            React.createElement("button",{onClick:onVoltar,style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 14px',cursor:'pointer',fontSize:13}},"← Voltar"),
+            React.createElement("button",{onClick:()=>onSalvar(campos),disabled:saving||!isPronto,style:{background:isPronto&&!saving?'#b8976a':'#ddd',color:'#fff',border:'none',borderRadius:8,padding:'7px 16px',cursor:isPronto&&!saving?'pointer':'not-allowed',fontWeight:700,fontSize:13}},saving?'Salvando...':'Salvar formulário ✓')
+          )
         ),
-        React.createElement("div",{style:{display:'flex',gap:8}},
-          React.createElement("button",{onClick:onVoltar,style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 14px',cursor:'pointer',fontSize:13}},"← Voltar"),
-          React.createElement("button",{onClick:()=>onSalvar(campos),disabled:saving||!isPronto,style:{background:isPronto?'#b8976a':'#ddd',color:'#fff',border:'none',borderRadius:8,padding:'7px 16px',cursor:isPronto?'pointer':'not-allowed',fontWeight:700,fontSize:13}},saving?'Salvando...':'Salvar formulário ✓')
-        )
+        // Erro visível
+        erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',fontSize:12,color:'#e05c4a',fontWeight:600}},erro)
       ),
-      // Corpo scrollável
       React.createElement("div",{style:{flex:1,overflowY:'auto',padding:'18px 22px'}},
         // Adicionar campo
         React.createElement("div",{style:{background:'#f8f9fb',border:'1px dashed #d1d5db',borderRadius:12,padding:'14px 16px',marginBottom:20,display:'flex',alignItems:'center',gap:10,flexWrap:'wrap'}},
