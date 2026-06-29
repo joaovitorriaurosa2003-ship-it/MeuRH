@@ -1428,12 +1428,13 @@ function AuthColaborador({empresa,onAutenticado}){
       // Criar documento base do employee (perfil incompleto)
       await db.collection('employees').doc(cred.user.uid).set({
         email:email.trim().toLowerCase(),companyId:empresa.id,
-        perfilCompleto:false,dataCadastro:firebase.firestore.FieldValue.serverTimestamp()
+        perfilCompleto:false,ativo:true,dataCadastro:firebase.firestore.FieldValue.serverTimestamp()
       });
-      onAutenticado(cred.user,{email:email.trim().toLowerCase(),companyId:empresa.id,perfilCompleto:false});
+      onAutenticado(cred.user,{email:email.trim().toLowerCase(),companyId:empresa.id,perfilCompleto:false,ativo:true});
     }catch(e){
       if(e.code==='auth/email-already-in-use')setErro('Já existe uma conta com este e-mail. Faça login.');
-      else setErro('Erro ao criar conta. Tente novamente.');
+      else if(e.code==='permission-denied'||e.message?.includes('permission'))setErro('Erro de permissão no banco. Verifique as regras do Firestore.');
+      else setErro('Erro ao criar conta: '+(e.message||e.code||'desconhecido'));
     }
     setLoading(false);
   };
@@ -1471,15 +1472,36 @@ function AuthColaborador({empresa,onAutenticado}){
 
 // Tela de completar perfil (após primeiro cadastro)
 function CompletarPerfil({user,empresa,onConcluido}){
-  const [nome,setNome]=useState('');const [cargo,setCargo]=useState('');const [sexo,setSexo]=useState('');const [saving,setSaving]=useState(false);
+  const [nome,setNome]=useState('');
+  const [cargo,setCargo]=useState('');
+  const [sexo,setSexo]=useState('');
+  const [saving,setSaving]=useState(false);
+  const [erro,setErro]=useState('');
+
   const handleSalvar=async()=>{
     if(!nome.trim()||!cargo.trim()||!sexo)return;
-    setSaving(true);
-    const data={nome:nome.trim(),cargo:cargo.trim(),sexo,perfilCompleto:true,updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
-    await db.collection('employees').doc(user.uid).update(data);
-    setSaving(false);onConcluido(data);
+    setSaving(true);setErro('');
+    try{
+      const data={
+        nome:nome.trim(),cargo:cargo.trim(),sexo,
+        perfilCompleto:true,ativo:true,
+        companyId:empresa.id,
+        email:user.email||'',
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()
+      };
+      // set com merge garante que funciona mesmo se o doc não existir ainda
+      await db.collection('employees').doc(user.uid).set(data,{merge:true});
+      setSaving(false);
+      onConcluido(data);
+    }catch(e){
+      setSaving(false);
+      setErro('Erro ao salvar: '+e.message+'. Tente novamente.');
+    }
   };
+
   const inp={width:'100%',background:'#fff',border:'1px solid #e2e5ec',borderRadius:12,padding:'14px 16px',color:'#1a1d2e',fontSize:15,fontFamily:'inherit',outline:'none',marginBottom:14,boxSizing:'border-box'};
+  const pronto=nome.trim()&&cargo.trim()&&sexo;
+
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',padding:24,maxWidth:420,margin:'0 auto',justifyContent:'center'}},
     React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:24}},"INSTITUTO PROPAGARE"),
     React.createElement("div",{style:{fontSize:40,marginBottom:12}},"✍️"),
@@ -1493,7 +1515,12 @@ function CompletarPerfil({user,empresa,onConcluido}){
     React.createElement("div",{style:{display:'flex',gap:8,marginBottom:28}},
       ['Feminino','Masculino','Prefiro não informar'].map(s=>React.createElement("button",{key:s,onClick:()=>setSexo(s),style:{flex:1,background:sexo===s?'#b8976a':'#fff',color:sexo===s?'#2e1a00':'#888',border:`1.5px solid ${sexo===s?'#b8976a':'#e2e5ec'}`,borderRadius:10,padding:'11px 4px',cursor:'pointer',fontSize:11,fontWeight:sexo===s?700:400}},s==='Prefiro não informar'?'Prefiro\nnão informar':s))
     ),
-    React.createElement("button",{onClick:handleSalvar,disabled:saving||!nome.trim()||!cargo.trim()||!sexo,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:12,padding:'15px',fontSize:15,fontWeight:800,cursor:'pointer',opacity:saving||!nome.trim()||!cargo.trim()||!sexo?.5:1}},saving?'Salvando...':'Acessar minha área →')
+    erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginBottom:16,fontSize:13,color:'#e05c4a'}},erro),
+    React.createElement("button",{
+      onClick:handleSalvar,
+      disabled:saving||!pronto,
+      style:{background:pronto&&!saving?'#b8976a':'#d4c4a8',color:'#2e1a00',border:'none',borderRadius:12,padding:'15px',fontSize:15,fontWeight:800,cursor:pronto&&!saving?'pointer':'not-allowed',width:'100%'}
+    },saving?'Salvando...':'Acessar minha área →')
   );
 }
 
