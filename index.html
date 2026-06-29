@@ -702,8 +702,12 @@ function ModalDetalheEmpresa({empresa,onClose}){
 /* ---- ABA TAREFAS ---- */
 function AbaTarefas({tarefas,empresas,respostas}){
   const [showModal,setShowModal]=useState(false);const [tarefaAberta,setTarefaAberta]=useState(null);
-  const [duplicando,setDuplicando]=useState(null); // tarefa a ser duplicada
+  const [duplicando,setDuplicando]=useState(null);
+  const [alterandoStatus,setAlterandoStatus]=useState(null);
+  const [confirmExcluir,setConfirmExcluir]=useState(null); // id da tarefa aguardando confirmação
+  const [excluindo,setExcluindo]=useState(null);
   const empresaNome=id=>empresas.find(e=>e.id===id)?.nome||'-';
+
   const handleDuplicar=async(t)=>{
     setDuplicando(t.id);
     await db.collection('tasks').add({
@@ -713,6 +717,20 @@ function AbaTarefas({tarefas,empresas,respostas}){
     });
     setDuplicando(null);
   };
+
+  const handleToggleStatus=async(t)=>{
+    setAlterandoStatus(t.id);
+    const novoStatus=t.status==='pendente'?'concluida':'pendente';
+    await db.collection('tasks').doc(t.id).update({status:novoStatus});
+    setAlterandoStatus(null);
+  };
+
+  const handleExcluir=async(t)=>{
+    setExcluindo(t.id);
+    await db.collection('tasks').doc(t.id).delete();
+    setExcluindo(null);setConfirmExcluir(null);
+  };
+
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}},
       React.createElement("div",null,React.createElement("h1",{style:{fontSize:22,fontWeight:700,margin:'0 0 4px',color:'#1a1d2e'}},"Tarefas"),React.createElement("p",{style:{color:'#6b7280',fontSize:13}},tarefas.length," tarefa(s)")),
@@ -724,18 +742,45 @@ function AbaTarefas({tarefas,empresas,respostas}){
         const respT=respostas.filter(r=>r.taskId===t.id);const isPendente=t.status==='pendente';
         const icone=t.formato==='perfil_comportamental'?'🎭':t.formato==='copsoq2'?'🧩':t.formato==='formulario'?'📝':'📊';
         const isForm=t.formato==='formulario';
-        return React.createElement("div",{key:t.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:'16px 20px',display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}},
-          React.createElement("div",{style:{width:44,height:44,borderRadius:10,background:isForm?'#f0f7ff':'#f0f2f5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20}},icone),
-          React.createElement("div",{style:{flex:1,minWidth:0}},
-            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:'#1a1d2e',marginBottom:2}},t.titulo),
-            React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},empresaNome(t.companyId),' · ',t.tipo,' · ',formatDate(t.dataCriacao),
-              isForm&&React.createElement("span",{style:{marginLeft:8,background:'#e8f4fd',color:'#2980b9',borderRadius:4,padding:'1px 6px',fontSize:10,fontWeight:700}},(t.campos||[]).length,' campos')
-            )
+        const alterando=alterandoStatus===t.id;
+        const aguardandoConfirm=confirmExcluir===t.id;
+        const estaExcluindo=excluindo===t.id;
+        return React.createElement("div",{key:t.id,style:{background:'#fff',border:`1px solid ${aguardandoConfirm?'#fecaca':isPendente?'#e2e5ec':'#d1fae5'}`,borderRadius:14,padding:'16px 20px',transition:'border-color .15s'}},
+          // Linha principal
+          React.createElement("div",{style:{display:'flex',alignItems:'center',gap:12,flexWrap:'wrap'}},
+            React.createElement("div",{style:{width:44,height:44,borderRadius:10,background:isForm?'#f0f7ff':'#f0f2f5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:20,flexShrink:0}},icone),
+            React.createElement("div",{style:{flex:1,minWidth:0}},
+              React.createElement("div",{style:{fontSize:15,fontWeight:700,color:'#1a1d2e',marginBottom:2}},t.titulo),
+              React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},empresaNome(t.companyId),' · ',t.tipo,' · ',formatDate(t.dataCriacao),
+                isForm&&React.createElement("span",{style:{marginLeft:8,background:'#e8f4fd',color:'#2980b9',borderRadius:4,padding:'1px 6px',fontSize:10,fontWeight:700}},(t.campos||[]).length,' campos')
+              )
+            ),
+            React.createElement("div",{style:{textAlign:'right',minWidth:60}},React.createElement("div",{style:{fontSize:18,fontWeight:800,color:'#b8976a'}},respT.length),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"resp.")),
+            // Badge status clicável
+            React.createElement("button",{onClick:()=>handleToggleStatus(t),disabled:alterando,title:isPendente?'Fechar tarefa':'Reabrir tarefa',style:{background:isPendente?'#fef9ec':'#ecfdf5',color:isPendente?'#d97706':'#059669',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}},alterando?'...':(isPendente?'⏳ Aberta':'✅ Fechada')),
+            // Duplicar
+            React.createElement("button",{onClick:()=>handleDuplicar(t),disabled:duplicando===t.id,title:"Duplicar",style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 10px',cursor:'pointer',fontSize:13}},duplicando===t.id?'⏳':'⧉'),
+            // Excluir
+            React.createElement("button",{
+              onClick:()=>setConfirmExcluir(aguardandoConfirm?null:t.id),
+              title:"Excluir tarefa",
+              style:{background:aguardandoConfirm?'#fef2f2':'#f0f2f5',border:aguardandoConfirm?'1px solid #fecaca':'none',color:'#e05c4a',borderRadius:8,padding:'7px 10px',cursor:'pointer',fontSize:13}
+            },"🗑"),
+            // Ver resultados
+            respT.length>0&&React.createElement("button",{onClick:()=>setTarefaAberta({tarefa:t,respostas:respT,empresaNome:empresaNome(t.companyId)}),style:{background:'#f0f2f5',border:'none',color:'#b8976a',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},"Ver resultados")
           ),
-          React.createElement("div",{style:{textAlign:'right',minWidth:60}},React.createElement("div",{style:{fontSize:18,fontWeight:800,color:'#b8976a'}},respT.length),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"resp.")),
-          React.createElement("span",{style:{background:isPendente?'#fef9ec':'#ecfdf5',color:isPendente?'#d97706':'#059669',borderRadius:20,padding:'3px 10px',fontSize:11,fontWeight:700}},isPendente?'Pendente':'Concluída'),
-          React.createElement("button",{onClick:()=>handleDuplicar(t),disabled:duplicando===t.id,title:"Duplicar tarefa",style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 10px',cursor:'pointer',fontSize:13}},duplicando===t.id?'⏳':'⧉'),
-          respT.length>0&&React.createElement("button",{onClick:()=>setTarefaAberta({tarefa:t,respostas:respT,empresaNome:empresaNome(t.companyId)}),style:{background:'#f0f2f5',border:'none',color:'#b8976a',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},"Ver resultados")
+          // Confirmação de exclusão (inline, aparece abaixo)
+          aguardandoConfirm&&React.createElement("div",{style:{marginTop:12,padding:'10px 12px',background:'#fef2f2',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}},
+            React.createElement("span",{style:{fontSize:12,color:'#e05c4a',fontWeight:600}},
+              respT.length>0
+                ?`Excluir "${t.titulo}"? As ${respT.length} resposta(s) serão mantidas no histórico.`
+                :`Excluir "${t.titulo}"? Esta ação não pode ser desfeita.`
+            ),
+            React.createElement("div",{style:{display:'flex',gap:8,flexShrink:0}},
+              React.createElement("button",{onClick:()=>setConfirmExcluir(null),style:{background:'#f0f2f5',border:'none',borderRadius:6,padding:'5px 12px',cursor:'pointer',fontSize:12,color:'#6b7280'}},"Cancelar"),
+              React.createElement("button",{onClick:()=>handleExcluir(t),disabled:estaExcluindo,style:{background:'#e05c4a',border:'none',borderRadius:6,padding:'5px 14px',cursor:'pointer',fontSize:12,fontWeight:700,color:'#fff'}},estaExcluindo?'Excluindo...':'Excluir')
+            )
+          )
         );
       })
     ),
@@ -1539,7 +1584,9 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
   },[empresa.id,user.uid]);
 
   const tarefaRespondida=taskId=>respostasColaborador.find(r=>r.taskId===taskId);
+  // Pendente = tarefa aberta que o funcionário ainda não respondeu
   const pendentes=tarefas.filter(t=>t.status==='pendente'&&!tarefaRespondida(t.id));
+  // Respondidas = tarefas que este funcionário já respondeu (independente do status da tarefa)
   const concluidas=tarefas.filter(t=>tarefaRespondida(t.id));
 
   // Se está respondendo uma tarefa, mostrar o formulário
@@ -1824,7 +1871,6 @@ function FormularioCopsoqMobile({empresa,employeeId,employeeData,tarefa,onEnviad
         formato:'copsoq2',respostas,
         dataResposta:firebase.firestore.FieldValue.serverTimestamp()
       });
-      await db.collection('tasks').doc(tarefa.id).update({status:'concluida'});
       setEnviando(false);onEnviado();
     }
   };
@@ -1902,7 +1948,6 @@ function FormularioCustomMobile({empresa,employeeId,employeeData,tarefa,onEnviad
       formato:'formulario',respostas,
       dataResposta:firebase.firestore.FieldValue.serverTimestamp()
     });
-    await db.collection('tasks').doc(tarefa.id).update({status:'concluida'});
     setEnviando(false);onEnviado();
   };
 
@@ -1977,7 +2022,7 @@ function TestePerfilMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
   const total=perguntas.length;const progresso=Math.round(passo/total*100);
   const handleEscolher=async idx=>{const novas=[...escolhas,idx];setEscolhas(novas);setAnimando(false);
     if(passo+1<total){setTimeout(()=>{setPasso(p=>p+1);setAnimando(true);},250);}
-    else{setEnviando(true);const{pontos,pct,dominante}=calcularPerfil(novas);await db.collection('responses').add({taskId:tarefa.id,employeeId,companyId:empresa.id,nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,formato:'perfil_comportamental',escolhas:novas,pontosPorPerfil:pontos,pctPorPerfil:pct,perfilDominante:dominante,dataResposta:firebase.firestore.FieldValue.serverTimestamp()});await db.collection('tasks').doc(tarefa.id).update({status:'concluida'});setEnviando(false);setResultado({dominante,perfilInfo:PERFIS_COMPORTAMENTAIS[dominante],pontos,pct});}};
+    else{setEnviando(true);const{pontos,pct,dominante}=calcularPerfil(novas);await db.collection('responses').add({taskId:tarefa.id,employeeId,companyId:empresa.id,nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,formato:'perfil_comportamental',escolhas:novas,pontosPorPerfil:pontos,pctPorPerfil:pct,perfilDominante:dominante,dataResposta:firebase.firestore.FieldValue.serverTimestamp()});setEnviando(false);setResultado({dominante,perfilInfo:PERFIS_COMPORTAMENTAIS[dominante],pontos,pct});}};
   if(resultado){const{perfilInfo,pontos,pct}=resultado;return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:24,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',textAlign:'center'}},
     React.createElement("div",{style:{fontSize:80,marginBottom:8}},perfilInfo.emoji),
     React.createElement("div",{style:{fontSize:12,color:'#6b7280',textTransform:'uppercase',letterSpacing:1,marginBottom:4}},"Seu perfil é"),
@@ -2005,7 +2050,7 @@ function TestePerfilMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
 function FormularioEscalaMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
   const perguntas=tarefa.perguntas||PERGUNTAS_PADRAO;const [respostas,setRespostas]=useState({});const [enviando,setEnviando]=useState(false);
   const todasRespondidas=perguntas.every((_,i)=>respostas[i]!==undefined);
-  const handleEnviar=async()=>{if(!todasRespondidas)return;setEnviando(true);await db.collection('responses').add({taskId:tarefa.id,employeeId,companyId:empresa.id,nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,respostas,dataResposta:firebase.firestore.FieldValue.serverTimestamp()});await db.collection('tasks').doc(tarefa.id).update({status:'concluida'});setEnviando(false);onEnviado();};
+  const handleEnviar=async()=>{if(!todasRespondidas)return;setEnviando(true);await db.collection('responses').add({taskId:tarefa.id,employeeId,companyId:empresa.id,nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,respostas,dataResposta:firebase.firestore.FieldValue.serverTimestamp()});setEnviando(false);onEnviado();};
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20}},
     React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:16}},"INSTITUTO PROPAGARE"),
     React.createElement("h2",{style:{color:'#1a1d2e',fontSize:20,margin:'0 0 4px'}},tarefa.titulo),
