@@ -516,9 +516,14 @@ function ModalColaboradores({empresa,onClose}){
   useEffect(()=>{
     const unsub=db.collection('employees')
       .where('companyId','==',empresa.id)
-      .orderBy('dataCadastro','desc')
       .onSnapshot(snap=>{
-        setColaboradores(snap.docs.map(d=>({id:d.id,...d.data()})));
+        const lista=snap.docs.map(d=>({id:d.id,...d.data()}));
+        lista.sort((a,b)=>{
+          const da=a.dataCadastro?.toMillis?.()||0;
+          const db_=b.dataCadastro?.toMillis?.()||0;
+          return db_-da;
+        });
+        setColaboradores(lista);
         setLoading(false);
       },()=>setLoading(false));
     return unsub;
@@ -1578,15 +1583,27 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
   const [resultadoVer,setResultadoVer]=useState(null); // resposta para ver resultado
 
   useEffect(()=>{
-    const u1=db.collection('tasks').where('companyId','==',empresa.id).orderBy('dataCriacao','desc').onSnapshot(s=>setTarefas(s.docs.map(d=>({id:d.id,...d.data()}))));
-    const u2=db.collection('responses').where('employeeId','==',user.uid).onSnapshot(s=>setRespostasColaborador(s.docs.map(d=>({id:d.id,...d.data()}))));
+    // Sem orderBy para evitar necessidade de índice composto no Firestore
+    const u1=db.collection('tasks').where('companyId','==',empresa.id)
+      .onSnapshot(s=>{
+        const lista=s.docs.map(d=>({id:d.id,...d.data()}));
+        // Ordenar em memória por data de criação (mais recente primeiro)
+        lista.sort((a,b)=>{
+          const da=a.dataCriacao?.toMillis?.()||0;
+          const db_=b.dataCriacao?.toMillis?.()||0;
+          return db_-da;
+        });
+        setTarefas(lista);
+      });
+    const u2=db.collection('responses').where('employeeId','==',user.uid)
+      .onSnapshot(s=>setRespostasColaborador(s.docs.map(d=>({id:d.id,...d.data()}))));
     return()=>{u1();u2();};
   },[empresa.id,user.uid]);
 
   const tarefaRespondida=taskId=>respostasColaborador.find(r=>r.taskId===taskId);
-  // Pendente = tarefa aberta que o funcionário ainda não respondeu
-  const pendentes=tarefas.filter(t=>t.status==='pendente'&&!tarefaRespondida(t.id));
-  // Respondidas = tarefas que este funcionário já respondeu (independente do status da tarefa)
+  // Pendente = status 'pendente' ou sem status definido, e o funcionário ainda não respondeu
+  const pendentes=tarefas.filter(t=>t.status!=='concluida'&&!tarefaRespondida(t.id));
+  // Respondidas = tarefas que este funcionário já respondeu
   const concluidas=tarefas.filter(t=>tarefaRespondida(t.id));
 
   // Se está respondendo uma tarefa, mostrar o formulário
