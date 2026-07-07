@@ -160,6 +160,68 @@ const PERFIS_COMPORTAMENTAIS = {
   lobo:     {nome:'Lobo',     emoji:'🐺',cor:'#5A9B72',palavraChave:'Organização',  descricao:'Metódica, detalhista, focada em regras e processos.',pontosFortes:'Planejamento, pontualidade, lealdade.',pontosMelhoria:'Dificuldade com mudanças, centralizador.',profissoes:'Engenharia, Finanças, TI, Contabilidade.',motivacao:'Processos claros e ambiente estruturado.',comunicacao:'Prefere informações estruturadas e registro formal.'},
   tubarao:  {nome:'Tubarão',  emoji:'🦈',cor:'#E05C4A',palavraChave:'Ação',         descricao:'Direta, competitiva, focada em resultados rápidos.',pontosFortes:'Determinação, rapidez, senso de urgência.',pontosMelhoria:'Impaciência, autoritarismo, falta de tato.',profissoes:'Gestão, Vendas, Liderança Executiva.',motivacao:'Metas desafiadoras e resultados visíveis.',comunicacao:'Prefere objetividade, sem rodeios.'},
 };
+
+/* ============== DISC — PERFIS E BANCO DE PALAVRAS ============== */
+const PERFIS_DISC = {
+  D:{nome:'Executor',    letra:'D',cor:'#E05C4A',emoji:'🚀',resumo:'Dominância',
+     descricao:'Direto, competitivo e movido por desafios. Prioriza resultados e ação rápida diante de problemas.',
+     pontosFortes:'Determinação, coragem para decidir, foco em metas.',
+     desafios:'Pode ser impaciente e pouco atento a detalhes ou sentimentos alheios.',
+     ambiente:'Rende mais em ambientes desafiadores, com autonomia e metas claras.'},
+  I:{nome:'Comunicador', letra:'I',cor:'#2E9CCA',emoji:'💬',resumo:'Influência',
+     descricao:'Sociável, entusiasmado e ágil para conectar pessoas e ideias. Energiza o ambiente ao seu redor.',
+     pontosFortes:'Comunicação, entusiasmo, facilidade para engajar equipes.',
+     desafios:'Pode perder o foco em tarefas repetitivas e evitar confrontos necessários.',
+     ambiente:'Rende mais em ambientes colaborativos, com interação social constante.'},
+  S:{nome:'Planejador',  letra:'S',cor:'#5A9B72',emoji:'🧭',resumo:'Estabilidade',
+     descricao:'Calmo, leal e consistente. Valoriza rotina, previsibilidade e relações de confiança duradouras.',
+     pontosFortes:'Paciência, cooperação, constância na entrega.',
+     desafios:'Pode resistir a mudanças bruscas e ter dificuldade em se posicionar.',
+     ambiente:'Rende mais em ambientes estáveis, com processos claros e trabalho em equipe.'},
+  C:{nome:'Analista',    letra:'C',cor:'#7B5FC4',emoji:'🔎',resumo:'Conformidade',
+     descricao:'Preciso, analítico e criterioso. Busca qualidade técnica e embasamento antes de agir.',
+     pontosFortes:'Atenção a detalhes, organização, rigor técnico.',
+     desafios:'Pode ser perfeccionista e demorar para decidir sob pressão de tempo.',
+     ambiente:'Rende mais em ambientes estruturados, com critérios e padrões definidos.'},
+};
+
+// Banco de 40 palavras (10 por dimensão), ordem embaralhada para não expor os grupos
+const DISC_PALAVRAS = [
+  {id:1,palavra:'Determinado',dim:'D'},   {id:2,palavra:'Animado',dim:'I'},
+  {id:3,palavra:'Paciente',dim:'S'},      {id:4,palavra:'Analítico',dim:'C'},
+  {id:5,palavra:'Direto',dim:'D'},        {id:6,palavra:'Contagiante',dim:'I'},
+  {id:7,palavra:'Calmo',dim:'S'},         {id:8,palavra:'Cauteloso',dim:'C'},
+  {id:9,palavra:'Competitivo',dim:'D'},   {id:10,palavra:'Comunicativo',dim:'I'},
+  {id:11,palavra:'Leal',dim:'S'},         {id:12,palavra:'Preciso',dim:'C'},
+  {id:13,palavra:'Decidido',dim:'D'},     {id:14,palavra:'Sociável',dim:'I'},
+  {id:15,palavra:'Consistente',dim:'S'},  {id:16,palavra:'Organizado',dim:'C'},
+  {id:17,palavra:'Ousado',dim:'D'},       {id:18,palavra:'Entusiasmado',dim:'I'},
+  {id:19,palavra:'Amigável',dim:'S'},     {id:20,palavra:'Detalhista',dim:'C'},
+  {id:21,palavra:'Enérgico',dim:'D'},     {id:22,palavra:'Persuasivo',dim:'I'},
+  {id:23,palavra:'Cooperativo',dim:'S'},  {id:24,palavra:'Sistemático',dim:'C'},
+  {id:25,palavra:'Independente',dim:'D'}, {id:26,palavra:'Otimista',dim:'I'},
+  {id:27,palavra:'Previsível',dim:'S'},   {id:28,palavra:'Criterioso',dim:'C'},
+  {id:29,palavra:'Exigente',dim:'D'},     {id:30,palavra:'Espontâneo',dim:'I'},
+  {id:31,palavra:'Ponderado',dim:'S'},    {id:32,palavra:'Disciplinado',dim:'C'},
+  {id:33,palavra:'Assertivo',dim:'D'},    {id:34,palavra:'Carismático',dim:'I'},
+  {id:35,palavra:'Tranquilo',dim:'S'},    {id:36,palavra:'Perfeccionista',dim:'C'},
+  {id:37,palavra:'Corajoso',dim:'D'},     {id:38,palavra:'Expressivo',dim:'I'},
+  {id:39,palavra:'Prestativo',dim:'S'},   {id:40,palavra:'Reservado',dim:'C'},
+];
+
+// Calcula % por dimensão (D/I/S/C) a partir dos ids selecionados
+function calcDiscScores(idsSelecionados){
+  const contagem={D:0,I:0,S:0,C:0};
+  (idsSelecionados||[]).forEach(id=>{
+    const p=DISC_PALAVRAS.find(w=>w.id===id);
+    if(p)contagem[p.dim]++;
+  });
+  const total=Object.values(contagem).reduce((a,b)=>a+b,0)||1;
+  const pct={};
+  Object.keys(contagem).forEach(k=>{pct[k]=Math.round(contagem[k]/total*100);});
+  const dominante=Object.entries(contagem).sort((a,b)=>b[1]-a[1])[0][0];
+  return{contagem,pct,dominante,total:Object.values(contagem).reduce((a,b)=>a+b,0)};
+}
 const PERGUNTAS_PADRAO = ["Sinto que meu trabalho é reconhecido pela equipe.","Tenho clareza sobre minhas responsabilidades.","Consigo equilibrar minhas demandas de trabalho com minha vida pessoal.","Sinto-me apoiado pela liderança no dia a dia.","O ambiente de trabalho contribui para meu bem-estar."];
 const PERGUNTAS_PERFIL = [
   {pergunta:"Em uma reunião de trabalho, você costuma:",opcoes:[{texto:"Propor ideias novas e fora da caixa, mesmo sem todos os detalhes.",perfil:"aguia"},{texto:"Garantir que todos se sintam ouvidos antes de qualquer decisão.",perfil:"golfinho"},{texto:"Seguir a pauta com cuidado e anotar cada detalhe.",perfil:"lobo"},{texto:"Cobrar objetividade e ir direto para as decisões.",perfil:"tubarao"}]},
@@ -273,8 +335,64 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
   setTimeout(function(){w.print();},500);
 }
 
+function gerarPDFDisc(tarefa,respostas,empresaNome){
+  var dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+  function barraDim(letra,pctAuto,pctHetero){
+    var p=PERFIS_DISC[letra];
+    return '<div style="margin-bottom:12px">'
+      +'<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span style="font-weight:700;color:'+p.cor+'">'+p.emoji+' '+p.nome+' ('+letra+')</span></div>'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:3px"><span style="width:70px;font-size:10px;color:#888">Autopercepção</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:10px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+pctAuto+'%"></div></div><span style="width:34px;text-align:right;font-size:11px;font-weight:700;color:'+p.cor+'">'+pctAuto+'%</span></div>'
+      +'<div style="display:flex;align-items:center;gap:8px"><span style="width:70px;font-size:10px;color:#888">Heteropercepção</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:10px;overflow:hidden"><div style="height:100%;background:'+p.cor+'88;width:'+pctHetero+'%"></div></div><span style="width:34px;text-align:right;font-size:11px;font-weight:700;color:'+p.cor+'">'+pctHetero+'%</span></div>'
+      +'</div>';
+  }
+  // Médias do grupo
+  var somaAuto={D:0,I:0,S:0,C:0},somaHetero={D:0,I:0,S:0,C:0},n=0;
+  respostas.forEach(function(r){
+    var auto=calcDiscScores(r.respostas&&r.respostas.auto);
+    var hetero=calcDiscScores(r.respostas&&r.respostas.hetero);
+    ['D','I','S','C'].forEach(function(k){somaAuto[k]+=auto.pct[k]||0;somaHetero[k]+=hetero.pct[k]||0;});
+    n++;
+  });
+  n=n||1;
+  var mediasGrupo=['D','I','S','C'].map(function(k){return barraDim(k,Math.round(somaAuto[k]/n),Math.round(somaHetero[k]/n));}).join('');
+
+  var individuais=respostas.map(function(r){
+    var auto=calcDiscScores(r.respostas&&r.respostas.auto);
+    var hetero=calcDiscScores(r.respostas&&r.respostas.hetero);
+    var pDom=PERFIS_DISC[auto.dominante];
+    var barras=['D','I','S','C'].map(function(k){return barraDim(k,auto.pct[k]||0,hetero.pct[k]||0);}).join('');
+    return '<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:14px;page-break-inside:avoid">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
+      +'<div><div style="font-size:15px;font-weight:700;color:#2e2b28">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div></div>'
+      +'<div style="background:'+pDom.cor+'22;border:1px solid '+pDom.cor+'55;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:'+pDom.cor+'">'+pDom.emoji+' '+pDom.nome+'</div>'
+      +'</div>'+barras+'</div>';
+  }).join('');
+
+  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>DISC · '+tarefa.titulo+'</title>'
+    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}'
+    +'.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}'
+    +'.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}'
+    +'@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body>'
+    +'<div class="header"><div>'
+    +'<div style="font-size:20px;font-weight:700;color:#2e2b28">Perfil Comportamental DISC — '+tarefa.titulo+'</div>'
+    +'<div style="font-size:12px;color:#888;margin-top:4px">Autopercepção x Heteropercepção · '+empresaNome+' · Gerado em '+dataHoje+'</div>'
+    +'</div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
+    +'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 14px">Médias do grupo ('+respostas.length+' respondente(s))</h2>'
+    +mediasGrupo
+    +'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual</h2>'
+    +individuais
+    +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
+    +'</body></html>';
+
+  var w=window.open('','_blank');
+  w.document.write(html);
+  w.document.close();
+  setTimeout(function(){w.print();},500);
+}
+
 function gerarPDFTarefa(tarefa,respostas,empresaNome){
   if(tarefa.formato==='copsoq2') { gerarPDFCopsoq(tarefa,respostas,empresaNome); return; }
+  if(tarefa.formato==='disc') { gerarPDFDisc(tarefa,respostas,empresaNome); return; }
   var dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   var conteudo='';
   if(tarefa.formato==='perfil_comportamental'){var total=respostas.length;var contagem={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(function(r){if(r.perfilDominante&&contagem[r.perfilDominante]!==undefined)contagem[r.perfilDominante]++;});var entradas=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return Object.assign({key:k},p,{qtd:contagem[k],pct:total?Math.round(contagem[k]/total*100):0});}).sort(function(a,b){return b.qtd-a.qtd;});var dom=entradas[0];var distGrupo=entradas.map(function(p){return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:16px;width:22px">'+p.emoji+'</span><span style="width:76px;font-size:12px;font-weight:600">'+p.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+p.pct+'%;border-radius:4px"></div></div><span style="width:70px;text-align:right;font-size:12px;color:#666">'+p.pct+'% ('+p.qtd+')</span></div>';}).join('');var explicacoes=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return'<div style="border-left:4px solid '+p.cor+';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6"><div style="font-weight:700;color:'+p.cor+';margin-bottom:4px;font-size:13px">'+p.emoji+' '+p.nome+' — '+p.palavraChave+'</div><p style="margin:0 0 6px">'+p.descricao+'</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><b>Pontos fortes:</b> '+p.pontosFortes+'</div><div><b>Pontos de melhoria:</b> '+p.pontosMelhoria+'</div><div><b>O que motiva:</b> '+p.motivacao+'</div><div><b>Comunicação:</b> '+p.comunicacao+'</div><div style="grid-column:1/-1"><b>Profissões comuns:</b> '+p.profissoes+'</div></div></div>';}).join('');var individuais=respostas.map(function(r){var p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};var pts=r.pontosPorPerfil||{};var t=Object.values(pts).reduce(function(a,b){return a+b;},0)||10;var pct={};['aguia','golfinho','lobo','tubarao'].forEach(function(k){pct[k]=Math.round((pts[k]||0)/t*100);});var interp=r.perfilDominante?interpretacaoCombinada(pct,r.perfilDominante):'';var barras=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,pp]){return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px"><span style="width:16px">'+pp.emoji+'</span><span style="width:58px;color:#666">'+pp.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pp.cor+';width:'+(pct[k]||0)+'%"></div></div><span style="width:28px;text-align:right;font-weight:700;color:'+pp.cor+'">'+(pct[k]||0)+'%</span></div>';}).join('');return'<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid"><div style="display:flex;gap:16px;align-items:flex-start"><div style="text-align:center;min-width:192px">'+radarSVG(pct,192)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:10px">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div><div style="display:inline-block;background:'+p.cor+'22;border:1px solid '+p.cor+'55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:'+(p.cor||'#888')+';margin-bottom:10px">'+(p.emoji||'')+' '+(p.nome||'-')+' (perfil dominante)</div><div style="margin-bottom:10px">'+barras+'</div><div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #b8976a"><b style="color:#b8976a">Interpretação:</b> '+interp+'</div></div></div></div>';}).join('');conteudo='<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">'+dom.emoji+'</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div><div style="font-size:18px;font-weight:700;color:'+dom.cor+'">'+dom.nome+' · '+dom.pct+'% dos respondentes</div></div></div><h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>'+distGrupo+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>'+explicacoes+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>'+individuais;}else{var perguntas=tarefa.perguntas||[];conteudo=perguntas.map(function(perg,idx){var pergTexto=typeof perg==='string'?perg:perg&&perg.pergunta?perg.pergunta:'';var valores=respostas.map(function(r){return r.respostas&&r.respostas[idx];}).filter(function(v){return typeof v==='number';});var media=valores.length?(valores.reduce(function(a,b){return a+b;},0)/valores.length).toFixed(2):'-';var dist=[1,2,3,4,5].map(function(n){return valores.filter(function(v){return v===n;}).length;});return'<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">'+(idx+1)+'. '+pergTexto+'</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">'+media+' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>'+dist.map(function(qtd,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">'+(i+1)+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:'+(valores.length?Math.round(qtd/valores.length*100):0)+'%"></div></div><span style="width:20px;text-align:right;color:#666">'+qtd+'</span></div>';}).join('')+'</div>';}).join('')+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">'+['Nome','Cargo','Sexo'].concat(perguntas.map(function(_,i){return'Q'+(i+1);})).map(function(h){return'<th style="padding:8px 10px;text-align:left">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+respostas.map(function(r,i){return'<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.nomeColaborador||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.cargo||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.sexo||'-')+'</td>'+perguntas.map(function(_,idx){return'<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">'+(r.respostas&&r.respostas[idx]!=null?r.respostas[idx]:'-')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
@@ -745,7 +863,7 @@ function AbaTarefas({tarefas,empresas,respostas}){
     React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:12}},
       tarefas.map(t=>{
         const respT=respostas.filter(r=>r.taskId===t.id);const isPendente=t.status==='pendente';
-        const icone=t.formato==='perfil_comportamental'?'🎭':t.formato==='copsoq2'?'🧩':t.formato==='formulario'?'📝':'📊';
+        const icone=t.formato==='perfil_comportamental'?'🎭':t.formato==='copsoq2'?'🧩':t.formato==='formulario'?'📝':t.formato==='disc'?'🎯':'📊';
         const isForm=t.formato==='formulario';
         const alterando=alterandoStatus===t.id;
         const aguardandoConfirm=confirmExcluir===t.id;
@@ -812,6 +930,7 @@ function ModalNovaTarefa({empresas,onClose}){
       const ehPerfil=tipo==='Perfil Comportamental';
       const ehCopsoq=tipo==='Riscos Psicossociais (COPSOQ II)';
       const ehForm=tipo==='Formulário Personalizado';
+      const ehDisc=tipo==='Perfil Comportamental (DISC)';
       // Sanitizar campos — remover undefined que o Firestore rejeita
       const camposLimpos=(camposFinais||[]).map(c=>{
         const obj={id:c.id,tipo:c.tipo,pergunta:c.pergunta||'',obrigatorio:c.obrigatorio!==false};
@@ -821,9 +940,9 @@ function ModalNovaTarefa({empresas,onClose}){
       });
       await db.collection('tasks').add({
         titulo:titulo.trim(),tipo,companyId,status:'pendente',
-        formato:ehPerfil?'perfil_comportamental':ehCopsoq?'copsoq2':ehForm?'formulario':'escala',
+        formato:ehPerfil?'perfil_comportamental':ehCopsoq?'copsoq2':ehForm?'formulario':ehDisc?'disc':'escala',
         campos:ehForm?camposLimpos:null,
-        perguntas:ehPerfil?PERGUNTAS_PERFIL:ehCopsoq?COPSOQ_QUESTOES:ehForm?null:PERGUNTAS_PADRAO,
+        perguntas:ehPerfil?PERGUNTAS_PERFIL:ehCopsoq?COPSOQ_QUESTOES:(ehForm||ehDisc)?null:PERGUNTAS_PADRAO,
         dataCriacao:firebase.firestore.FieldValue.serverTimestamp()
       });
       setSaving(false);onClose();
@@ -850,11 +969,16 @@ function ModalNovaTarefa({empresas,onClose}){
         React.createElement("option",null,"Clima Organizacional"),
         React.createElement("option",null,"Riscos Psicossociais (COPSOQ II)"),
         React.createElement("option",null,"Perfil Comportamental"),
+        React.createElement("option",null,"Perfil Comportamental (DISC)"),
         React.createElement("option",null,"Formulário Personalizado"),
         React.createElement("option",null,"Avaliação Psicológica"),
         React.createElement("option",null,"Outro")
       ),
       tipo==='Perfil Comportamental'&&React.createElement("p",{style:{fontSize:12,color:'#6b7280',marginTop:-8,marginBottom:16}},"Teste gamificado · 10 perguntas · Águia, Golfinho, Lobo ou Tubarão"),
+      tipo==='Perfil Comportamental (DISC)'&&React.createElement("div",{style:{background:'#f5f0ff',border:'1px solid #ddd0fa',borderRadius:8,padding:'10px 14px',marginTop:-8,marginBottom:16}},
+        React.createElement("div",{style:{fontSize:12,color:'#7B5FC4',fontWeight:700,marginBottom:4}},"🎯 Perfil Comportamental (DISC)"),
+        React.createElement("div",{style:{fontSize:11,color:'#7B5FC4'}},"40 palavras · 2 etapas (autopercepção e heteropercepção) · Executor, Comunicador, Planejador, Analista")
+      ),
       tipo_&&React.createElement("div",{style:{background:'#e3f0fb',border:'1px solid #2980b944',borderRadius:8,padding:'10px 14px',marginTop:-8,marginBottom:16}},
         React.createElement("div",{style:{fontSize:12,color:'#2980b9',fontWeight:700,marginBottom:4}},"🧩 COPSOQ II — Versão Curta"),
         React.createElement("div",{style:{fontSize:11,color:'#2980b9'}},"41 itens · 21 subescalas · Kristensen (2001) / Silva et al. (2011)")
@@ -1082,10 +1206,88 @@ function DashboardFormulario({tarefa,respostas}){
   );
 }
 
+/* ---- DASHBOARD DISC (admin) ---- */
+function DashboardDisc({respostas}){
+  const [visao,setVisao]=useState('agregado');
+  if(!respostas.length)return React.createElement("div",{style:{textAlign:'center',padding:'40px 20px',color:'#9ca3af'}},"Nenhuma resposta ainda.");
+
+  // Médias do grupo
+  const soma={D:{auto:0,hetero:0},I:{auto:0,hetero:0},S:{auto:0,hetero:0},C:{auto:0,hetero:0}};
+  const contagemDominante={D:0,I:0,S:0,C:0};
+  respostas.forEach(r=>{
+    const auto=calcDiscScores(r.respostas?.auto);
+    const hetero=calcDiscScores(r.respostas?.hetero);
+    ['D','I','S','C'].forEach(k=>{soma[k].auto+=auto.pct[k]||0;soma[k].hetero+=hetero.pct[k]||0;});
+    contagemDominante[auto.dominante]++;
+  });
+  const n=respostas.length;
+  const dominanteGrupo=Object.entries(contagemDominante).sort((a,b)=>b[1]-a[1])[0][0];
+  const pDomGrupo=PERFIS_DISC[dominanteGrupo];
+
+  const BarraComparativa=({letra})=>{
+    const p=PERFIS_DISC[letra];
+    const mAuto=Math.round(soma[letra].auto/n);
+    const mHetero=Math.round(soma[letra].hetero/n);
+    return React.createElement("div",{style:{marginBottom:16}},
+      React.createElement("div",{style:{display:'flex',justifyContent:'space-between',marginBottom:6}},
+        React.createElement("span",{style:{fontSize:13,fontWeight:700,color:p.cor}},p.emoji,' ',p.nome,' (',letra,')'),
+        React.createElement("span",{style:{fontSize:11,color:'#9ca3af'}},p.resumo)
+      ),
+      React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
+        React.createElement("span",{style:{width:100,fontSize:11,color:'#6b7280'}},"Autopercepção"),
+        React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:5,height:12,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor,width:`${mAuto}%`,transition:'width .4s'}})),
+        React.createElement("span",{style:{width:36,textAlign:'right',fontSize:12,fontWeight:800,color:p.cor}},mAuto,'%')
+      ),
+      React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8}},
+        React.createElement("span",{style:{width:100,fontSize:11,color:'#6b7280'}},"Heteropercepção"),
+        React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:5,height:12,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor+'99',width:`${mHetero}%`,transition:'width .4s'}})),
+        React.createElement("span",{style:{width:36,textAlign:'right',fontSize:12,fontWeight:800,color:p.cor}},mHetero,'%')
+      )
+    );
+  };
+
+  const AgregadoView=()=>React.createElement("div",null,
+    React.createElement("div",{style:{background:pDomGrupo.cor+'15',border:`1px solid ${pDomGrupo.cor}44`,borderRadius:12,padding:'14px 18px',marginBottom:20,display:'flex',alignItems:'center',gap:14}},
+      React.createElement("span",{style:{fontSize:36}},pDomGrupo.emoji),
+      React.createElement("div",null,
+        React.createElement("div",{style:{fontSize:11,color:'#888',textTransform:'uppercase',letterSpacing:.5}},"Perfil predominante do grupo"),
+        React.createElement("div",{style:{fontSize:18,fontWeight:800,color:pDomGrupo.cor}},pDomGrupo.nome,' · ',Math.round(contagemDominante[dominanteGrupo]/n*100),'%')
+      )
+    ),
+    ['D','I','S','C'].map(k=>React.createElement(BarraComparativa,{key:k,letra:k})),
+    React.createElement("div",{style:{marginTop:12,padding:'12px 14px',background:'#f8f9fb',borderRadius:8,fontSize:11,color:'#6b7280'}},
+      "Autopercepção = como o colaborador se vê. Heteropercepção = como ele acredita que os outros o veem. Grandes diferenças entre as duas barras podem indicar pontos de autoconhecimento a explorar."
+    )
+  );
+
+  const IndividualView=()=>React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:12}},
+    respostas.map(r=>{
+      const auto=calcDiscScores(r.respostas?.auto);
+      const pDom=PERFIS_DISC[auto.dominante];
+      return React.createElement("div",{key:r.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:10,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}},
+        React.createElement("div",{style:{width:38,height:38,borderRadius:'50%',background:pDom.cor+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},pDom.emoji),
+        React.createElement("div",{style:{flex:1}},
+          React.createElement("div",{style:{fontSize:13,fontWeight:700,color:'#1a1d2e'}},r.nomeColaborador||'-'),
+          React.createElement("div",{style:{fontSize:11,color:'#9ca3af'}},r.cargo||'-')
+        ),
+        React.createElement("span",{style:{background:pDom.cor+'22',color:pDom.cor,borderRadius:20,padding:'3px 12px',fontSize:12,fontWeight:700}},pDom.nome)
+      );
+    })
+  );
+
+  return React.createElement("div",null,
+    React.createElement("div",{style:{display:'flex',border:'1px solid #e2e5ec',borderRadius:8,overflow:'hidden',marginBottom:18,width:'fit-content'}},
+      ['agregado','individual'].map(v=>React.createElement("button",{key:v,onClick:()=>setVisao(v),style:{background:visao===v?'#7B5FC4':'transparent',color:visao===v?'#fff':'#666',border:'none',padding:'7px 16px',cursor:'pointer',fontWeight:visao===v?700:400,fontSize:13}},v==='agregado'?'Agregado':'Individual'))
+    ),
+    visao==='agregado'?React.createElement(AgregadoView):React.createElement(IndividualView)
+  );
+}
+
 function ModalResultadosTarefa({tarefa,respostas,empresaNome,onClose}){
   const isPerfil=tarefa.formato==='perfil_comportamental';
   const isCopsoq=tarefa.formato==='copsoq2';
   const isForm=tarefa.formato==='formulario';
+  const isDisc=tarefa.formato==='disc';
   const total=respostas.length;
   const contagem=useMemo(()=>{const c={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(r=>{if(r.perfilDominante&&c[r.perfilDominante]!==undefined)c[r.perfilDominante]++;});return c;},[respostas]);
   return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.85)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:20,overflowY:'auto'}},
@@ -1098,6 +1300,7 @@ function ModalResultadosTarefa({tarefa,respostas,empresaNome,onClose}){
         )
       ),
       isCopsoq?React.createElement(DashboardCopsoq,{respostas}):
+      isDisc?React.createElement(DashboardDisc,{respostas}):
       isForm?React.createElement(DashboardFormulario,{tarefa,respostas}):
       isPerfil?React.createElement("div",null,
         Object.entries(PERFIS_COMPORTAMENTAIS).map(([key,p])=>React.createElement("div",{key,style:{marginBottom:10}},
@@ -1204,6 +1407,7 @@ function AbaResultados({empresas,tarefas,respostas}){
     tarefaAtual&&tarefaAtual.formato==='perfil_comportamental'?React.createElement(DashboardPerfil,{tarefa:tarefaAtual,respostas:respostasFiltradas}):
     tarefaAtual&&tarefaAtual.formato==='copsoq2'?React.createElement(DashboardCopsoq,{respostas:respostasFiltradas}):
     tarefaAtual&&tarefaAtual.formato==='formulario'?React.createElement(DashboardFormulario,{tarefa:tarefaAtual,respostas:respostasFiltradas}):
+    tarefaAtual&&tarefaAtual.formato==='disc'?React.createElement(DashboardDisc,{respostas:respostasFiltradas}):
     visao==='agregado'?React.createElement(DashboardAgregado,{respostas:respostasFiltradas.filter(r=>r.formato!=='perfil_comportamental'&&r.formato!=='copsoq2'),empresas}):
     React.createElement(TabelaIndividual,{respostas:respostasFiltradas,empresas})
   );
@@ -1620,11 +1824,12 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
     if(tarefaAtiva.formato==='perfil_comportamental')return React.createElement(TestePerfilMobile,props);
     if(tarefaAtiva.formato==='copsoq2')return React.createElement(FormularioCopsoqMobile,props);
     if(tarefaAtiva.formato==='formulario')return React.createElement(FormularioCustomMobile,props);
+    if(tarefaAtiva.formato==='disc')return React.createElement(DiscMobile,props);
     return React.createElement(FormularioEscalaMobile,props);
   }
   if(resultadoVer)return React.createElement(ResultadoColaborador,{tarefa:resultadoVer.tarefa,resposta:resultadoVer.resposta,empresa,onVoltar:()=>setResultadoVer(null)});
 
-  const iconeFormato=f=>f==='perfil_comportamental'?'🎭':f==='copsoq2'?'🧩':f==='formulario'?'📝':'📊';
+  const iconeFormato=f=>f==='perfil_comportamental'?'🎭':f==='copsoq2'?'🧩':f==='formulario'?'📝':f==='disc'?'🎯':'📊';
 
   // Estilos base mobile
   const S={
@@ -1773,6 +1978,7 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
   const isPerfil=tarefa.formato==='perfil_comportamental';
   const isCopsoq=tarefa.formato==='copsoq2';
   const isForm=tarefa.formato==='formulario';
+  const isDisc=tarefa.formato==='disc';
 
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f5f6fa',fontFamily:"'Segoe UI',system-ui,sans-serif"}},
     React.createElement("div",{style:{background:'#fff',borderBottom:'1px solid #e2e5ec',padding:'14px 20px',display:'flex',alignItems:'center',gap:12,position:'sticky',top:0,zIndex:10}},
@@ -1825,8 +2031,41 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
           );
         })
       ),
+      // DISC → mostrar autopercepção x heteropercepção
+      isDisc&&(()=>{
+        const auto=calcDiscScores(resposta.respostas?.auto);
+        const hetero=calcDiscScores(resposta.respostas?.hetero);
+        const pDom=PERFIS_DISC[auto.dominante];
+        return React.createElement("div",null,
+          React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,textAlign:'center',marginBottom:14}},
+            React.createElement("div",{style:{fontSize:56,marginBottom:8}},pDom.emoji),
+            React.createElement("div",{style:{fontSize:22,fontWeight:800,color:pDom.cor,marginBottom:4}},pDom.nome),
+            React.createElement("div",{style:{fontSize:12,color:'#9ca3af',marginBottom:12}},pDom.resumo),
+            React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:0}},pDom.descricao)
+          ),
+          React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20}},
+            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Autopercepção x Heteropercepção"),
+            ['D','I','S','C'].map(k=>{
+              const p=PERFIS_DISC[k];
+              return React.createElement("div",{key:k,style:{marginBottom:14}},
+                React.createElement("div",{style:{fontSize:13,fontWeight:700,color:p.cor,marginBottom:6}},p.emoji,' ',p.nome),
+                React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
+                  React.createElement("span",{style:{width:90,fontSize:11,color:'#9ca3af'}},"Como me vejo"),
+                  React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:4,height:8,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor,width:`${auto.pct[k]||0}%`}})),
+                  React.createElement("span",{style:{width:32,textAlign:'right',fontSize:12,fontWeight:700,color:p.cor}},auto.pct[k]||0,'%')
+                ),
+                React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8}},
+                  React.createElement("span",{style:{width:90,fontSize:11,color:'#9ca3af'}},"Como me veem"),
+                  React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:4,height:8,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor+'88',width:`${hetero.pct[k]||0}%`}})),
+                  React.createElement("span",{style:{width:32,textAlign:'right',fontSize:12,fontWeight:700,color:p.cor}},hetero.pct[k]||0,'%')
+                )
+              );
+            })
+          )
+        );
+      })(),
       // Escala padrão → mostrar respostas dadas
-      !isPerfil&&!isCopsoq&&!isForm&&React.createElement("div",null,
+      !isPerfil&&!isCopsoq&&!isForm&&!isDisc&&React.createElement("div",null,
         (tarefa.perguntas||[]).map((perg,idx)=>{
           const pergTexto=typeof perg==='string'?perg:perg?.pergunta||'';
           const v=resposta.respostas?.[idx];
@@ -2084,6 +2323,92 @@ function FormularioCustomMobile({empresa,employeeId,employeeData,tarefa,onEnviad
     React.createElement("div",{style:{position:'fixed',bottom:0,left:0,right:0,background:'#f8f9fb',padding:'12px 20px 20px',borderTop:'1px solid #e2e5ec'}},
       !todasObrigatorias&&React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',margin:'0 0 8px'}},"Preencha todos os campos obrigatórios (*)"),
       React.createElement("button",{onClick:handleEnviar,disabled:!todasObrigatorias||enviando,style:{width:'100%',background:todasObrigatorias?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:todasObrigatorias?'pointer':'not-allowed'}},enviando?'Enviando...':'Enviar respostas ✓'),
+      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Instituto Propagare · João Rosa · CRP 06/227336")
+    )
+  );
+}
+
+/* ---- DISC MOBILE — SELEÇÃO DE PALAVRAS EM 2 ETAPAS ---- */
+function DiscMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
+  const [etapa,setEtapa]=useState(0); // 0=intro, 1=auto, 2=hetero
+  const [selAuto,setSelAuto]=useState([]);
+  const [selHetero,setSelHetero]=useState([]);
+  const [enviando,setEnviando]=useState(false);
+
+  const MIN_PALAVRAS=5;
+  const cor='#7B5FC4';
+
+  const toggle=(lista,setLista,id)=>{
+    setLista(prev=>prev.includes(id)?prev.filter(x=>x!==id):[...prev,id]);
+  };
+
+  const handleAvancar=()=>{
+    if(etapa===1&&selAuto.length>=MIN_PALAVRAS){setEtapa(2);window.scrollTo(0,0);}
+  };
+
+  const handleEnviar=async()=>{
+    if(selHetero.length<MIN_PALAVRAS)return;
+    setEnviando(true);
+    await db.collection('responses').add({
+      taskId:tarefa.id,employeeId,companyId:empresa.id,
+      nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,
+      formato:'disc',respostas:{auto:selAuto,hetero:selHetero},
+      dataResposta:firebase.firestore.FieldValue.serverTimestamp()
+    });
+    setEnviando(false);onEnviado();
+  };
+
+  const Chip=({w,selecionada,onClick})=>React.createElement("button",{
+    onClick,
+    style:{
+      background:selecionada?cor:'#fff',color:selecionada?'#fff':'#374151',
+      border:`1.5px solid ${selecionada?cor:'#e2e5ec'}`,borderRadius:20,
+      padding:'10px 16px',fontSize:14,fontWeight:selecionada?700:500,cursor:'pointer',
+      transition:'all .12s',whiteSpace:'nowrap'
+    }
+  },w.palavra);
+
+  // Tela de introdução
+  if(etapa===0)return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:28,textAlign:'center'}},
+    React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:20}},"INSTITUTO PROPAGARE"),
+    React.createElement("div",{style:{fontSize:52,marginBottom:16}},"🧩"),
+    React.createElement("h2",{style:{color:'#1a1d2e',fontSize:21,margin:'0 0 10px',fontWeight:800}},tarefa.titulo),
+    React.createElement("p",{style:{color:'#6b7280',fontSize:14,lineHeight:1.6,marginBottom:12,maxWidth:340}},"Você verá uma lista de palavras em duas etapas."),
+    React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:18,marginBottom:24,maxWidth:340,textAlign:'left'}},
+      React.createElement("div",{style:{display:'flex',gap:10,marginBottom:12}},
+        React.createElement("span",{style:{fontSize:20}},"1️⃣"),
+        React.createElement("div",{style:{fontSize:13,color:'#374151'}},React.createElement("b",null,"Como você se identifica?")," Selecione as palavras que descrevem como você realmente é.")
+      ),
+      React.createElement("div",{style:{display:'flex',gap:10}},
+        React.createElement("span",{style:{fontSize:20}},"2️⃣"),
+        React.createElement("div",{style:{fontSize:13,color:'#374151'}},React.createElement("b",null,"Como os outros te identificam?")," Selecione como você acredita que as pessoas ao seu redor te veem.")
+      )
+    ),
+    React.createElement("p",{style:{color:'#9ca3af',fontSize:12,marginBottom:24}},"Escolha pelo menos ",MIN_PALAVRAS," palavras em cada etapa. Responda com sinceridade — não existe resposta certa ou errada."),
+    React.createElement("button",{onClick:()=>setEtapa(1),style:{background:cor,color:'#fff',border:'none',borderRadius:14,padding:'16px 40px',fontSize:16,fontWeight:700,cursor:'pointer',width:'100%',maxWidth:340}},"Começar →")
+  );
+
+  const etapaAtual=etapa===1?{titulo:'Como você se identifica?',sel:selAuto,setSel:setSelAuto,min:MIN_PALAVRAS}:{titulo:'Como você acha que os outros te identificam?',sel:selHetero,setSel:setSelHetero,min:MIN_PALAVRAS};
+  const pronto=etapaAtual.sel.length>=etapaAtual.min;
+
+  return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20,paddingBottom:110}},
+    React.createElement("div",{style:{marginBottom:18}},
+      React.createElement("div",{style:{fontSize:11,color:'#9ca3af',fontWeight:700,marginBottom:6}},"ETAPA ",etapa," DE 2"),
+      React.createElement("h2",{style:{color:'#1a1d2e',fontSize:19,margin:'0 0 8px',fontWeight:800,lineHeight:1.3}},etapaAtual.titulo),
+      React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:4,overflow:'hidden',marginBottom:6}},
+        React.createElement("div",{style:{height:'100%',background:cor,width:`${(etapa-1)*50+Math.min(50,etapaAtual.sel.length/etapaAtual.min*50)}%`,transition:'width .3s'}})
+      ),
+      React.createElement("div",{style:{fontSize:12,color:etapaAtual.sel.length>=etapaAtual.min?'#059669':'#9ca3af',fontWeight:600}},
+        etapaAtual.sel.length," selecionada(s)",etapaAtual.sel.length<etapaAtual.min?` · mínimo ${etapaAtual.min}`:' ✓'
+      )
+    ),
+    React.createElement("div",{style:{display:'flex',flexWrap:'wrap',gap:8,marginBottom:20}},
+      DISC_PALAVRAS.map(w=>React.createElement(Chip,{key:w.id,w,selecionada:etapaAtual.sel.includes(w.id),onClick:()=>toggle(etapaAtual.sel,etapaAtual.setSel,w.id)}))
+    ),
+    React.createElement("div",{style:{position:'fixed',bottom:0,left:0,right:0,background:'#f8f9fb',padding:'12px 20px 20px',borderTop:'1px solid #e2e5ec'}},
+      !pronto&&React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',margin:'0 0 8px'}},"Selecione pelo menos ",etapaAtual.min," palavras para continuar"),
+      etapa===1?React.createElement("button",{onClick:handleAvancar,disabled:!pronto,style:{width:'100%',background:pronto?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:pronto?'pointer':'not-allowed'}},"Próxima etapa →")
+        :React.createElement("button",{onClick:handleEnviar,disabled:!pronto||enviando,style:{width:'100%',background:pronto?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:pronto?'pointer':'not-allowed'}},enviando?'Enviando...':'Enviar respostas ✓'),
       React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Instituto Propagare · João Rosa · CRP 06/227336")
     )
   );
