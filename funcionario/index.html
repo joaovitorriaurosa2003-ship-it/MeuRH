@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portal do Colaborador · Instituto Propagare</title>
+<meta http-equiv="refresh" content="0; url=/?colaborador">
+<style>
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:#f8f9fb;font-family:'Segoe UI',system-ui,sans-serif;}
+  .box{text-align:center;color:#b8976a;}
+  .box .icon{font-size:32px;margin-bottom:10px;}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="icon">🧠</div>
+  <div>Redirecionando...</div>
+</div>
+<script>
+  (function(){
+    var params = new URLSearchParams(window.location.search);
+    var empresa = params.get('empresa');
+    var url = '/?colaborador';
+    if (empresa) url += '&empresa=' + encodeURIComponent(empresa);
+    window.location.replace(url);
+  })();
+</script>
+</body>
+</html>
