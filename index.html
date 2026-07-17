@@ -291,6 +291,109 @@ function calcDiscScores(idsSelecionados){
   return{contagem,pct,dominante,total:Object.values(contagem).reduce((a,b)=>a+b,0)};
 }
 const PERGUNTAS_PADRAO = ["Sinto que meu trabalho é reconhecido pela equipe.","Tenho clareza sobre minhas responsabilidades.","Consigo equilibrar minhas demandas de trabalho com minha vida pessoal.","Sinto-me apoiado pela liderança no dia a dia.","O ambiente de trabalho contribui para meu bem-estar."];
+
+/* ============== DISC — COMPETÊNCIAS (calculadas por peso D/I/S/C) ============== */
+const DISC_COMPETENCIAS = [
+  {id:'tolerancia',   label:'Tolerância',                 desc:'Capacidade de conviver com formas de pensar e agir diferentes das suas.',                 pesos:{D:0,   I:0.3, S:0.7, C:0}},
+  {id:'planejamento', label:'Planejamento',                desc:'Capacidade de organizar ações, processos e atividades com antecedência.',                pesos:{D:0,   I:0,   S:0.2, C:0.8}},
+  {id:'empatia',      label:'Empatia',                     desc:'Capacidade de se colocar no lugar do outro e compreender o que ele sente.',              pesos:{D:0,   I:0.4, S:0.6, C:0}},
+  {id:'escuta',       label:'Capacidade de ouvir',         desc:'Habilidade de escuta ativa e atenção genuína ao que o outro diz.',                       pesos:{D:0,   I:0,   S:0.8, C:0.2}},
+  {id:'concentracao', label:'Concentração',                desc:'Capacidade de manter o foco em tarefas que exigem atenção constante.',                   pesos:{D:0,   I:0,   S:0.1, C:0.9}},
+  {id:'condescend',   label:'Condescendência',             desc:'Disposição para considerar e ponderar os desejos e opiniões dos outros.',                pesos:{D:0,   I:0,   S:0.7, C:0.3}},
+  {id:'tecnico',      label:'Perfil técnico',              desc:'Aptidão para lidar com aspectos técnicos e otimizar processos com precisão.',            pesos:{D:0,   I:0,   S:0,   C:1.0}},
+  {id:'organizacao',  label:'Organização',                 desc:'Capacidade de estruturar ideias, tarefas e ambiente de forma clara.',                    pesos:{D:0,   I:0,   S:0.15,C:0.85}},
+  {id:'detalhismo',   label:'Detalhismo',                  desc:'Atenção minuciosa a fatos, planos e detalhes de um projeto.',                            pesos:{D:0,   I:0,   S:0.1, C:0.9}},
+  {id:'rigor',        label:'Rigorosidade',                desc:'Precisão e exigência no raciocínio e na entrega do trabalho.',                           pesos:{D:0.15,I:0,   S:0,   C:0.85}},
+  {id:'resultado',    label:'Orientado a resultado',       desc:'Tendência a investir energia na ação e na entrega concreta.',                            pesos:{D:0.85,I:0.15,S:0,   C:0}},
+  {id:'multitarefa',  label:'Multitarefas',                desc:'Capacidade de conduzir várias frentes de trabalho ao mesmo tempo.',                      pesos:{D:0.4, I:0.6, S:0,   C:0}},
+  {id:'automotivD',   label:'Automotivação',               desc:'Capacidade de se motivar e manter o entusiasmo sem depender de estímulo externo.',       pesos:{D:0.55,I:0.45,S:0,   C:0}},
+  {id:'proatividade', label:'Proatividade',                desc:'Tendência a agir antecipadamente diante de problemas futuros.',                          pesos:{D:0.75,I:0.25,S:0,   C:0}},
+  {id:'dinamismo',    label:'Dinamismo',                   desc:'Energia, movimento e facilidade para lidar com ambientes de mudança.',                   pesos:{D:0.55,I:0.45,S:0,   C:0}},
+  {id:'dominancia',   label:'Dominância',                  desc:'Postura firme, decisões rápidas e disposição para assumir o comando.',                   pesos:{D:1.0, I:0,   S:0,   C:0}},
+  {id:'extroversao',  label:'Extroversão',                 desc:'Facilidade natural para se expressar e se socializar.',                                  pesos:{D:0,   I:1.0, S:0,   C:0}},
+  {id:'relacinterp',  label:'Relacionamento interpessoal', desc:'Capacidade de estabelecer vínculos e conexões com outras pessoas.',                      pesos:{D:0,   I:0.5, S:0.5, C:0}},
+  {id:'sociabilidade',label:'Sociabilidade',               desc:'Tendência e necessidade de buscar relacionamento social de forma expansiva.',            pesos:{D:0,   I:0.9, S:0.1, C:0}},
+  {id:'orientrelac',  label:'Orientado a relacionamento',  desc:'O quanto a pessoa se desenvolve e prioriza relacionamentos em suas tarefas.',             pesos:{D:0,   I:0.35,S:0.65,C:0}},
+];
+
+function calcDiscCompetencias(pct){
+  return DISC_COMPETENCIAS.map(c=>{
+    const valor=Math.round((pct.D||0)*c.pesos.D+(pct.I||0)*c.pesos.I+(pct.S||0)*c.pesos.S+(pct.C||0)*c.pesos.C);
+    return{...c,valor};
+  }).sort((a,b)=>b.valor-a.valor);
+}
+
+/* ============== DISC — ÁREA DE TALENTOS (combinação primário+secundário) ============== */
+const DISC_TALENTOS = {
+  D:  {nome:'Comandante',  desc:'Empreendedor, independente e exigente consigo e com os outros. Assume riscos e resolve problemas com pulso firme.', profissoes:'Cargos de comando, liderança, supervisão, gestão de produção.'},
+  I:  {nome:'Motivador',   desc:'Comunicação em pessoa. Dá vida ao que fala, engaja e ajuda pessoas a se desenvolverem.',                              profissoes:'Palestras, relações públicas, atendimento, capacitação.'},
+  S:  {nome:'Atendente',   desc:'Trabalha bem em relacionamentos positivos, em equipes onde as pessoas se ajudam mutuamente.',                          profissoes:'Atendimento, suporte, serviços de retaguarda.'},
+  C:  {nome:'Estrategista',desc:'Inventivo e organizador, com bom desempenho em trabalhos técnicos e analíticos.',                                      profissoes:'Contabilidade, arquitetura, projetos técnicos, análise de dados.'},
+  'D+I':{nome:'Vendedor',    desc:'Vende ideias, benefícios e prestígio. Independente e com forte senso de urgência.',                                     profissoes:'Comercial, vendas, publicidade, consultoria.'},
+  'I+D':{nome:'Vendedor',    desc:'Vende ideias, benefícios e prestígio. Independente e com forte senso de urgência.',                                     profissoes:'Comercial, vendas, publicidade, consultoria.'},
+  'D+S':{nome:'Competidor',  desc:'Se motiva por vencer desafios. Tem pulso e garra, respeita regras mais que o perfil puramente comercial.',              profissoes:'Área financeira, jurídica, técnica com metas.'},
+  'S+D':{nome:'Competidor',  desc:'Se motiva por vencer desafios. Tem pulso e garra, respeita regras mais que o perfil puramente comercial.',              profissoes:'Área financeira, jurídica, técnica com metas.'},
+  'D+C':{nome:'Controlador', desc:'Rápido e eficiente, exigente consigo e com os outros. Alto padrão de desempenho e comunicação reservada.',              profissoes:'Gestão de projetos, execução com rapidez e qualidade.'},
+  'C+D':{nome:'Controlador', desc:'Rápido e eficiente, exigente consigo e com os outros. Alto padrão de desempenho e comunicação reservada.',              profissoes:'Gestão de projetos, execução com rapidez e qualidade.'},
+  'I+S':{nome:'Diplomata',   desc:'Habilidade para solucionar conflitos, boa comunicação e capacidade de ensinar o que sabe.',                            profissoes:'Negociação, RH, atendimento, relações públicas.'},
+  'S+I':{nome:'Diplomata',   desc:'Habilidade para solucionar conflitos, boa comunicação e capacidade de ensinar o que sabe.',                            profissoes:'Negociação, RH, atendimento, relações públicas.'},
+  'I+C':{nome:'Professoral', desc:'Bom em ensinar e transmitir conhecimento técnico. Gerente compreensivo, une comunicação e método.',                     profissoes:'Suporte técnico, docência, gestão de equipes técnicas.'},
+  'C+I':{nome:'Professoral', desc:'Bom em ensinar e transmitir conhecimento técnico. Gerente compreensivo, une comunicação e método.',                     profissoes:'Suporte técnico, docência, gestão de equipes técnicas.'},
+  'S+C':{nome:'Especialista',desc:'Segue regras e processos com cuidado. Precisa de estrutura, mas realiza o trabalho com excelência.',                    profissoes:'Operações, financeiro, áreas administrativas.'},
+  'C+S':{nome:'Especialista',desc:'Segue regras e processos com cuidado. Precisa de estrutura, mas realiza o trabalho com excelência.',                    profissoes:'Operações, financeiro, áreas administrativas.'},
+};
+
+function calcDiscTalento(pct){
+  const ordenado=Object.entries(pct).sort((a,b)=>b[1]-a[1]);
+  const primario=ordenado[0][0],secundario=ordenado[1][0];
+  const gap=ordenado[0][1]-ordenado[1][1];
+  // Perfil muito concentrado numa única letra (gap grande) → talento "puro"
+  const chave=gap>=25?primario:`${primario}+${secundario}`;
+  return{chave,primario,secundario,gap,...(DISC_TALENTOS[chave]||DISC_TALENTOS[primario])};
+}
+
+/* ============== DISC — ÍNDICES SITUACIONAIS (derivados das duas fases) ============== */
+function calcDiscIndicadores(respostaDisc){
+  const auto=calcDiscScores(respostaDisc?.auto);
+  const hetero=calcDiscScores(respostaDisc?.hetero);
+  const totalPalavras=40;
+
+  // Energia: quantas palavras selecionou na fase Auto, proporcional ao banco total
+  const energia=Math.min(100,Math.round((auto.total/ (totalPalavras*0.5))*100));
+
+  // Exigência do meio: diferença entre o perfil dominante Auto e Hetero
+  const gapDominante=Math.abs((auto.pct[auto.dominante]||0)-(hetero.pct[auto.dominante]||0));
+  const mudouDominante=auto.dominante!==hetero.dominante;
+  const exigencia=Math.min(100,Math.round(gapDominante*1.5+(mudouDominante?25:0)));
+
+  // Autoconfiança: intensidade da dimensão dominante Auto (quanto mais concentrado, mais confiante)
+  const autoconfianca=Math.min(100,auto.pct[auto.dominante]||0);
+
+  // Autoestima: consistência entre Auto e Hetero (perfis parecidos = autoimagem estável)
+  const diffTotal=['D','I','S','C'].reduce((s,k)=>s+Math.abs((auto.pct[k]||0)-(hetero.pct[k]||0)),0);
+  const autoestima=Math.max(0,100-Math.round(diffTotal/2));
+
+  // Flexibilidade: inverso da concentração — perfil distribuído entre as 4 letras = mais flexível
+  const valores=['D','I','S','C'].map(k=>auto.pct[k]||0);
+  const media=25;
+  const desvio=valores.reduce((s,v)=>s+Math.abs(v-media),0)/4;
+  const flexibilidade=Math.max(0,100-Math.round(desvio*2));
+
+  // Amplitude: total de palavras somadas nas duas fases
+  const amplitude=Math.min(100,Math.round(((auto.total+hetero.total)/(totalPalavras*0.8))*100));
+
+  // Automotivação: força da dimensão secundária Auto
+  const ordenadoAuto=Object.entries(auto.pct).sort((a,b)=>b[1]-a[1]);
+  const automotivacao=Math.min(100,(ordenadoAuto[1]?.[1]||0)*2);
+
+  // Incitabilidade: (D+I) - (S+C), normalizado — D/I reagem rápido, S/C são mais ponderados
+  const rapidas=(auto.pct.D||0)+(auto.pct.I||0);
+  const ponderadas=(auto.pct.S||0)+(auto.pct.C||0);
+  const incitabilidade=Math.max(0,Math.min(100,Math.round(50+(rapidas-ponderadas)/2)));
+
+  return{energia,exigencia,autoconfianca,autoestima,flexibilidade,amplitude,automotivacao,incitabilidade};
+}
+
 const PERGUNTAS_PERFIL = [
   {pergunta:"Em uma reunião de trabalho, você costuma:",opcoes:[{texto:"Propor ideias novas e fora da caixa, mesmo sem todos os detalhes.",perfil:"aguia"},{texto:"Garantir que todos se sintam ouvidos antes de qualquer decisão.",perfil:"golfinho"},{texto:"Seguir a pauta com cuidado e anotar cada detalhe.",perfil:"lobo"},{texto:"Cobrar objetividade e ir direto para as decisões.",perfil:"tubarao"}]},
   {pergunta:"Quando recebe uma tarefa nova, sua primeira reação é:",opcoes:[{texto:"Imaginar possibilidades diferentes de como fazer.",perfil:"aguia"},{texto:"Pensar em quem mais será impactado e como ajudá-los.",perfil:"golfinho"},{texto:"Organizar um plano passo a passo antes de começar.",perfil:"lobo"},{texto:"Já começar a executar o quanto antes.",perfil:"tubarao"}]},
@@ -428,13 +531,29 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
     var auto=calcDiscScores(r.respostas&&r.respostas.auto);
     var hetero=calcDiscScores(r.respostas&&r.respostas.hetero);
     var pDom=PERFIS_DISC[auto.dominante];
+    var talento=calcDiscTalento(auto.pct);
+    var indic=calcDiscIndicadores(r.respostas);
+    var comps=calcDiscCompetencias(auto.pct).slice(0,8);
     var barras=['D','I','S','C'].map(function(k){return barraDim(k,auto.pct[k]||0,hetero.pct[k]||0);}).join('');
     var dicasHtml=(pDom.dicas||[]).map(function(d){return '<div style="margin-bottom:4px">✓ '+d+'</div>';}).join('');
+    var indicHtml=DISC_INDICADORES.filter(function(ind){return ind.id!=='aproveitamento';}).map(function(ind){
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="width:110px;font-size:10px;color:#666">'+ind.label+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pDom.cor+';width:'+indic[ind.id]+'%"></div></div><span style="width:28px;text-align:right;font-size:10px;font-weight:700;color:'+pDom.cor+'">'+indic[ind.id]+'%</span></div>';
+    }).join('');
+    var compsHtml=comps.map(function(c){
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="width:130px;font-size:10px;color:#666">'+c.label+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pDom.cor+'aa;width:'+c.valor+'%"></div></div><span style="width:28px;text-align:right;font-size:10px;font-weight:700;color:'+pDom.cor+'">'+c.valor+'%</span></div>';
+    }).join('');
     return '<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:14px;page-break-inside:avoid">'
       +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
       +'<div><div style="font-size:15px;font-weight:700;color:#2e2b28">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div></div>'
       +'<div style="background:'+pDom.cor+'22;border:1px solid '+pDom.cor+'55;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:'+pDom.cor+'">'+pDom.emoji+' '+pDom.nome+'</div>'
       +'</div>'+barras
+      +'<div style="background:'+pDom.cor+'0d;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:11px;line-height:1.6;color:#444">'
+      +'<b style="color:'+pDom.cor+'">🎯 Área de talento: '+talento.nome+'</b><br>'+talento.desc+'<br><span style="color:#888">Profissões: '+talento.profissoes+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:10px">'
+      +'<div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Índices situacionais</div>'+indicHtml+'</div>'
+      +'<div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Principais competências</div>'+compsHtml+'</div>'
+      +'</div>'
       +'<div style="background:#faf9f7;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:11px;line-height:1.6;color:#444">'
       +'<div style="margin-bottom:6px"><b style="color:'+pDom.cor+'">Motivação central:</b> '+pDom.motivacaoCentral+'</div>'
       +'<div style="margin-bottom:6px"><b style="color:'+pDom.cor+'">Pontos fortes:</b> '+pDom.pontosFortes+'</div>'
@@ -1418,20 +1537,62 @@ function DashboardDisc({respostas}){
     )
   );
 
-  const IndividualView=()=>React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:12}},
-    respostas.map(r=>{
-      const auto=calcDiscScores(r.respostas?.auto);
-      const pDom=PERFIS_DISC[auto.dominante];
-      return React.createElement("div",{key:r.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:10,padding:'12px 16px',display:'flex',alignItems:'center',gap:12}},
-        React.createElement("div",{style:{width:38,height:38,borderRadius:'50%',background:pDom.cor+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},pDom.emoji),
-        React.createElement("div",{style:{flex:1}},
-          React.createElement("div",{style:{fontSize:13,fontWeight:700,color:'#1a1d2e'}},r.nomeColaborador||'-'),
-          React.createElement("div",{style:{fontSize:11,color:'#9ca3af'}},r.cargo||'-')
-        ),
-        React.createElement("span",{style:{background:pDom.cor+'22',color:pDom.cor,borderRadius:20,padding:'3px 12px',fontSize:12,fontWeight:700}},pDom.nome)
-      );
-    })
-  );
+  const IndividualView=()=>{
+    const [expandido,setExpandido]=useState(null);
+    return React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:12}},
+      respostas.map(r=>{
+        const auto=calcDiscScores(r.respostas?.auto);
+        const pDom=PERFIS_DISC[auto.dominante];
+        const aberto=expandido===r.id;
+        const indic=aberto?calcDiscIndicadores(r.respostas):null;
+        const comps=aberto?calcDiscCompetencias(auto.pct).slice(0,6):null;
+        const talento=aberto?calcDiscTalento(auto.pct):null;
+        return React.createElement("div",{key:r.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:10,overflow:'hidden'}},
+          React.createElement("div",{onClick:()=>setExpandido(aberto?null:r.id),style:{padding:'12px 16px',display:'flex',alignItems:'center',gap:12,cursor:'pointer'}},
+            React.createElement("div",{style:{width:38,height:38,borderRadius:'50%',background:pDom.cor+'22',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18}},pDom.emoji),
+            React.createElement("div",{style:{flex:1}},
+              React.createElement("div",{style:{fontSize:13,fontWeight:700,color:'#1a1d2e'}},r.nomeColaborador||'-'),
+              React.createElement("div",{style:{fontSize:11,color:'#9ca3af'}},r.cargo||'-')
+            ),
+            React.createElement("span",{style:{background:pDom.cor+'22',color:pDom.cor,borderRadius:20,padding:'3px 12px',fontSize:12,fontWeight:700}},pDom.nome),
+            React.createElement("span",{style:{color:'#9ca3af',fontSize:12}},aberto?'▲':'▼')
+          ),
+          aberto&&React.createElement("div",{style:{padding:'0 16px 18px',borderTop:'1px solid #f0f2f5'}},
+            // Área de talento
+            React.createElement("div",{style:{background:pDom.cor+'0d',borderRadius:8,padding:'12px 14px',margin:'14px 0'}},
+              React.createElement("div",{style:{fontSize:11,fontWeight:700,color:pDom.cor,textTransform:'uppercase',letterSpacing:.5,marginBottom:4}},"🎯 Área de talento · ",talento.nome),
+              React.createElement("div",{style:{fontSize:12,color:'#374151',lineHeight:1.5,marginBottom:6}},talento.desc),
+              React.createElement("div",{style:{fontSize:11,color:'#9ca3af'}},React.createElement("b",null,"Profissões: "),talento.profissoes)
+            ),
+            // Índices situacionais
+            React.createElement("div",{style:{marginBottom:16}},
+              React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"Índices situacionais"),
+              React.createElement("div",{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}},
+                DISC_INDICADORES.filter(ind=>ind.id!=='aproveitamento').map(ind=>React.createElement("div",{key:ind.id,title:ind.desc},
+                  React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:11,marginBottom:3}},
+                    React.createElement("span",{style:{color:'#6b7280'}},ind.label),
+                    React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},indic[ind.id],'%')
+                  ),
+                  React.createElement("div",{style:{background:'#f0f2f5',borderRadius:3,height:5,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor,width:`${indic[ind.id]}%`}}))
+                ))
+              )
+            ),
+            // Top competências
+            React.createElement("div",null,
+              React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"Principais competências"),
+              comps.map(c=>React.createElement("div",{key:c.id,style:{marginBottom:8}},
+                React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},
+                  React.createElement("span",{style:{color:'#374151',fontWeight:600}},c.label),
+                  React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},c.valor,'%')
+                ),
+                React.createElement("div",{style:{background:'#f0f2f5',borderRadius:3,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor+'aa',width:`${c.valor}%`}}))
+              ))
+            )
+          )
+        );
+      })
+    );
+  };
 
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',border:'1px solid #e2e5ec',borderRadius:8,overflow:'hidden',marginBottom:18,width:'fit-content'}},
@@ -2221,6 +2382,44 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
               );
             })
           ),
+          // Área de talento
+          (()=>{
+            const talento=calcDiscTalento(auto.pct);
+            return React.createElement("div",{style:{background:pDom.cor+'12',border:`1px solid ${pDom.cor}33`,borderRadius:14,padding:20,marginBottom:14}},
+              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pDom.cor,textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"🎯 Área de talento · ",talento.nome),
+              React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:'0 0 10px'}},talento.desc),
+              React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},React.createElement("b",null,"Profissões relacionadas: "),talento.profissoes)
+            );
+          })(),
+          // Índices situacionais
+          (()=>{
+            const indic=calcDiscIndicadores(resposta.respostas);
+            return React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
+              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Índices situacionais"),
+              DISC_INDICADORES.filter(ind=>ind.id!=='aproveitamento').map(ind=>React.createElement("div",{key:ind.id,style:{marginBottom:12}},
+                React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},
+                  React.createElement("span",{style:{color:'#374151',fontWeight:600}},ind.label),
+                  React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},indic[ind.id],'%')
+                ),
+                React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor,width:`${indic[ind.id]}%`}})),
+                React.createElement("div",{style:{fontSize:11,color:'#9ca3af',marginTop:3}},ind.desc)
+              ))
+            );
+          })(),
+          // Principais competências
+          (()=>{
+            const comps=calcDiscCompetencias(auto.pct).slice(0,8);
+            return React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
+              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Principais competências"),
+              comps.map(c=>React.createElement("div",{key:c.id,style:{marginBottom:10}},
+                React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:4}},
+                  React.createElement("span",{style:{color:'#374151',fontWeight:600}},c.label),
+                  React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},c.valor,'%')
+                ),
+                React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:7,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor+'aa',width:`${c.valor}%`}}))
+              ))
+            );
+          })(),
           // Pontos fortes e características
           React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
             React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pDom.cor,textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"✨ Pontos fortes"),
