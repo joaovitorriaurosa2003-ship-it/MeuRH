@@ -14,7 +14,7 @@
 <style>
   :root {
     --bg: #f4f3f1; --surface: #ffffff; --ink: #1f1d1a; --ink-soft: #6b675f;
-    --line: #e3e0da; --accent: #2e2b28; --gold: #b8976a; --gold-soft: #f3ead9;
+    --line: #e3e0da; --accent: #2e2b28; --gold: #c9a24a; --gold-soft: #f3ead9;
     --success: #4a7c59; --danger: #b3543e; --radius: 10px;
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
   }
@@ -128,7 +128,7 @@ const COPSOQ_SUBESCALAS = [
   {id:'autonomia',   label:'Influência e Autonomia',     itens:[7,8,9],         cor:'#5A9B72', inverter:false},
   {id:'previsib',    label:'Previsibilidade',            itens:[10,11],         cor:'#4a8c65', inverter:false},
   {id:'clareza',     label:'Clareza de Papel',           itens:[12],            cor:'#6aab80', inverter:false},
-  {id:'reconhec',    label:'Reconhecimento',             itens:[13,14],         cor:'#b8976a', inverter:false},
+  {id:'reconhec',    label:'Reconhecimento',             itens:[13,14],         cor:'#c9a24a', inverter:false},
   {id:'lideranca',   label:'Qualidade da Liderança',     itens:[15,17,18,19,20],cor:'#7B5FC4', inverter:false},
   {id:'apoio',       label:'Apoio Social',               itens:[16],            cor:'#2E9CCA', inverter:false},
   {id:'justica',     label:'Justiça e Respeito',         itens:[21,22],         cor:'#3498db', inverter:false},
@@ -440,7 +440,7 @@ function calcularPerfil(escolhas) {
 }
 
 /* ============== GERAÇÃO DE PDF ============== */
-function radarSVG(pct,size){size=size||190;var cx=size/2,cy=size/2,r=size*0.36;var perfisOrdem=['aguia','golfinho','lobo','tubarao'];var labels=['Águia','Golfinho','Lobo','Tubarão'];var emojis=['🦅','🐬','🐺','🦈'];var cores=['#7B5FC4','#2E9CCA','#5A9B72','#E05C4A'];var n=4;var angBase=-Math.PI/2;var pts=perfisOrdem.map(function(k,i){var ang=angBase+2*Math.PI*i/n;var val=(pct[k]||0)/100;return{x:cx+r*val*Math.cos(ang),y:cy+r*val*Math.sin(ang),ang:ang};});var grades=[0.25,0.5,0.75,1].map(function(frac){var gpts=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;return(cx+r*frac*Math.cos(ang)).toFixed(1)+','+(cy+r*frac*Math.sin(ang)).toFixed(1);}).join(' ');return'<polygon points="'+gpts+'" fill="none" stroke="#ddd" stroke-width="0.5"/>';}).join('');var eixos=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;return'<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+(cx+r*Math.cos(ang)).toFixed(1)+'" y2="'+(cy+r*Math.sin(ang)).toFixed(1)+'" stroke="#ccc" stroke-width="0.8"/>';}).join('');var area='<polygon points="'+pts.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ')+'" fill="#b8976a33" stroke="#b8976a" stroke-width="2"/>';var pontos=pts.map(function(p,i){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="'+cores[i]+'"/>';}).join('');var labelOff=26;var labelsHTML=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;var lx=cx+(r+labelOff)*Math.cos(ang);var ly=cy+(r+labelOff)*Math.sin(ang);var anchor=Math.cos(ang)>0.1?'start':Math.cos(ang)<-0.1?'end':'middle';return'<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" dominant-baseline="middle" font-size="9" fill="#555" font-family="Arial">'+emojis[i]+' '+labels[i]+'</text>';}).join('');var pctLabels=pts.map(function(p,i){var k=perfisOrdem[i];var v=pct[k]||0;if(!v)return'';var ang=angBase+2*Math.PI*i/n;var ox=10*Math.cos(ang),oy=10*Math.sin(ang);return'<text x="'+(p.x+ox).toFixed(1)+'" y="'+(p.y+oy).toFixed(1)+'" text-anchor="middle" font-size="8" fill="'+cores[i]+'" font-weight="bold" font-family="Arial">'+v+'%</text>';}).join('');return'<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+grades+eixos+area+pontos+labelsHTML+pctLabels+'</svg>';}
+function radarSVG(pct,size){size=size||190;var cx=size/2,cy=size/2,r=size*0.36;var perfisOrdem=['aguia','golfinho','lobo','tubarao'];var labels=['Águia','Golfinho','Lobo','Tubarão'];var emojis=['🦅','🐬','🐺','🦈'];var cores=['#7B5FC4','#2E9CCA','#5A9B72','#E05C4A'];var n=4;var angBase=-Math.PI/2;var pts=perfisOrdem.map(function(k,i){var ang=angBase+2*Math.PI*i/n;var val=(pct[k]||0)/100;return{x:cx+r*val*Math.cos(ang),y:cy+r*val*Math.sin(ang),ang:ang};});var grades=[0.25,0.5,0.75,1].map(function(frac){var gpts=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;return(cx+r*frac*Math.cos(ang)).toFixed(1)+','+(cy+r*frac*Math.sin(ang)).toFixed(1);}).join(' ');return'<polygon points="'+gpts+'" fill="none" stroke="#ddd" stroke-width="0.5"/>';}).join('');var eixos=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;return'<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+(cx+r*Math.cos(ang)).toFixed(1)+'" y2="'+(cy+r*Math.sin(ang)).toFixed(1)+'" stroke="#ccc" stroke-width="0.8"/>';}).join('');var area='<polygon points="'+pts.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ')+'" fill="#c9a24a33" stroke="#c9a24a" stroke-width="2"/>';var pontos=pts.map(function(p,i){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="4" fill="'+cores[i]+'"/>';}).join('');var labelOff=26;var labelsHTML=perfisOrdem.map(function(_,i){var ang=angBase+2*Math.PI*i/n;var lx=cx+(r+labelOff)*Math.cos(ang);var ly=cy+(r+labelOff)*Math.sin(ang);var anchor=Math.cos(ang)>0.1?'start':Math.cos(ang)<-0.1?'end':'middle';return'<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" dominant-baseline="middle" font-size="9" fill="#555" font-family="Arial">'+emojis[i]+' '+labels[i]+'</text>';}).join('');var pctLabels=pts.map(function(p,i){var k=perfisOrdem[i];var v=pct[k]||0;if(!v)return'';var ang=angBase+2*Math.PI*i/n;var ox=10*Math.cos(ang),oy=10*Math.sin(ang);return'<text x="'+(p.x+ox).toFixed(1)+'" y="'+(p.y+oy).toFixed(1)+'" text-anchor="middle" font-size="8" fill="'+cores[i]+'" font-weight="bold" font-family="Arial">'+v+'%</text>';}).join('');return'<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'+grades+eixos+area+pontos+labelsHTML+pctLabels+'</svg>';}
 function interpretacaoCombinada(pct,dominante){var ranking=Object.entries(pct).sort(function(a,b){return b[1]-a[1];});var segundo=ranking[1];var dom=PERFIS_COMPORTAMENTAIS[dominante];var seg=PERFIS_COMPORTAMENTAIS[segundo[0]];var combos={'aguia_golfinho':'Combinação de visão criativa com sensibilidade às pessoas.','aguia_lobo':'Criatividade com organização. Capaz de gerar ideias e estruturá-las em planos concretos.','aguia_tubarao':'Alta energia inovadora aliada ao senso de urgência. Perfil empreendedor.','golfinho_aguia':'Empatia com criatividade. Cria conexões significativas e resolve problemas com originalidade.','golfinho_lobo':'Sensibilidade equilibrada com método. Colaborativo e organizado.','golfinho_tubarao':'Orientação a pessoas com foco em resultados.','lobo_aguia':'Método com abertura para inovar.','lobo_golfinho':'Organização com foco em pessoas.','lobo_tubarao':'Planejamento com execução acelerada.','tubarao_aguia':'Resultado com inovação. Age rápido e pensa fora da caixa.','tubarao_golfinho':'Foco em resultado equilibrado com cuidado com o time.','tubarao_lobo':'Resultado com precisão. Executa com velocidade sem abrir mão da qualidade.'};var chave=dominante+'_'+segundo[0];return combos[chave]||'Perfil predominante '+dom.nome+' com influência de '+seg.nome+'.';}
 
 function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
@@ -456,7 +456,7 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
     {label:'Exigências',  cor:'#E05C4A', ids:['exig_quant','exig_cogn','exig_emoc']},
     {label:'Organização do Trabalho', cor:'#5A9B72', ids:['autonomia','previsib','clareza']},
     {label:'Relações',    cor:'#7B5FC4', ids:['reconhec','lideranca','apoio','justica']},
-    {label:'Valores',     cor:'#b8976a', ids:['autoefic','significado','comprometim','satisfacao','inseguranca']},
+    {label:'Valores',     cor:'#c9a24a', ids:['autoefic','significado','comprometim','satisfacao','inseguranca']},
     {label:'Saúde e Bem-estar', cor:'#2980b9', ids:['saude','conf_familia','sono','burnout','estresse']},
     {label:'Violência',   cor:'#922b21', ids:['violencia']},
   ];
@@ -493,7 +493,7 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
       return '<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'">'
         +'<td style="padding:5px 8px;font-size:10px;color:#888;text-align:right;border-bottom:1px solid #e3e0da">'+q.n+'</td>'
         +'<td style="padding:5px 8px;font-size:11px;color:#2e2b28;border-bottom:1px solid #e3e0da">'+q.texto+'</td>'
-        +'<td style="padding:5px 8px;font-size:11px;font-weight:700;color:#b8976a;border-bottom:1px solid #e3e0da;white-space:nowrap">'+label+'</td>'
+        +'<td style="padding:5px 8px;font-size:11px;font-weight:700;color:#c9a24a;border-bottom:1px solid #e3e0da;white-space:nowrap">'+label+'</td>'
         +'</tr>';
     }).join('');
     return '<div style="border:1px solid #e3e0da;border-radius:8px;padding:12px;margin-bottom:16px;page-break-inside:avoid">'
@@ -505,13 +505,13 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
 
   var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>COPSOQ II · '+tarefa.titulo+'</title>'
     +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}'
-    +'.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}'
+    +'.header{border-bottom:3px solid #c9a24a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}'
     +'.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}'
     +'@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body>'
     +'<div class="header"><div>'
     +'<div style="font-size:20px;font-weight:700;color:#2e2b28">COPSOQ II · '+tarefa.titulo+'</div>'
     +'<div style="font-size:12px;color:#888;margin-top:4px">Riscos Psicossociais · '+empresaNome+' · Gerado em '+dataHoje+'</div>'
-    +'</div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
+    +'</div><div style="font-size:12px;color:#c9a24a;font-weight:600;text-align:right">KALUF & GOMES<br>João Rosa · CRP 06/227336</div></div>'
     +'<div style="display:flex;gap:16px;margin-bottom:24px">'
     +'<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px"><div style="font-size:11px;color:#888;text-transform:uppercase">Respondentes</div><div style="font-size:24px;font-weight:700">'+respostas.length+'</div></div>'
     +'<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px"><div style="font-size:11px;color:#888;text-transform:uppercase">Instrumento</div><div style="font-size:14px;font-weight:700">COPSOQ II Versão Curta</div></div>'
@@ -521,7 +521,7 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
     +catSections
     +'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Respostas individuais</h2>'
     +individuais
-    +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
+    +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Kaluf & Gomes</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
     +'</body></html>';
 
   var w=window.open('','_blank');
@@ -741,11 +741,11 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
     +'<style>'
     +'*{box-sizing:border-box;margin:0;padding:0}'
     +'body{font-family:"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;font-size:13px;color:#2b2924;padding:36px 42px;line-height:1.5;background:#fff}'
-    +'.header{border-bottom:2px solid #b8976a;padding-bottom:16px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}'
+    +'.header{border-bottom:2px solid #c9a24a;padding-bottom:16px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}'
     +'.header .titulo{font-size:21px;font-weight:800;color:#20201c;letter-spacing:-.2px}'
     +'.header .subtitulo{font-size:12px;color:#8a8478;margin-top:5px}'
-    +'.header .marca{font-size:11.5px;color:#b8976a;font-weight:700;text-align:right;line-height:1.5;letter-spacing:.2px}'
-    +'.secao-titulo{font-size:13px;font-weight:800;color:#20201c;text-transform:uppercase;letter-spacing:.6px;margin:28px 0 14px;padding-left:10px;border-left:3px solid #b8976a}'
+    +'.header .marca{font-size:11.5px;color:#c9a24a;font-weight:700;text-align:right;line-height:1.5;letter-spacing:.2px}'
+    +'.secao-titulo{font-size:13px;font-weight:800;color:#20201c;text-transform:uppercase;letter-spacing:.6px;margin:28px 0 14px;padding-left:10px;border-left:3px solid #c9a24a}'
     +'.secao-titulo .contagem{font-weight:500;color:#a39c8e;text-transform:none;letter-spacing:0;font-size:12px}'
     +'.card-pessoa{border:1px solid #e8e2d6;border-radius:12px;padding:18px 20px;margin-bottom:18px;page-break-inside:avoid;background:#fff}'
     +'.faixa{border-radius:8px;padding:11px 14px;font-size:11.5px;line-height:1.65;color:#4a463e}'
@@ -756,12 +756,12 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
     +'<div class="header"><div>'
     +'<div class="titulo">Perfil Comportamental DISC · '+tarefa.titulo+'</div>'
     +'<div class="subtitulo">Autopercepção × Heteropercepção &nbsp;·&nbsp; '+empresaNome+' &nbsp;·&nbsp; Gerado em '+dataHoje+'</div>'
-    +'</div><div class="marca">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
+    +'</div><div class="marca">KALUF & GOMES<br>João Rosa · CRP 06/227336</div></div>'
     +'<div class="secao-titulo">Médias do grupo <span class="contagem">('+respostas.length+' respondente(s))</span></div>'
     +mediasGrupo
     +'<div class="secao-titulo">Resultado individual</div>'
     +individuais
-    +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
+    +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Kaluf & Gomes</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
     +'</body></html>';
 
   var w=window.open('','_blank');
@@ -775,9 +775,9 @@ function gerarPDFTarefa(tarefa,respostas,empresaNome){
   if(tarefa.formato==='disc') { gerarPDFDisc(tarefa,respostas,empresaNome); return; }
   var dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   var conteudo='';
-  if(tarefa.formato==='perfil_comportamental'){var total=respostas.length;var contagem={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(function(r){if(r.perfilDominante&&contagem[r.perfilDominante]!==undefined)contagem[r.perfilDominante]++;});var entradas=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return Object.assign({key:k},p,{qtd:contagem[k],pct:total?Math.round(contagem[k]/total*100):0});}).sort(function(a,b){return b.qtd-a.qtd;});var dom=entradas[0];var distGrupo=entradas.map(function(p){return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:16px;width:22px">'+p.emoji+'</span><span style="width:76px;font-size:12px;font-weight:600">'+p.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+p.pct+'%;border-radius:4px"></div></div><span style="width:70px;text-align:right;font-size:12px;color:#666">'+p.pct+'% ('+p.qtd+')</span></div>';}).join('');var explicacoes=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return'<div style="border-left:4px solid '+p.cor+';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6"><div style="font-weight:700;color:'+p.cor+';margin-bottom:4px;font-size:13px">'+p.emoji+' '+p.nome+' · '+p.palavraChave+'</div><p style="margin:0 0 6px">'+p.descricao+'</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><b>Pontos fortes:</b> '+p.pontosFortes+'</div><div><b>Pontos de melhoria:</b> '+p.pontosMelhoria+'</div><div><b>O que motiva:</b> '+p.motivacao+'</div><div><b>Comunicação:</b> '+p.comunicacao+'</div><div style="grid-column:1/-1"><b>Profissões comuns:</b> '+p.profissoes+'</div></div></div>';}).join('');var individuais=respostas.map(function(r){var p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};var pts=r.pontosPorPerfil||{};var t=Object.values(pts).reduce(function(a,b){return a+b;},0)||10;var pct={};['aguia','golfinho','lobo','tubarao'].forEach(function(k){pct[k]=Math.round((pts[k]||0)/t*100);});var interp=r.perfilDominante?interpretacaoCombinada(pct,r.perfilDominante):'';var barras=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,pp]){return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px"><span style="width:16px">'+pp.emoji+'</span><span style="width:58px;color:#666">'+pp.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pp.cor+';width:'+(pct[k]||0)+'%"></div></div><span style="width:28px;text-align:right;font-weight:700;color:'+pp.cor+'">'+(pct[k]||0)+'%</span></div>';}).join('');return'<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid"><div style="display:flex;gap:16px;align-items:flex-start"><div style="text-align:center;min-width:192px">'+radarSVG(pct,192)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:10px">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div><div style="display:inline-block;background:'+p.cor+'22;border:1px solid '+p.cor+'55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:'+(p.cor||'#888')+';margin-bottom:10px">'+(p.emoji||'')+' '+(p.nome||'-')+' (perfil dominante)</div><div style="margin-bottom:10px">'+barras+'</div><div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #b8976a"><b style="color:#b8976a">Interpretação:</b> '+interp+'</div></div></div></div>';}).join('');conteudo='<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">'+dom.emoji+'</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div><div style="font-size:18px;font-weight:700;color:'+dom.cor+'">'+dom.nome+' · '+dom.pct+'% dos respondentes</div></div></div><h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>'+distGrupo+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>'+explicacoes+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>'+individuais;}else{var perguntas=tarefa.perguntas||[];conteudo=perguntas.map(function(perg,idx){var pergTexto=typeof perg==='string'?perg:perg&&perg.pergunta?perg.pergunta:'';var valores=respostas.map(function(r){return r.respostas&&r.respostas[idx];}).filter(function(v){return typeof v==='number';});var media=valores.length?(valores.reduce(function(a,b){return a+b;},0)/valores.length).toFixed(2):'-';var dist=[1,2,3,4,5].map(function(n){return valores.filter(function(v){return v===n;}).length;});return'<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">'+(idx+1)+'. '+pergTexto+'</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">'+media+' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>'+dist.map(function(qtd,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">'+(i+1)+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:'+(valores.length?Math.round(qtd/valores.length*100):0)+'%"></div></div><span style="width:20px;text-align:right;color:#666">'+qtd+'</span></div>';}).join('')+'</div>';}).join('')+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">'+['Nome','Cargo','Sexo'].concat(perguntas.map(function(_,i){return'Q'+(i+1);})).map(function(h){return'<th style="padding:8px 10px;text-align:left">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+respostas.map(function(r,i){return'<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.nomeColaborador||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.cargo||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.sexo||'-')+'</td>'+perguntas.map(function(_,idx){return'<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">'+(r.respostas&&r.respostas[idx]!=null?r.respostas[idx]:'-')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
+  if(tarefa.formato==='perfil_comportamental'){var total=respostas.length;var contagem={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(function(r){if(r.perfilDominante&&contagem[r.perfilDominante]!==undefined)contagem[r.perfilDominante]++;});var entradas=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return Object.assign({key:k},p,{qtd:contagem[k],pct:total?Math.round(contagem[k]/total*100):0});}).sort(function(a,b){return b.qtd-a.qtd;});var dom=entradas[0];var distGrupo=entradas.map(function(p){return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:16px;width:22px">'+p.emoji+'</span><span style="width:76px;font-size:12px;font-weight:600">'+p.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+p.pct+'%;border-radius:4px"></div></div><span style="width:70px;text-align:right;font-size:12px;color:#666">'+p.pct+'% ('+p.qtd+')</span></div>';}).join('');var explicacoes=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return'<div style="border-left:4px solid '+p.cor+';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6"><div style="font-weight:700;color:'+p.cor+';margin-bottom:4px;font-size:13px">'+p.emoji+' '+p.nome+' · '+p.palavraChave+'</div><p style="margin:0 0 6px">'+p.descricao+'</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><b>Pontos fortes:</b> '+p.pontosFortes+'</div><div><b>Pontos de melhoria:</b> '+p.pontosMelhoria+'</div><div><b>O que motiva:</b> '+p.motivacao+'</div><div><b>Comunicação:</b> '+p.comunicacao+'</div><div style="grid-column:1/-1"><b>Profissões comuns:</b> '+p.profissoes+'</div></div></div>';}).join('');var individuais=respostas.map(function(r){var p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};var pts=r.pontosPorPerfil||{};var t=Object.values(pts).reduce(function(a,b){return a+b;},0)||10;var pct={};['aguia','golfinho','lobo','tubarao'].forEach(function(k){pct[k]=Math.round((pts[k]||0)/t*100);});var interp=r.perfilDominante?interpretacaoCombinada(pct,r.perfilDominante):'';var barras=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,pp]){return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px"><span style="width:16px">'+pp.emoji+'</span><span style="width:58px;color:#666">'+pp.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pp.cor+';width:'+(pct[k]||0)+'%"></div></div><span style="width:28px;text-align:right;font-weight:700;color:'+pp.cor+'">'+(pct[k]||0)+'%</span></div>';}).join('');return'<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid"><div style="display:flex;gap:16px;align-items:flex-start"><div style="text-align:center;min-width:192px">'+radarSVG(pct,192)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:10px">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div><div style="display:inline-block;background:'+p.cor+'22;border:1px solid '+p.cor+'55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:'+(p.cor||'#888')+';margin-bottom:10px">'+(p.emoji||'')+' '+(p.nome||'-')+' (perfil dominante)</div><div style="margin-bottom:10px">'+barras+'</div><div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #c9a24a"><b style="color:#c9a24a">Interpretação:</b> '+interp+'</div></div></div></div>';}).join('');conteudo='<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">'+dom.emoji+'</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div><div style="font-size:18px;font-weight:700;color:'+dom.cor+'">'+dom.nome+' · '+dom.pct+'% dos respondentes</div></div></div><h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>'+distGrupo+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>'+explicacoes+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>'+individuais;}else{var perguntas=tarefa.perguntas||[];conteudo=perguntas.map(function(perg,idx){var pergTexto=typeof perg==='string'?perg:perg&&perg.pergunta?perg.pergunta:'';var valores=respostas.map(function(r){return r.respostas&&r.respostas[idx];}).filter(function(v){return typeof v==='number';});var media=valores.length?(valores.reduce(function(a,b){return a+b;},0)/valores.length).toFixed(2):'-';var dist=[1,2,3,4,5].map(function(n){return valores.filter(function(v){return v===n;}).length;});return'<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">'+(idx+1)+'. '+pergTexto+'</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">'+media+' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>'+dist.map(function(qtd,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">'+(i+1)+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#c9a24a;width:'+(valores.length?Math.round(qtd/valores.length*100):0)+'%"></div></div><span style="width:20px;text-align:right;color:#666">'+qtd+'</span></div>';}).join('')+'</div>';}).join('')+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">'+['Nome','Cargo','Sexo'].concat(perguntas.map(function(_,i){return'Q'+(i+1);})).map(function(h){return'<th style="padding:8px 10px;text-align:left">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+respostas.map(function(r,i){return'<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.nomeColaborador||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.cargo||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.sexo||'-')+'</td>'+perguntas.map(function(_,idx){return'<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">'+(r.respostas&&r.respostas[idx]!=null?r.respostas[idx]:'-')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
   var kpis=[['Total de respondentes',respostas.length],['Empresa',empresaNome],['Tipo',tarefa.tipo]].map(function([l,v]){return'<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">'+l+'</div><div style="font-size:'+(typeof v==='number'?'24':'16')+'px;font-weight:700;color:#2e2b28">'+v+'</div></div>';}).join('');
-  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+tarefa.titulo+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body><div class="header"><div><div style="font-size:20px;font-weight:700;color:#2e2b28">'+tarefa.titulo+'</div><div style="font-size:12px;color:#888;margin-top:4px">'+tarefa.tipo+' · '+empresaNome+' · Gerado em '+dataHoje+'</div></div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div><div style="display:flex;gap:16px;margin-bottom:24px">'+kpis+'</div>'+conteudo+'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div></body></html>';
+  var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+tarefa.titulo+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}.header{border-bottom:3px solid #c9a24a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body><div class="header"><div><div style="font-size:20px;font-weight:700;color:#2e2b28">'+tarefa.titulo+'</div><div style="font-size:12px;color:#888;margin-top:4px">'+tarefa.tipo+' · '+empresaNome+' · Gerado em '+dataHoje+'</div></div><div style="font-size:12px;color:#c9a24a;font-weight:600;text-align:right">KALUF & GOMES<br>João Rosa · CRP 06/227336</div></div><div style="display:flex;gap:16px;margin-bottom:24px">'+kpis+'</div>'+conteudo+'<div class="footer"><span>Plataforma de Avaliação Organizacional · Kaluf & Gomes</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div></body></html>';
   var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);
 }
 
@@ -790,8 +790,8 @@ function LoginScreen() {
   return React.createElement("div",{style:{minHeight:'100vh',background:'#ebeef3',display:'flex',alignItems:'center',justifyContent:'center',padding:20}},
     React.createElement("div",{style:{background:'#ffffff',border:'1px solid #dde0e8',borderRadius:24,padding:'44px 40px',width:'100%',maxWidth:420,boxShadow:'0 20px 60px rgba(0,0,0,0.12)'}},
       React.createElement("div",{style:{textAlign:'center',marginBottom:36}},
-        React.createElement("div",{style:{display:'inline-flex',alignItems:'center',justifyContent:'center',width:64,height:64,borderRadius:18,background:'linear-gradient(135deg,#b8976a18,#b8976a08)',border:'1px solid #b8976a33',marginBottom:20,fontSize:28}},"🧠"),
-        React.createElement("div",{style:{fontSize:11,color:'#b8976a',fontWeight:800,letterSpacing:3,marginBottom:10,textTransform:'uppercase'}},"Instituto Propagare"),
+        React.createElement("div",{style:{display:'inline-flex',alignItems:'center',justifyContent:'center',width:64,height:64,borderRadius:18,background:'linear-gradient(135deg,#c9a24a18,#c9a24a08)',border:'1px solid #c9a24a33',marginBottom:20,fontSize:28}},"🧠"),
+        React.createElement("div",{style:{fontSize:11,color:'#c9a24a',fontWeight:800,letterSpacing:3,marginBottom:10,textTransform:'uppercase'}},"Kaluf & Gomes"),
         React.createElement("h2",{style:{color:'#1a1d2e',fontSize:26,margin:'0 0 6px',fontWeight:800}},"Painel Administrativo"),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,margin:0}},"Acesso restrito · Psicologia Organizacional")
       ),
@@ -805,7 +805,7 @@ function LoginScreen() {
           React.createElement("input",{value:senha,onChange:e=>setSenha(e.target.value),type:"password",required:true,style:{width:'100%',background:'#f8f9fb',border:'1px solid #dde0e8',borderRadius:12,padding:'13px 16px',color:'#1a1d2e',fontSize:14,outline:'none',boxSizing:'border-box'}})
         ),
         erro&&React.createElement("div",{style:{background:'#E05C4A18',border:'1px solid #E05C4A44',borderRadius:10,padding:'10px 14px',marginBottom:20,color:'#E05C4A',fontSize:13,textAlign:'center'}},erro),
-        React.createElement("button",{type:"submit",disabled:loading,style:{width:'100%',background:'linear-gradient(135deg,#c9a87a,#b8976a,#a07848)',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:loading?'not-allowed':'pointer'}},loading?'...':'Entrar →')
+        React.createElement("button",{type:"submit",disabled:loading,style:{width:'100%',background:'linear-gradient(135deg,#dab567,#c9a24a,#0c1e38)',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:loading?'not-allowed':'pointer'}},loading?'...':'Entrar →')
       )
     )
   );
@@ -826,7 +826,7 @@ function PainelAdmin({user}){
   const abas=[
     {id:'dashboard',label:'Dashboard',icon:'📊',cor:'#7B5FC4',desc:'Visão geral'},
     {id:'empresas',label:'Empresas',icon:'🏢',cor:'#2E9CCA',desc:'Gerenciar clientes'},
-    {id:'tarefas',label:'Tarefas',icon:'📋',cor:'#b8976a',desc:'Avaliações'},
+    {id:'tarefas',label:'Tarefas',icon:'📋',cor:'#c9a24a',desc:'Avaliações'},
     {id:'resultados',label:'Resultados',icon:'📈',cor:'#5A9B72',desc:'Respostas e análises'},
     {id:'indicadores',label:'Indicadores',icon:'🎯',cor:'#E05C4A',desc:'RH e painéis'},
     {id:'apresentacoes',label:'Apresentações',icon:'🎤',cor:'#e879a0',desc:'Dinâmicas ao vivo'},
@@ -837,8 +837,8 @@ function PainelAdmin({user}){
     // SIDEBAR
     React.createElement("div",{style:{width:sw,minHeight:'100vh',background:'#ffffff',borderRight:'1px solid #e8eaf0',display:'flex',flexDirection:'column',boxShadow:'2px 0 20px rgba(0,0,0,0.1)',transition:'width .25s ease',position:'sticky',top:0,height:'100vh',flexShrink:0,zIndex:50,overflow:'hidden'}},
       React.createElement("div",{style:{padding:recolhido?'20px 0':'20px 20px',display:'flex',alignItems:'center',gap:12,borderBottom:'1px solid #e2e8f0',minHeight:72,justifyContent:recolhido?'center':'flex-start'}},
-        React.createElement("div",{style:{width:38,height:38,borderRadius:12,background:'linear-gradient(135deg,#c9a87a,#8a6d48)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}},"🧠"),
-        !recolhido&&React.createElement("div",null,React.createElement("div",{style:{fontSize:13,fontWeight:800,color:'#b8976a',letterSpacing:1.5}},"PROPAGARE"),React.createElement("div",{style:{fontSize:10,color:'#c0c4ce'}},"Avaliação Org."))
+        React.createElement("div",{style:{width:38,height:38,borderRadius:12,background:'linear-gradient(135deg,#d4af6a,#0c1e38)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:18,flexShrink:0}},"🧠"),
+        !recolhido&&React.createElement("div",null,React.createElement("div",{style:{fontSize:12,fontWeight:800,color:'#c9a24a',letterSpacing:.8}},"KALUF & GOMES"),React.createElement("div",{style:{fontSize:10,color:'#c0c4ce'}},"Avaliação Org."))
       ),
       React.createElement("button",{onClick:()=>setRecolhido(r=>!r),style:{position:'absolute',top:24,right:-14,width:28,height:28,background:'#ffffff',border:'1px solid #e8eaf0',borderRadius:'50%',cursor:'pointer',fontSize:12,display:'flex',alignItems:'center',justifyContent:'center',boxShadow:'0 2px 8px rgba(0,0,0,0.1)',color:'#9ca3af',zIndex:10}},recolhido?'›':'‹'),
       React.createElement("nav",{style:{flex:1,padding:'16px 0',overflowY:'auto'}},
@@ -893,7 +893,7 @@ function AbaDashboard({empresas,tarefas,respostas,setAba}){
   const kpis=[
     {label:'Respostas recebidas',value:totalRespostas,icon:'📝',cor:'#7B5FC4'},
     {label:'Empresas cadastradas',value:totalEmpresas,icon:'🏢',cor:'#2E9CCA'},
-    {label:'Tarefas ativas',value:tarefasPendentes,icon:'📋',cor:'#b8976a'},
+    {label:'Tarefas ativas',value:tarefasPendentes,icon:'📋',cor:'#c9a24a'},
     {label:'Tarefas totais',value:totalTarefas,icon:'✅',cor:'#5A9B72'},
   ];
   return React.createElement("div",null,
@@ -911,17 +911,17 @@ function AbaDashboard({empresas,tarefas,respostas,setAba}){
     ),
     React.createElement("div",{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:20}},
       React.createElement("div",{style:{background:'#ffffff',border:'1px solid #d1d5e0',borderRadius:18,padding:'22px 24px',boxShadow:'0 4px 20px rgba(0,0,0,0.12)'}},
-        React.createElement("h3",{style:{margin:'0 0 18px',fontSize:13,color:'#b8976a',textTransform:'uppercase',letterSpacing:1,fontWeight:700}},"Respostas por empresa"),
+        React.createElement("h3",{style:{margin:'0 0 18px',fontSize:13,color:'#c9a24a',textTransform:'uppercase',letterSpacing:1,fontWeight:700}},"Respostas por empresa"),
         adesaoPorEmpresa.length===0?React.createElement("p",{style:{color:'#9ca3af',fontSize:13}},"Nenhuma resposta ainda."):
         adesaoPorEmpresa.map((e,i)=>React.createElement("div",{key:i,style:{marginBottom:14}},
-          React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:6}},React.createElement("span",null,e.nome),React.createElement("span",{style:{color:'#b8976a',fontWeight:800}},e.qtd)),
-          React.createElement("div",{style:{background:'#ebeef3',borderRadius:6,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'linear-gradient(90deg,#b8976a,#d4b080)',width:`${e.qtd/maxQtd*100}%`,borderRadius:6}}))
+          React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:6}},React.createElement("span",null,e.nome),React.createElement("span",{style:{color:'#c9a24a',fontWeight:800}},e.qtd)),
+          React.createElement("div",{style:{background:'#ebeef3',borderRadius:6,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'linear-gradient(90deg,#c9a24a,#5fd3e0)',width:`${e.qtd/maxQtd*100}%`,borderRadius:6}}))
         ))
       ),
       React.createElement("div",{style:{background:'#ffffff',border:'1px solid #d1d5e0',borderRadius:18,padding:'22px 24px',boxShadow:'0 4px 20px rgba(0,0,0,0.12)'}},
         React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:18}},
-          React.createElement("h3",{style:{margin:0,fontSize:13,color:'#b8976a',textTransform:'uppercase',letterSpacing:1,fontWeight:700}},"Últimas respostas"),
-          respostas.length>6&&React.createElement("button",{onClick:()=>setAba('resultados'),style:{background:'transparent',border:'none',color:'#b8976a',fontSize:11,cursor:'pointer',fontWeight:600}},"Ver todas →")
+          React.createElement("h3",{style:{margin:0,fontSize:13,color:'#c9a24a',textTransform:'uppercase',letterSpacing:1,fontWeight:700}},"Últimas respostas"),
+          respostas.length>6&&React.createElement("button",{onClick:()=>setAba('resultados'),style:{background:'transparent',border:'none',color:'#c9a24a',fontSize:11,cursor:'pointer',fontWeight:600}},"Ver todas →")
         ),
         ultimasRespostas.length===0?React.createElement("p",{style:{color:'#9ca3af',fontSize:13}},"Nenhuma resposta ainda."):
         ultimasRespostas.map(r=>{
@@ -964,7 +964,7 @@ function AbaEmpresas({empresas,tarefas,respostas}){
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}},
       React.createElement("div",null,React.createElement("h1",{style:{fontSize:22,fontWeight:700,margin:'0 0 4px',color:'#1a1d2e'}},"Empresas"),React.createElement("p",{style:{color:'#6b7280',fontSize:13}},empresas.length," empresa(s)")),
-      React.createElement("button",{onClick:()=>setShowModal(true),style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 18px',cursor:'pointer',fontWeight:700,fontSize:14}},"+ Cadastrar empresa")
+      React.createElement("button",{onClick:()=>setShowModal(true),style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 18px',cursor:'pointer',fontWeight:700,fontSize:14}},"+ Cadastrar empresa")
     ),
     empresas.length===0?React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:'50px 20px',textAlign:'center',color:'#9ca3af'}},"Nenhuma empresa cadastrada."):
     React.createElement("div",{style:{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(300px, 1fr))',gap:16}},
@@ -978,10 +978,10 @@ function AbaEmpresas({empresas,tarefas,respostas}){
               React.createElement("div",{style:{fontSize:17,fontWeight:700,color:'#1a1d2e',marginBottom:2}},emp.nome),
               React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"Desde ",formatDate(emp.dataCriacao))
             ),
-            React.createElement("button",{onClick:()=>setSelecionada(emp),style:{background:'#f0f2f5',border:'none',color:'#b8976a',borderRadius:8,padding:'5px 10px',cursor:'pointer',fontSize:12}},"Detalhes")
+            React.createElement("button",{onClick:()=>setSelecionada(emp),style:{background:'#f0f2f5',border:'none',color:'#c9a24a',borderRadius:8,padding:'5px 10px',cursor:'pointer',fontSize:12}},"Detalhes")
           ),
           React.createElement("div",{style:{display:'flex',gap:10,marginBottom:14}},
-            [['Tarefas',tarefasEmp.length,'#7B5FC4'],['Respostas',respEmp.length,'#b8976a'],['Colaboradores',nColabs,'#059669']].map(([l,v,c])=>
+            [['Tarefas',tarefasEmp.length,'#7B5FC4'],['Respostas',respEmp.length,'#c9a24a'],['Colaboradores',nColabs,'#059669']].map(([l,v,c])=>
               React.createElement("div",{key:l,style:{flex:1,background:'#f8f9fb',borderRadius:8,padding:'8px 10px'}},
                 React.createElement("div",{style:{fontSize:18,fontWeight:800,color:c}},v),
                 React.createElement("div",{style:{fontSize:10,color:'#6b7280'}},l)
@@ -993,7 +993,7 @@ function AbaEmpresas({empresas,tarefas,respostas}){
           // Link
           React.createElement("div",{style:{background:'#f8f9fb',borderRadius:8,padding:'8px 10px',display:'flex',alignItems:'center',justifyContent:'space-between',gap:8}},
             React.createElement("span",{style:{fontSize:11,color:'#9ca3af',overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},getLink(emp.slug)),
-            React.createElement("button",{onClick:()=>navigator.clipboard.writeText(getLink(emp.slug)),style:{background:'#b8976a',border:'none',color:'#1a1d27',borderRadius:6,padding:'4px 10px',cursor:'pointer',fontSize:11,fontWeight:700,whiteSpace:'nowrap'}},"Copiar")
+            React.createElement("button",{onClick:()=>navigator.clipboard.writeText(getLink(emp.slug)),style:{background:'#c9a24a',border:'none',color:'#1a1d27',borderRadius:6,padding:'4px 10px',cursor:'pointer',fontSize:11,fontWeight:700,whiteSpace:'nowrap'}},"Copiar")
           )
         );
       })
@@ -1187,16 +1187,16 @@ function ModalNovaEmpresa({onClose}){
         erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',marginBottom:16,fontSize:12,color:'#e05c4a'}},erro),
         React.createElement("div",{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
           React.createElement("button",{onClick:onClose,style:{background:'transparent',border:'1px solid #e2e5ec',color:'#6b7280',borderRadius:8,padding:'9px 16px',cursor:'pointer'}},"Cancelar"),
-          React.createElement("button",{onClick:handleSave,disabled:saving||!nome.trim()||codigoFinal.length<3,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700,opacity:saving||!nome.trim()||codigoFinal.length<3?.6:1}},verificando?'Verificando...':saving?'Salvando...':'Cadastrar e gerar link')
+          React.createElement("button",{onClick:handleSave,disabled:saving||!nome.trim()||codigoFinal.length<3,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700,opacity:saving||!nome.trim()||codigoFinal.length<3?.6:1}},verificando?'Verificando...':saving?'Salvando...':'Cadastrar e gerar link')
         )
       ):React.createElement(React.Fragment,null,
         React.createElement("h3",{style:{margin:'0 0 8px',color:'#1a1d2e'}},"✅ Empresa cadastrada!"),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:8}},"Código: ",React.createElement("b",{style:{fontFamily:'monospace',color:'#1a1d2e'}},codigoFinal)),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:16}},"Encaminhe este link:"),
-        React.createElement("div",{style:{background:'#f8f9fb',borderRadius:8,padding:'12px 14px',fontSize:12,color:'#b8976a',wordBreak:'break-all',marginBottom:20}},link),
+        React.createElement("div",{style:{background:'#f8f9fb',borderRadius:8,padding:'12px 14px',fontSize:12,color:'#c9a24a',wordBreak:'break-all',marginBottom:20}},link),
         React.createElement("div",{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
-          React.createElement("button",{onClick:()=>navigator.clipboard.writeText(link),style:{background:'#f0f2f5',color:'#b8976a',border:'none',borderRadius:8,padding:'9px 16px',cursor:'pointer',fontWeight:600}},"Copiar link"),
-          React.createElement("button",{onClick:onClose,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},"Concluir")
+          React.createElement("button",{onClick:()=>navigator.clipboard.writeText(link),style:{background:'#f0f2f5',color:'#c9a24a',border:'none',borderRadius:8,padding:'9px 16px',cursor:'pointer',fontWeight:600}},"Copiar link"),
+          React.createElement("button",{onClick:onClose,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},"Concluir")
         )
       )
     )
@@ -1261,7 +1261,7 @@ function ModalDetalheEmpresa({empresa,onClose}){
         React.createElement("label",{style:lbl},"Cargo / CRP"),
         React.createElement("input",{value:contatoCargo,onChange:e=>setContatoCargo(e.target.value),style:inp,placeholder:"Ex: Psicólogo · CRP 06/227336"}),
         React.createElement("label",{style:lbl},"E-mail"),
-        React.createElement("input",{value:contatoEmail,onChange:e=>setContatoEmail(e.target.value),style:{...inp,marginBottom:14},type:"email",placeholder:"contato@propagare.com.br"}),
+        React.createElement("input",{value:contatoEmail,onChange:e=>setContatoEmail(e.target.value),style:{...inp,marginBottom:14},type:"email",placeholder:"contato@kalufegomes.com.br"}),
         React.createElement("label",{style:lbl},"Telefone / WhatsApp"),
         React.createElement("input",{value:contatoTel,onChange:e=>setContatoTel(e.target.value),style:{...inp,marginBottom:0},placeholder:"(16) 99999-9999"})
       ),
@@ -1276,7 +1276,7 @@ function ModalDetalheEmpresa({empresa,onClose}){
         React.createElement("button",{onClick:()=>setConfirmar(true),style:{background:'transparent',border:'1px solid #fecaca',color:'#e05c4a',borderRadius:8,padding:'9px 14px',cursor:'pointer',fontSize:13}},"Excluir"),
         React.createElement("div",{style:{display:'flex',gap:10}},
           React.createElement("button",{onClick:onClose,style:{background:'transparent',border:'1px solid #e2e5ec',color:'#6b7280',borderRadius:8,padding:'9px 16px',cursor:'pointer'}},"Cancelar"),
-          React.createElement("button",{onClick:handleSalvar,disabled:saving,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},saving?'Salvando...':'Salvar')
+          React.createElement("button",{onClick:handleSalvar,disabled:saving,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},saving?'Salvando...':'Salvar')
         )
       )
     )
@@ -1318,7 +1318,7 @@ function AbaTarefas({tarefas,empresas,respostas}){
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:24}},
       React.createElement("div",null,React.createElement("h1",{style:{fontSize:22,fontWeight:700,margin:'0 0 4px',color:'#1a1d2e'}},"Tarefas"),React.createElement("p",{style:{color:'#6b7280',fontSize:13}},tarefas.length," tarefa(s)")),
-      React.createElement("button",{onClick:()=>setShowModal(true),disabled:empresas.length===0,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 18px',cursor:'pointer',fontWeight:700,fontSize:14,opacity:empresas.length===0?.5:1}},"+ Nova tarefa")
+      React.createElement("button",{onClick:()=>setShowModal(true),disabled:empresas.length===0,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 18px',cursor:'pointer',fontWeight:700,fontSize:14,opacity:empresas.length===0?.5:1}},"+ Nova tarefa")
     ),
     tarefas.length===0?React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:'50px 20px',textAlign:'center',color:'#9ca3af'}},"Nenhuma tarefa cadastrada."):
     React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:12}},
@@ -1339,7 +1339,7 @@ function AbaTarefas({tarefas,empresas,respostas}){
                 isForm&&React.createElement("span",{style:{marginLeft:8,background:'#e8f4fd',color:'#2980b9',borderRadius:4,padding:'1px 6px',fontSize:10,fontWeight:700}},(t.campos||[]).length,' campos')
               )
             ),
-            React.createElement("div",{style:{textAlign:'right',minWidth:60}},React.createElement("div",{style:{fontSize:18,fontWeight:800,color:'#b8976a'}},respT.length),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"resp.")),
+            React.createElement("div",{style:{textAlign:'right',minWidth:60}},React.createElement("div",{style:{fontSize:18,fontWeight:800,color:'#c9a24a'}},respT.length),React.createElement("div",{style:{fontSize:11,color:'#6b7280'}},"resp.")),
             // Badge status clicável
             React.createElement("button",{onClick:()=>handleToggleStatus(t),disabled:alterando,title:isPendente?'Fechar tarefa':'Reabrir tarefa',style:{background:isPendente?'#fef9ec':'#ecfdf5',color:isPendente?'#d97706':'#059669',borderRadius:20,padding:'5px 12px',fontSize:11,fontWeight:700,border:'none',cursor:'pointer'}},alterando?'...':(isPendente?'⏳ Aberta':'✅ Fechada')),
             // Duplicar
@@ -1351,7 +1351,7 @@ function AbaTarefas({tarefas,empresas,respostas}){
               style:{background:aguardandoConfirm?'#fef2f2':'#f0f2f5',border:aguardandoConfirm?'1px solid #fecaca':'none',color:'#e05c4a',borderRadius:8,padding:'7px 10px',cursor:'pointer',fontSize:13}
             },"🗑"),
             // Ver resultados
-            respT.length>0&&React.createElement("button",{onClick:()=>setTarefaAberta({tarefa:t,respostas:respT,empresaNome:empresaNome(t.companyId)}),style:{background:'#f0f2f5',border:'none',color:'#b8976a',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},"Ver resultados")
+            respT.length>0&&React.createElement("button",{onClick:()=>setTarefaAberta({tarefa:t,respostas:respT,empresaNome:empresaNome(t.companyId)}),style:{background:'#f0f2f5',border:'none',color:'#c9a24a',borderRadius:8,padding:'7px 12px',cursor:'pointer',fontSize:12,fontWeight:600}},"Ver resultados")
           ),
           // Confirmação de exclusão (inline, aparece abaixo)
           aguardandoConfirm&&React.createElement("div",{style:{marginTop:12,padding:'10px 12px',background:'#fef2f2',borderRadius:8,display:'flex',alignItems:'center',justifyContent:'space-between',gap:10,flexWrap:'wrap'}},
@@ -1450,7 +1450,7 @@ function ModalNovaTarefa({empresas,onClose}){
       ),
       React.createElement("div",{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
         React.createElement("button",{onClick:onClose,style:{background:'transparent',border:'1px solid #e2e5ec',color:'#6b7280',borderRadius:8,padding:'9px 16px',cursor:'pointer'}},"Cancelar"),
-        React.createElement("button",{onClick:handleSaveMeta,disabled:saving||!titulo.trim(),style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},saving?'Salvando...':tipo==='Formulário Personalizado'?'Próximo: montar campos →':'Cadastrar')
+        React.createElement("button",{onClick:handleSaveMeta,disabled:saving||!titulo.trim(),style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},saving?'Salvando...':tipo==='Formulário Personalizado'?'Próximo: montar campos →':'Cadastrar')
       )
     )
   );
@@ -1500,7 +1500,7 @@ function BuilderFormulario({titulo,onSalvar,onVoltar,saving,erro}){
           ),
           React.createElement("div",{style:{display:'flex',gap:8}},
             React.createElement("button",{onClick:onVoltar,style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 14px',cursor:'pointer',fontSize:13}},"← Voltar"),
-            React.createElement("button",{onClick:()=>onSalvar(campos),disabled:saving||!isPronto,style:{background:isPronto&&!saving?'#b8976a':'#ddd',color:'#fff',border:'none',borderRadius:8,padding:'7px 16px',cursor:isPronto&&!saving?'pointer':'not-allowed',fontWeight:700,fontSize:13}},saving?'Salvando...':'Salvar formulário ✓')
+            React.createElement("button",{onClick:()=>onSalvar(campos),disabled:saving||!isPronto,style:{background:isPronto&&!saving?'#c9a24a':'#ddd',color:'#fff',border:'none',borderRadius:8,padding:'7px 16px',cursor:isPronto&&!saving?'pointer':'not-allowed',fontWeight:700,fontSize:13}},saving?'Salvando...':'Salvar formulário ✓')
           )
         ),
         // Erro visível
@@ -1513,7 +1513,7 @@ function BuilderFormulario({titulo,onSalvar,onVoltar,saving,erro}){
           React.createElement("div",{style:{display:'flex',gap:6,flexWrap:'wrap',flex:1}},
             TIPOS_CAMPO.map(tc=>React.createElement("button",{key:tc.id,onClick:()=>{setNovoTipo(tc.id);},style:{background:novoTipo===tc.id?'#1a1d2e':'#fff',color:novoTipo===tc.id?'#fff':'#374151',border:`1px solid ${novoTipo===tc.id?'#1a1d2e':'#e2e5ec'}`,borderRadius:8,padding:'6px 11px',cursor:'pointer',fontSize:12,fontWeight:novoTipo===tc.id?700:400}},tc.icon,' ',tc.label))
           ),
-          React.createElement("button",{onClick:addCampo,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontWeight:700,fontSize:13,whiteSpace:'nowrap'}},"Adicionar")
+          React.createElement("button",{onClick:addCampo,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontWeight:700,fontSize:13,whiteSpace:'nowrap'}},"Adicionar")
         ),
         // Lista de campos
         campos.length===0&&React.createElement("div",{style:{textAlign:'center',padding:'40px 20px',color:'#9ca3af',fontSize:14}},"Nenhum campo adicionado ainda. Use o painel acima para começar."),
@@ -1526,7 +1526,7 @@ function BuilderFormulario({titulo,onSalvar,onVoltar,saving,erro}){
 function CardCampo({campo,idx,total,editando,onToggleEdit,onUpdate,onRemove,onMover}){
   const tc=TIPOS_CAMPO.find(t=>t.id===campo.tipo)||TIPOS_CAMPO[0];
   const inputSt={width:'100%',border:'1px solid #e2e5ec',borderRadius:8,padding:'9px 12px',fontSize:13,fontFamily:'inherit',color:'#1a1d2e',background:'#fafafa',outline:'none',boxSizing:'border-box'};
-  return React.createElement("div",{style:{background:'#fff',border:`1.5px solid ${editando?'#b8976a':'#e2e5ec'}`,borderRadius:12,marginBottom:10,overflow:'hidden',transition:'border-color .15s'}},
+  return React.createElement("div",{style:{background:'#fff',border:`1.5px solid ${editando?'#c9a24a':'#e2e5ec'}`,borderRadius:12,marginBottom:10,overflow:'hidden',transition:'border-color .15s'}},
     // Cabeçalho do card
     React.createElement("div",{style:{display:'flex',alignItems:'center',gap:10,padding:'12px 14px',cursor:'pointer',background:editando?'#fdf8f2':'#fff'},onClick:onToggleEdit},
       React.createElement("span",{style:{fontSize:16}}),
@@ -1606,9 +1606,9 @@ function DashboardFormulario({tarefa,respostas}){
           React.createElement("div",{style:{fontSize:13,fontWeight:600,color:'#1a1d2e',marginBottom:4}},idx+1,'. ',campo.pergunta),
           React.createElement("div",{style:{display:'flex',alignItems:'center',gap:12,marginTop:8}},
             React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:6,height:10,overflow:'hidden'}},
-              React.createElement("div",{style:{height:'100%',background:'#b8976a',width:`${pct}%`,transition:'width .4s',borderRadius:6}})
+              React.createElement("div",{style:{height:'100%',background:'#c9a24a',width:`${pct}%`,transition:'width .4s',borderRadius:6}})
             ),
-            React.createElement("div",{style:{fontSize:20,fontWeight:900,color:'#b8976a',minWidth:60,textAlign:'right'}},media!==null?media.toFixed(1):'—',React.createElement("span",{style:{fontSize:12,color:'#9ca3af',fontWeight:400}},' / ',maxV))
+            React.createElement("div",{style:{fontSize:20,fontWeight:900,color:'#c9a24a',minWidth:60,textAlign:'right'}},media!==null?media.toFixed(1):'—',React.createElement("span",{style:{fontSize:12,color:'#9ca3af',fontWeight:400}},' / ',maxV))
           ),
           React.createElement("div",{style:{fontSize:11,color:'#9ca3af',marginTop:4}},nums.length,' resposta(s)',campo.rotulo?' · '+campo.rotulo:'')
         );
@@ -1620,8 +1620,8 @@ function DashboardFormulario({tarefa,respostas}){
         return React.createElement("div",{key:campo.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:10,padding:'14px 16px',marginBottom:12}},
           React.createElement("div",{style:{fontSize:13,fontWeight:600,color:'#1a1d2e',marginBottom:10}},idx+1,'. ',campo.pergunta),
           opcoes.map((op,oi)=>{const n=counts[op]||0;const pct=total?(n/total*100):0;return React.createElement("div",{key:oi,style:{marginBottom:8}},
-            React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},React.createElement("span",{style:{color:'#374151'}},'◉ ',op),React.createElement("span",{style:{color:'#b8976a',fontWeight:700}},n,' (',Math.round(pct),'%)')),
-            React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'#b8976a',width:`${pct}%`}}))
+            React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},React.createElement("span",{style:{color:'#374151'}},'◉ ',op),React.createElement("span",{style:{color:'#c9a24a',fontWeight:700}},n,' (',Math.round(pct),'%)')),
+            React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'#c9a24a',width:`${pct}%`}}))
           );}),
           React.createElement("div",{style:{fontSize:11,color:'#9ca3af',marginTop:4}},total,' resposta(s)')
         );
@@ -1651,8 +1651,8 @@ function DashboardFormulario({tarefa,respostas}){
         React.createElement("td",{style:{padding:'9px 12px',color:'#6b7280',whiteSpace:'nowrap'}},r.cargo||'-'),
         React.createElement("td",{style:{padding:'9px 12px',color:'#6b7280',fontSize:11,whiteSpace:'nowrap'}},formatDate(r.dataResposta)),
         campos.map(c=>{const v=r.respostas?.[c.id];return React.createElement("td",{key:c.id,style:{padding:'9px 12px',color:'#374151',maxWidth:180,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap'}},
-          c.tipo==='barra'?React.createElement("span",{style:{fontWeight:700,color:'#b8976a'}},v??'—','%'):
-          c.tipo==='escala'?React.createElement("span",{style:{fontWeight:700,color:'#b8976a'}},v??'—','/5'):
+          c.tipo==='barra'?React.createElement("span",{style:{fontWeight:700,color:'#c9a24a'}},v??'—','%'):
+          c.tipo==='escala'?React.createElement("span",{style:{fontWeight:700,color:'#c9a24a'}},v??'—','/5'):
           (v??React.createElement("span",{style:{color:'#ccc'}},'-')));}
         )
       )))
@@ -1661,7 +1661,7 @@ function DashboardFormulario({tarefa,respostas}){
 
   return React.createElement("div",null,
     React.createElement("div",{style:{display:'flex',gap:0,border:'1px solid #e2e5ec',borderRadius:8,overflow:'hidden',marginBottom:18,width:'fit-content'}},
-      ['agregado','individual'].map(v=>React.createElement("button",{key:v,onClick:()=>setVisao(v),style:{background:visao===v?'#b8976a':'transparent',color:visao===v?'#fff':'#666',border:'none',padding:'7px 16px',cursor:'pointer',fontWeight:visao===v?700:400,fontSize:13}},v==='agregado'?'Agregado':'Individual'))
+      ['agregado','individual'].map(v=>React.createElement("button",{key:v,onClick:()=>setVisao(v),style:{background:visao===v?'#c9a24a':'transparent',color:visao===v?'#fff':'#666',border:'none',padding:'7px 16px',cursor:'pointer',fontWeight:visao===v?700:400,fontSize:13}},v==='agregado'?'Agregado':'Individual'))
     ),
     visao==='agregado'?React.createElement(AgregadoView):React.createElement(IndividualView)
   );
@@ -1829,7 +1829,7 @@ function ModalResultadosTarefa({tarefa,respostas,empresaNome,onClose}){
       React.createElement("div",{style:{display:'flex',justifyContent:'space-between',alignItems:'flex-start',marginBottom:20}},
         React.createElement("div",null,React.createElement("h3",{style:{margin:0,color:'#1a1d2e',fontSize:17}},tarefa.titulo),React.createElement("p",{style:{margin:'4px 0 0',color:'#6b7280',fontSize:12}},empresaNome,' · ',total,' resposta(s)')),
         React.createElement("div",{style:{display:'flex',gap:8}},
-          React.createElement("button",{onClick:()=>gerarPDFTarefa(tarefa,respostas,empresaNome),style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'7px 14px',cursor:'pointer',fontWeight:700,fontSize:12}},"⬇ PDF"),
+          React.createElement("button",{onClick:()=>gerarPDFTarefa(tarefa,respostas,empresaNome),style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'7px 14px',cursor:'pointer',fontWeight:700,fontSize:12}},"⬇ PDF"),
           React.createElement("button",{onClick:onClose,style:{background:'#f0f2f5',border:'none',color:'#6b7280',borderRadius:8,padding:'7px 12px',cursor:'pointer'}},"✕")
         )
       ),
@@ -1849,7 +1849,7 @@ function ModalResultadosTarefa({tarefa,respostas,empresaNome,onClose}){
           const media=valores.length?(valores.reduce((a,b)=>a+b,0)/valores.length).toFixed(2):'-';
           return React.createElement("div",{key:idx,style:{background:'#f8f9fb',borderRadius:8,padding:'12px 14px',marginBottom:10}},
             React.createElement("div",{style:{fontSize:13,color:'#4a4f6a',marginBottom:8}},idx+1,'. ',pergTexto),
-            React.createElement("div",{style:{fontSize:22,fontWeight:800,color:'#b8976a'}},media,' ',React.createElement("span",{style:{fontSize:12,color:'#6b7280',fontWeight:400}},"média"))
+            React.createElement("div",{style:{fontSize:22,fontWeight:800,color:'#c9a24a'}},media,' ',React.createElement("span",{style:{fontSize:12,color:'#6b7280',fontWeight:400}},"média"))
           );
         })
       )
@@ -1875,7 +1875,7 @@ function DashboardCopsoq({respostas}){
     {label:'Exigências',cor:'#E05C4A',ids:['exig_quant','exig_cogn','exig_emoc']},
     {label:'Org. do Trabalho',cor:'#5A9B72',ids:['autonomia','previsib','clareza']},
     {label:'Relações',cor:'#7B5FC4',ids:['reconhec','lideranca','apoio','justica']},
-    {label:'Valores',cor:'#b8976a',ids:['autoefic','significado','comprometim','satisfacao','inseguranca']},
+    {label:'Valores',cor:'#c9a24a',ids:['autoefic','significado','comprometim','satisfacao','inseguranca']},
     {label:'Saúde e Bem-estar',cor:'#2980b9',ids:['saude','conf_familia','sono','burnout','estresse']},
     {label:'Violência',cor:'#922b21',ids:['violencia']},
   ];
@@ -1926,7 +1926,7 @@ function AbaResultados({empresas,tarefas,respostas}){
     React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:20}},"Analise respostas por empresa e tarefa"),
     React.createElement("div",{style:{display:'flex',gap:10,marginBottom:20,flexWrap:'wrap',alignItems:'center'}},
       React.createElement("div",{style:{display:'flex',border:'1px solid #e2e5ec',borderRadius:8,overflow:'hidden'}},
-        ['agregado','individual'].map(v=>React.createElement("button",{key:v,onClick:()=>setVisao(v),style:{background:visao===v?'#b8976a':'transparent',color:visao===v?'#1a1d27':'#666',border:'none',padding:'8px 16px',cursor:'pointer',fontWeight:visao===v?700:400,fontSize:13}},v==='agregado'?'Agregado':'Individual'))
+        ['agregado','individual'].map(v=>React.createElement("button",{key:v,onClick:()=>setVisao(v),style:{background:visao===v?'#c9a24a':'transparent',color:visao===v?'#1a1d27':'#666',border:'none',padding:'8px 16px',cursor:'pointer',fontWeight:visao===v?700:400,fontSize:13}},v==='agregado'?'Agregado':'Individual'))
       ),
       React.createElement("select",{value:filtroEmpresa,onChange:e=>setFiltroEmpresa(e.target.value),style:sel},
         React.createElement("option",{value:"todas"},"Todas as empresas"),
@@ -1936,7 +1936,7 @@ function AbaResultados({empresas,tarefas,respostas}){
         React.createElement("option",{value:"todas"},"Todas as tarefas"),
         tarefasDisponiveis.map(t=>React.createElement("option",{key:t.id,value:t.id},t.titulo,' [',t.formato==='copsoq2'?'COPSOQ II':t.formato==='perfil_comportamental'?'Perfil':'Escala',']'))
       ),
-      tarefaAtual&&respostasFiltradas.length>0&&React.createElement("button",{onClick:()=>gerarPDFTarefa(tarefaAtual,respostasFiltradas,empresaNome(respostasFiltradas[0]?.companyId)),style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontWeight:700,fontSize:13}},"⬇ Exportar PDF")
+      tarefaAtual&&respostasFiltradas.length>0&&React.createElement("button",{onClick:()=>gerarPDFTarefa(tarefaAtual,respostasFiltradas,empresaNome(respostasFiltradas[0]?.companyId)),style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:8,padding:'8px 16px',cursor:'pointer',fontWeight:700,fontSize:13}},"⬇ Exportar PDF")
     ),
     tarefaAtual&&tarefaAtual.formato==='perfil_comportamental'?React.createElement(DashboardPerfil,{tarefa:tarefaAtual,respostas:respostasFiltradas}):
     tarefaAtual&&tarefaAtual.formato==='copsoq2'?React.createElement(DashboardCopsoq,{respostas:respostasFiltradas}):
@@ -1969,7 +1969,7 @@ function DashboardPerfil({tarefa,respostas}){
       ))
     ),
     React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20}},
-      React.createElement("h4",{style:{color:'#b8976a',fontSize:12,textTransform:'uppercase',letterSpacing:.5,margin:'0 0 14px'}},"Respondentes (",total,")"),
+      React.createElement("h4",{style:{color:'#c9a24a',fontSize:12,textTransform:'uppercase',letterSpacing:.5,margin:'0 0 14px'}},"Respondentes (",total,")"),
       respostas.map(r=>{const p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};return React.createElement("div",{key:r.id,style:{display:'flex',alignItems:'center',gap:12,padding:'10px 0',borderBottom:'1px solid #f0f2f5'}},
         React.createElement("div",{style:{width:36,height:36,borderRadius:'50%',background:'#f0f2f5',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16}},p.emoji||'?'),
         React.createElement("div",{style:{flex:1}},React.createElement("div",{style:{fontSize:14,fontWeight:600}},r.nomeColaborador),React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},r.cargo,' · ',r.sexo)),
@@ -1992,7 +1992,7 @@ function DashboardAgregado({respostas,empresas}){
       )),
       React.createElement("tbody",null,dados.map((d,i)=>React.createElement("tr",{key:i,style:{borderTop:'1px solid #f0f2f5'}},
         React.createElement("td",{style:{padding:'12px 16px',color:'#2a2d3a'}},d.nome),
-        React.createElement("td",{style:{padding:'12px 16px',color:'#b8976a',fontWeight:700}},d.total),
+        React.createElement("td",{style:{padding:'12px 16px',color:'#c9a24a',fontWeight:700}},d.total),
         React.createElement("td",{style:{padding:'12px 16px',fontWeight:700}},d.media)
       )))
     )
@@ -2250,7 +2250,7 @@ function AuthColaborador({empresa,onAutenticado}){
     React.createElement("div",{style:{width:'100%',maxWidth:400}},
       // Cabeçalho
       React.createElement("div",{style:{textAlign:'center',marginBottom:28}},
-        React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:16}},"INSTITUTO PROPAGARE"),
+        React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:16}},"KALUF & GOMES"),
         React.createElement("div",{style:{fontSize:44,marginBottom:12}},"🏢"),
         React.createElement("h2",{style:{color:'#1a1d2e',fontSize:22,margin:'0 0 4px',fontWeight:800}},empresa.nome),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,margin:0}},"Portal do Colaborador")
@@ -2269,8 +2269,8 @@ function AuthColaborador({empresa,onAutenticado}){
         React.createElement("input",{value:confirmaSenha,onChange:e=>setConfirmaSenha(e.target.value),type:"password",placeholder:"Repita a senha",style:inp})
       ),
       erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginBottom:12,color:'#e05c4a',fontSize:13}},erro),
-      React.createElement("button",{onClick:modo==='login'?handleLogin:handleCadastro,disabled:loading||!email.trim()||!senha,style:{width:'100%',background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',opacity:loading||!email.trim()||!senha?.6:1,marginTop:4}},loading?'...':(modo==='login'?'Entrar →':'Criar conta →')),
-      React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:16}},"Instituto Propagare · João Rosa · CRP 06/227336")
+      React.createElement("button",{onClick:modo==='login'?handleLogin:handleCadastro,disabled:loading||!email.trim()||!senha,style:{width:'100%',background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',opacity:loading||!email.trim()||!senha?.6:1,marginTop:4}},loading?'...':(modo==='login'?'Entrar →':'Criar conta →')),
+      React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:16}},"Kaluf & Gomes · João Rosa · CRP 06/227336")
     )
   );
 }
@@ -2308,7 +2308,7 @@ function CompletarPerfil({user,empresa,onConcluido}){
   const pronto=nome.trim()&&cargo.trim()&&sexo;
 
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',padding:24,maxWidth:420,margin:'0 auto',justifyContent:'center'}},
-    React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:24}},"INSTITUTO PROPAGARE"),
+    React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:24}},"KALUF & GOMES"),
     React.createElement("div",{style:{fontSize:40,marginBottom:12}},"✍️"),
     React.createElement("h2",{style:{color:'#1a1d2e',fontSize:22,margin:'0 0 6px',fontWeight:800}},"Complete seu perfil"),
     React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:28}},"Precisamos de mais algumas informações para personalizar sua experiência."),
@@ -2318,13 +2318,13 @@ function CompletarPerfil({user,empresa,onConcluido}){
     React.createElement("input",{value:cargo,onChange:e=>setCargo(e.target.value),placeholder:"Qual é o seu cargo?",style:inp}),
     React.createElement("label",{style:{fontSize:11,color:'#6b7280',fontWeight:600,textTransform:'uppercase',display:'block',marginBottom:8}},"Sexo"),
     React.createElement("div",{style:{display:'flex',gap:8,marginBottom:28}},
-      ['Feminino','Masculino','Prefiro não informar'].map(s=>React.createElement("button",{key:s,onClick:()=>setSexo(s),style:{flex:1,background:sexo===s?'#b8976a':'#fff',color:sexo===s?'#2e1a00':'#888',border:`1.5px solid ${sexo===s?'#b8976a':'#e2e5ec'}`,borderRadius:10,padding:'11px 4px',cursor:'pointer',fontSize:11,fontWeight:sexo===s?700:400}},s==='Prefiro não informar'?'Prefiro\nnão informar':s))
+      ['Feminino','Masculino','Prefiro não informar'].map(s=>React.createElement("button",{key:s,onClick:()=>setSexo(s),style:{flex:1,background:sexo===s?'#c9a24a':'#fff',color:sexo===s?'#2e1a00':'#888',border:`1.5px solid ${sexo===s?'#c9a24a':'#e2e5ec'}`,borderRadius:10,padding:'11px 4px',cursor:'pointer',fontSize:11,fontWeight:sexo===s?700:400}},s==='Prefiro não informar'?'Prefiro\nnão informar':s))
     ),
     erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginBottom:16,fontSize:13,color:'#e05c4a'}},erro),
     React.createElement("button",{
       onClick:handleSalvar,
       disabled:saving||!pronto,
-      style:{background:pronto&&!saving?'#b8976a':'#d4c4a8',color:'#2e1a00',border:'none',borderRadius:12,padding:'15px',fontSize:15,fontWeight:800,cursor:pronto&&!saving?'pointer':'not-allowed',width:'100%'}
+      style:{background:pronto&&!saving?'#c9a24a':'#d4c4a8',color:'#2e1a00',border:'none',borderRadius:12,padding:'15px',fontSize:15,fontWeight:800,cursor:pronto&&!saving?'pointer':'not-allowed',width:'100%'}
     },saving?'Salvando...':'Acessar minha área →')
   );
 }
@@ -2374,7 +2374,7 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
     card:{background:'#fff',borderRadius:16,marginBottom:12,overflow:'hidden',boxShadow:'0 1px 4px rgba(0,0,0,0.06)'},
     tabBar:{position:'fixed',bottom:0,left:0,right:0,background:'#fff',borderTop:'1px solid #e8eaf0',display:'flex',zIndex:20,paddingBottom:'env(safe-area-inset-bottom,0px)'},
     tabBtn:(ativo)=>({flex:1,background:'none',border:'none',padding:'10px 4px 12px',cursor:'pointer',display:'flex',flexDirection:'column',alignItems:'center',gap:3,
-      color:ativo?'#b8976a':'#9ca3af',transition:'color .15s'}),
+      color:ativo?'#c9a24a':'#9ca3af',transition:'color .15s'}),
   };
 
   const primeiroNome=employeeData.nome?.split(' ')[0]||'Olá';
@@ -2413,7 +2413,7 @@ function PainelColaborador({user,empresa,employeeData,onLogout}){
           ),
           React.createElement("button",{
             onClick:()=>setTarefaAtiva(t),
-            style:{width:'100%',background:'#b8976a',color:'#2e1a00',border:'none',padding:'14px',fontSize:15,fontWeight:700,cursor:'pointer',letterSpacing:.2}
+            style:{width:'100%',background:'#c9a24a',color:'#2e1a00',border:'none',padding:'14px',fontSize:15,fontWeight:700,cursor:'pointer',letterSpacing:.2}
           },"Responder →")
         ))
       ),
@@ -2557,7 +2557,7 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
           return React.createElement("div",{key:campo.id,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:12,padding:16,marginBottom:10}},
             React.createElement("div",{style:{fontSize:12,color:'#9ca3af',marginBottom:4}},idx+1,'. ',campo.tipo==='barra'?'Barra':campo.tipo==='escala'?'Escala':campo.tipo==='multipla'?'Múltipla escolha':'Texto'),
             React.createElement("div",{style:{fontSize:13,fontWeight:600,color:'#374151',marginBottom:8}},campo.pergunta),
-            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:'#b8976a'}},
+            React.createElement("div",{style:{fontSize:15,fontWeight:700,color:'#c9a24a'}},
               campo.tipo==='barra'?(v??'—')+'%':
               campo.tipo==='escala'?(v??'—')+'/5':
               (v||React.createElement("span",{style:{color:'#ccc'}},'—'))
@@ -2580,7 +2580,7 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
           const v=resposta.respostas?.[idx];
           return React.createElement("div",{key:idx,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:12,padding:16,marginBottom:10}},
             React.createElement("div",{style:{fontSize:13,color:'#374151',marginBottom:8,fontWeight:600}},idx+1,'. ',pergTexto),
-            React.createElement("div",{style:{fontSize:20,fontWeight:800,color:'#b8976a'}},v??'—',React.createElement("span",{style:{fontSize:12,color:'#9ca3af',fontWeight:400}},' / 5'))
+            React.createElement("div",{style:{fontSize:20,fontWeight:800,color:'#c9a24a'}},v??'—',React.createElement("span",{style:{fontSize:12,color:'#9ca3af',fontWeight:400}},' / 5'))
           );
         })
       )
@@ -2628,7 +2628,7 @@ function FluxoPublico({slug}){
   const Spin=({msg})=>React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center'}},
     React.createElement("div",{style:{textAlign:'center'}},
       React.createElement("div",{style:{fontSize:32,marginBottom:12}},"🧠"),
-      React.createElement("div",{style:{color:'#b8976a',fontWeight:600,fontSize:14}},msg)
+      React.createElement("div",{style:{color:'#c9a24a',fontWeight:600,fontSize:14}},msg)
     )
   );
 
@@ -2642,7 +2642,7 @@ function FluxoPublico({slug}){
   if(!employeeChecked) return React.createElement(Spin,{msg:"Carregando seus dados..."});
   // Conta de outra empresa
   if(employeeData&&employeeData.companyId!==empresa.id) return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
-    React.createElement("div",{style:{textAlign:'center'}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),React.createElement("button",{onClick:handleLogout,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair"))
+    React.createElement("div",{style:{textAlign:'center'}},React.createElement("div",{style:{fontSize:48,marginBottom:16}},"🔒"),React.createElement("h2",{style:{color:'#1a1d2e',marginBottom:8}},"Acesso negado"),React.createElement("p",{style:{color:'#6b7280',marginBottom:20}},"Esta conta não pertence a ",empresa.nome,"."),React.createElement("button",{onClick:handleLogout,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:10,padding:'10px 20px',cursor:'pointer',fontWeight:700}},"Sair"))
   );
   // Conta desativada
   if(employeeData&&employeeData.ativo===false) return React.createElement("div",{style:{...mobileWrap,display:'flex',alignItems:'center',justifyContent:'center',padding:24}},
@@ -2699,7 +2699,7 @@ function FormularioCopsoqMobile({empresa,employeeId,employeeData,tarefa,onEnviad
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20}},
     // Cabeçalho
     React.createElement("div",{style:{marginBottom:20}},
-      React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:8}},"INSTITUTO PROPAGARE"),
+      React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:8}},"KALUF & GOMES"),
       React.createElement("h2",{style:{color:'#1a1d2e',fontSize:18,margin:'0 0 4px'}},tarefa.titulo),
       React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:12}},"Olá, ",employeeData.nome.split(' ')[0],". Responda com sinceridade."),
       // Barra de progresso
@@ -2745,7 +2745,7 @@ function FormularioCopsoqMobile({empresa,employeeId,employeeData,tarefa,onEnviad
         enviando?'Enviando...':`${blocoAtual<blocos.length-1?'Próxima seção →':'Enviar respostas ✓'} (${questoesBlocoAtual.filter(q=>respostas[q.n-1]!==undefined).length}/${questoesBlocoAtual.length})`
       ),
       !todasDoBloco&&React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:8}},"Responda todos os itens desta seção para continuar"),
-      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:4}},"Instituto Propagare · João Rosa · CRP 06/227336")
+      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:4}},"Kaluf & Gomes · João Rosa · CRP 06/227336")
     )
   );
 }
@@ -2775,7 +2775,7 @@ function FormularioCustomMobile({empresa,employeeId,employeeData,tarefa,onEnviad
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20,paddingBottom:100}},
     // Header
     React.createElement("div",{style:{marginBottom:20}},
-      React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:8}},"INSTITUTO PROPAGARE"),
+      React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:8}},"KALUF & GOMES"),
       React.createElement("h2",{style:{color:'#1a1d2e',fontSize:18,margin:'0 0 4px'}},tarefa.titulo),
       React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:10}},"Olá, ",employeeData.nome.split(' ')[0],". Responda com sinceridade."),
       React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:11,color:'#9ca3af',marginBottom:4}},
@@ -2832,7 +2832,7 @@ function FormularioCustomMobile({empresa,employeeId,employeeData,tarefa,onEnviad
     React.createElement("div",{style:{position:'fixed',bottom:0,left:0,right:0,background:'#f8f9fb',padding:'12px 20px 20px',borderTop:'1px solid #e2e5ec'}},
       !todasObrigatorias&&React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',margin:'0 0 8px'}},"Preencha todos os campos obrigatórios (*)"),
       React.createElement("button",{onClick:handleEnviar,disabled:!todasObrigatorias||enviando,style:{width:'100%',background:todasObrigatorias?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:todasObrigatorias?'pointer':'not-allowed'}},enviando?'Enviando...':'Enviar respostas ✓'),
-      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Instituto Propagare · João Rosa · CRP 06/227336")
+      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Kaluf & Gomes · João Rosa · CRP 06/227336")
     )
   );
 }
@@ -2879,7 +2879,7 @@ function DiscMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
 
   // Tela de introdução
   if(etapa===0)return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:28,textAlign:'center'}},
-    React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:20}},"INSTITUTO PROPAGARE"),
+    React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:20}},"KALUF & GOMES"),
     React.createElement("div",{style:{fontSize:52,marginBottom:16}},"🧩"),
     React.createElement("h2",{style:{color:'#1a1d2e',fontSize:21,margin:'0 0 10px',fontWeight:800}},tarefa.titulo),
     React.createElement("p",{style:{color:'#6b7280',fontSize:14,lineHeight:1.6,marginBottom:12,maxWidth:340}},"Você verá uma lista de palavras em duas etapas."),
@@ -2918,7 +2918,7 @@ function DiscMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
       !pronto&&React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',margin:'0 0 8px'}},"Selecione pelo menos ",etapaAtual.min," palavras para continuar"),
       etapa===1?React.createElement("button",{onClick:handleAvancar,disabled:!pronto,style:{width:'100%',background:pronto?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:pronto?'pointer':'not-allowed'}},"Próxima etapa →")
         :React.createElement("button",{onClick:handleEnviar,disabled:!pronto||enviando,style:{width:'100%',background:pronto?cor:'#ccc',color:'#fff',border:'none',borderRadius:14,padding:'15px',fontSize:16,fontWeight:700,cursor:pronto?'pointer':'not-allowed'}},enviando?'Enviando...':'Enviar respostas ✓'),
-      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Instituto Propagare · João Rosa · CRP 06/227336")
+      React.createElement("p",{style:{textAlign:'center',fontSize:10,color:'#c0c4ce',marginTop:8,marginBottom:0}},"Kaluf & Gomes · João Rosa · CRP 06/227336")
     )
   );
 }
@@ -2936,12 +2936,12 @@ function TestePerfilMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
     React.createElement("p",{style:{color:'#6b7280',fontWeight:600,marginBottom:20}},perfilInfo.palavraChave),
     React.createElement("p",{style:{color:'#888',fontSize:14,lineHeight:1.6,marginBottom:24,maxWidth:340}},perfilInfo.descricao),
     React.createElement("div",{style:{width:'100%',maxWidth:340,marginBottom:24}},Object.entries(PERFIS_COMPORTAMENTAIS).map(([k,p])=>React.createElement("div",{key:k,style:{display:'flex',alignItems:'center',gap:10,marginBottom:10}},React.createElement("span",{style:{fontSize:18,width:24}},p.emoji),React.createElement("span",{style:{fontSize:12,width:72,color:'#6b7280'}},p.nome),React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:4,height:8,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor,width:`${pct[k]||0}%`}})),React.createElement("span",{style:{fontSize:12,fontWeight:700,color:p.cor,width:34,textAlign:'right'}},pct[k]||0,'%')))),
-    React.createElement("button",{onClick:onEnviado,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:14,padding:'14px 32px',fontSize:15,fontWeight:700,cursor:'pointer'}},"Concluir ✓"));}
+    React.createElement("button",{onClick:onEnviado,style:{background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:14,padding:'14px 32px',fontSize:15,fontWeight:700,cursor:'pointer'}},"Concluir ✓"));}
   const pergAtual=perguntas[passo];
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20,display:'flex',flexDirection:'column'}},
     React.createElement("div",{style:{marginBottom:24}},
       React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,color:'#6b7280',marginBottom:8}},React.createElement("span",null,passo+1," de ",total),React.createElement("span",null,progresso,"%")),
-      React.createElement("div",{style:{background:'#e2e5ec',borderRadius:4,height:4,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'#b8976a',width:`${progresso}%`,transition:'width .3s'}}))
+      React.createElement("div",{style:{background:'#e2e5ec',borderRadius:4,height:4,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:'#c9a24a',width:`${progresso}%`,transition:'width .3s'}}))
     ),
     React.createElement("div",{style:{flex:1,display:'flex',flexDirection:'column',justifyContent:'center',opacity:animando?1:0,transition:'opacity .2s'}},
       React.createElement("h2",{style:{color:'#1a1d2e',fontSize:20,lineHeight:1.4,margin:'0 0 28px',fontWeight:700}},pergAtual.pergunta),
@@ -2949,7 +2949,7 @@ function TestePerfilMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
         pergAtual.opcoes.map((op,idx)=>React.createElement("button",{key:idx,onClick:()=>handleEscolher(idx),disabled:enviando,style:{textAlign:'left',background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:'16px 18px',color:'#2a2d3a',fontSize:15,cursor:'pointer',fontFamily:'inherit',lineHeight:1.4}},op.texto))
       )
     ),
-    enviando&&React.createElement("p",{style:{textAlign:'center',color:'#b8976a',fontSize:13,marginTop:20}},"Calculando seu perfil...")
+    enviando&&React.createElement("p",{style:{textAlign:'center',color:'#c9a24a',fontSize:13,marginTop:20}},"Calculando seu perfil...")
   );
 }
 
@@ -2958,16 +2958,16 @@ function FormularioEscalaMobile({empresa,employeeId,employeeData,tarefa,onEnviad
   const todasRespondidas=perguntas.every((_,i)=>respostas[i]!==undefined);
   const handleEnviar=async()=>{if(!todasRespondidas)return;setEnviando(true);await db.collection('responses').add({taskId:tarefa.id,employeeId,companyId:empresa.id,nomeColaborador:employeeData.nome,cargo:employeeData.cargo,sexo:employeeData.sexo,respostas,dataResposta:firebase.firestore.FieldValue.serverTimestamp()});setEnviando(false);onEnviado();};
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',padding:20}},
-    React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:16}},"INSTITUTO PROPAGARE"),
+    React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:16}},"KALUF & GOMES"),
     React.createElement("h2",{style:{color:'#1a1d2e',fontSize:20,margin:'0 0 4px'}},tarefa.titulo),
     React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:24}},"Olá, ",employeeData.nome.split(' ')[0],". Responda com sinceridade."),
     perguntas.map((perg,idx)=>{const pergTexto=typeof perg==='string'?perg:perg?.pergunta||'';return React.createElement("div",{key:idx,style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:18,marginBottom:14}},
       React.createElement("p",{style:{color:'#1a1d2e',fontSize:15,margin:'0 0 14px',lineHeight:1.5,fontWeight:600}},idx+1,". ",pergTexto),
-      React.createElement("div",{style:{display:'flex',gap:8}},[1,2,3,4,5].map(v=>React.createElement("button",{key:v,onClick:()=>setRespostas(r=>({...r,[idx]:v})),style:{flex:1,background:respostas[idx]===v?'#b8976a':'#f8f9fb',color:respostas[idx]===v?'#fff':'#888',border:`1px solid ${respostas[idx]===v?'#b8976a':'#e2e5ec'}`,borderRadius:10,padding:'12px 0',fontSize:16,fontWeight:700,cursor:'pointer'}},v))),
+      React.createElement("div",{style:{display:'flex',gap:8}},[1,2,3,4,5].map(v=>React.createElement("button",{key:v,onClick:()=>setRespostas(r=>({...r,[idx]:v})),style:{flex:1,background:respostas[idx]===v?'#c9a24a':'#f8f9fb',color:respostas[idx]===v?'#fff':'#888',border:`1px solid ${respostas[idx]===v?'#c9a24a':'#e2e5ec'}`,borderRadius:10,padding:'12px 0',fontSize:16,fontWeight:700,cursor:'pointer'}},v))),
       React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:10,color:'#9ca3af',marginTop:6}},React.createElement("span",null,"Nunca"),React.createElement("span",null,"Sempre"))
     );}),
-    React.createElement("button",{onClick:handleEnviar,disabled:!todasRespondidas||enviando,style:{width:'100%',background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:14,padding:'16px',fontSize:16,fontWeight:700,cursor:'pointer',marginTop:8,opacity:!todasRespondidas||enviando?.5:1}},enviando?'Enviando...':'Enviar respostas ✓'),
-    React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}},"Instituto Propagare · João Rosa · CRP 06/227336")
+    React.createElement("button",{onClick:handleEnviar,disabled:!todasRespondidas||enviando,style:{width:'100%',background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:14,padding:'16px',fontSize:16,fontWeight:700,cursor:'pointer',marginTop:8,opacity:!todasRespondidas||enviando?.5:1}},enviando?'Enviando...':'Enviar respostas ✓'),
+    React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:12}},"Kaluf & Gomes · João Rosa · CRP 06/227336")
   );
 }
 
@@ -3006,7 +3006,7 @@ function EntradaCodigoEmpresa(){
   return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}},
     React.createElement("div",{style:{width:'100%',maxWidth:380}},
       React.createElement("div",{style:{textAlign:'center',marginBottom:32}},
-        React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:16}},"INSTITUTO PROPAGARE"),
+        React.createElement("div",{style:{fontSize:12,color:'#c9a24a',fontWeight:700,letterSpacing:2,marginBottom:16}},"KALUF & GOMES"),
         React.createElement("div",{style:{fontSize:44,marginBottom:12}},"🔑"),
         React.createElement("h2",{style:{color:'#1a1d2e',fontSize:21,margin:'0 0 6px',fontWeight:800}},"Portal do Colaborador"),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,margin:0}},"Digite o código de acesso fornecido pela sua empresa")
@@ -3024,7 +3024,7 @@ function EntradaCodigoEmpresa(){
       React.createElement("button",{
         onClick:handleEntrar,
         disabled:verificando||!codigo.trim(),
-        style:{width:'100%',background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',marginTop:16,opacity:verificando||!codigo.trim()?.6:1}
+        style:{width:'100%',background:'#c9a24a',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',marginTop:16,opacity:verificando||!codigo.trim()?.6:1}
       },verificando?'Verificando...':'Acessar →'),
       React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:20}},"Não tem o código? Fale com o RH ou seu gestor.")
     )
@@ -3041,7 +3041,7 @@ function App(){
   useEffect(()=>{
     // Injetar CSS mobile quando no portal do colaborador
     if(isColaborador){
-      document.title='Portal do Colaborador · Propagare';
+      document.title='Portal do Colaborador · Kaluf & Gomes';
       const meta=document.querySelector('meta[name=theme-color]')||document.createElement('meta');
       meta.name='theme-color';meta.content='#f5f6fa';document.head.appendChild(meta);
       // CSS mobile-first dedicado
@@ -3075,7 +3075,7 @@ function App(){
     window.history.replaceState({},'',novaUrl);
     return React.createElement(FluxoPublico,{slug:empresaSlug});
   }
-  if(user===undefined)return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement("div",{style:{color:'#b8976a'}},"Carregando..."));
+  if(user===undefined)return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',alignItems:'center',justifyContent:'center'}},React.createElement("div",{style:{color:'#c9a24a'}},"Carregando..."));
   if(!user)return React.createElement(LoginScreen,null);
   return React.createElement(PainelAdmin,{user});
 }
