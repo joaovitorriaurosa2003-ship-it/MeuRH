@@ -646,7 +646,7 @@ function AbaEmpresas({empresas,tarefas,respostas}){
   const [selecionada,setSelecionada]=useState(null);
   const [verColabs,setVerColabs]=useState(null); // empresa selecionada para ver colaboradores
   const [contagemColabs,setContagemColabs]=useState({}); // {empresaId: n}
-  const getLink=slug=>`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`;
+  const getLink=slug=>`${window.location.origin}/funcionario?empresa=${slug}`;
 
   // Buscar contagem de colaboradores por empresa
   useEffect(()=>{
@@ -821,20 +821,74 @@ function ModalColaboradores({empresa,onClose}){
 }
 
 function ModalNovaEmpresa({onClose}){
-  const [nome,setNome]=useState('');const [saving,setSaving]=useState(false);const [link,setLink]=useState(null);
-  const handleSave=async()=>{if(!nome.trim())return;setSaving(true);const slug=slugify(nome)+'-'+Math.random().toString(36).substring(2,6);await db.collection('companies').add({nome:nome.trim(),slug,dataCriacao:firebase.firestore.FieldValue.serverTimestamp()});setLink(`${window.location.origin}${window.location.pathname}?colaborador&empresa=${slug}`);setSaving(false);};
+  const [nome,setNome]=useState('');
+  const [codigo,setCodigo]=useState('');
+  const [codigoTocado,setCodigoTocado]=useState(false); // se o usuário já editou manualmente
+  const [saving,setSaving]=useState(false);
+  const [link,setLink]=useState(null);
+  const [erro,setErro]=useState('');
+  const [verificando,setVerificando]=useState(false);
+
+  // Sugerir código automaticamente a partir do nome, até o usuário editar manualmente
+  useEffect(()=>{
+    if(!codigoTocado){
+      setCodigo(slugify(nome).toUpperCase().replace(/-/g,''));
+    }
+  },[nome,codigoTocado]);
+
+  const normalizarCodigo=v=>v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);
+
+  const handleSave=async()=>{
+    if(!nome.trim())return;
+    const codigoFinal=normalizarCodigo(codigo);
+    if(codigoFinal.length<3){setErro('O código precisa ter pelo menos 3 caracteres.');return;}
+    setSaving(true);setErro('');setVerificando(true);
+    try{
+      // Checar duplicidade
+      const existente=await db.collection('companies').where('slug','==',codigoFinal).limit(1).get();
+      if(!existente.empty){
+        setErro('Este código já está em uso por outra empresa. Escolha outro.');
+        setSaving(false);setVerificando(false);return;
+      }
+      await db.collection('companies').add({
+        nome:nome.trim(),slug:codigoFinal,
+        dataCriacao:firebase.firestore.FieldValue.serverTimestamp()
+      });
+      setLink(`${window.location.origin}/funcionario?empresa=${codigoFinal}`);
+    }catch(e){
+      setErro('Erro ao verificar/cadastrar: '+(e.message||e.code));
+    }
+    setSaving(false);setVerificando(false);
+  };
+
+  const inputStyle={width:'100%',background:'#f8f9fb',border:'1px solid #e2e5ec',borderRadius:8,padding:'10px 12px',color:'#1a1d2e',fontSize:14,marginBottom:16,boxSizing:'border-box'};
+  const labelStyle={display:'block',fontSize:12,color:'#6b7280',marginBottom:6,textTransform:'uppercase',fontWeight:600};
+  const codigoFinal=normalizarCodigo(codigo);
+  const linkPreview=codigoFinal?`${window.location.origin}/funcionario?empresa=${codigoFinal}`:'';
+
   return React.createElement("div",{style:{position:'fixed',inset:0,background:'rgba(0,0,0,0.7)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:50,padding:20}},
-    React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:16,padding:28,width:'100%',maxWidth:440}},
+    React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:16,padding:28,width:'100%',maxWidth:460}},
       !link?React.createElement(React.Fragment,null,
         React.createElement("h3",{style:{margin:'0 0 20px',color:'#1a1d2e'}},"Cadastrar empresa"),
-        React.createElement("label",{style:{display:'block',fontSize:12,color:'#6b7280',marginBottom:6,textTransform:'uppercase'}},"Nome da empresa"),
-        React.createElement("input",{value:nome,onChange:e=>setNome(e.target.value),autoFocus:true,style:{width:'100%',background:'#f8f9fb',border:'1px solid #e2e5ec',borderRadius:8,padding:'10px 12px',color:'#1a1d2e',fontSize:14,marginBottom:20}}),
+        React.createElement("label",{style:labelStyle},"Nome da empresa"),
+        React.createElement("input",{value:nome,onChange:e=>setNome(e.target.value),autoFocus:true,style:inputStyle,placeholder:"Ex: Panificadora Pão Delícia"}),
+        React.createElement("label",{style:labelStyle},"Código de acesso"),
+        React.createElement("input",{
+          value:codigo,
+          onChange:e=>{setCodigo(normalizarCodigo(e.target.value));setCodigoTocado(true);setErro('');},
+          style:{...inputStyle,fontFamily:'monospace',fontWeight:700,letterSpacing:1,marginBottom:6},
+          placeholder:"Ex: PAODELICIA"
+        }),
+        React.createElement("p",{style:{fontSize:11,color:'#9ca3af',marginTop:-2,marginBottom:16}},"Apenas letras e números. Este código identifica a empresa no link de acesso dos colaboradores."),
+        codigoFinal&&React.createElement("div",{style:{background:'#f0f7ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'8px 12px',marginBottom:16,fontSize:11,color:'#2563eb',wordBreak:'break-all',fontFamily:'monospace'}},linkPreview),
+        erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'8px 12px',marginBottom:16,fontSize:12,color:'#e05c4a'}},erro),
         React.createElement("div",{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
           React.createElement("button",{onClick:onClose,style:{background:'transparent',border:'1px solid #e2e5ec',color:'#6b7280',borderRadius:8,padding:'9px 16px',cursor:'pointer'}},"Cancelar"),
-          React.createElement("button",{onClick:handleSave,disabled:saving||!nome.trim(),style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700}},saving?'Salvando...':'Cadastrar e gerar link')
+          React.createElement("button",{onClick:handleSave,disabled:saving||!nome.trim()||codigoFinal.length<3,style:{background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:8,padding:'9px 18px',cursor:'pointer',fontWeight:700,opacity:saving||!nome.trim()||codigoFinal.length<3?.6:1}},verificando?'Verificando...':saving?'Salvando...':'Cadastrar e gerar link')
         )
       ):React.createElement(React.Fragment,null,
         React.createElement("h3",{style:{margin:'0 0 8px',color:'#1a1d2e'}},"✅ Empresa cadastrada!"),
+        React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:8}},"Código: ",React.createElement("b",{style:{fontFamily:'monospace',color:'#1a1d2e'}},codigoFinal)),
         React.createElement("p",{style:{color:'#6b7280',fontSize:13,marginBottom:16}},"Encaminhe este link:"),
         React.createElement("div",{style:{background:'#f8f9fb',borderRadius:8,padding:'12px 14px',fontSize:12,color:'#b8976a',wordBreak:'break-all',marginBottom:20}},link),
         React.createElement("div",{style:{display:'flex',gap:10,justifyContent:'flex-end'}},
@@ -847,18 +901,39 @@ function ModalNovaEmpresa({onClose}){
 }
 function ModalDetalheEmpresa({empresa,onClose}){
   const [nome,setNome]=useState(empresa.nome);
+  const [codigo,setCodigo]=useState(empresa.slug||'');
   const [contatoNome,setContatoNome]=useState(empresa.contatoNome||'João Rosa');
   const [contatoCargo,setContatoCargo]=useState(empresa.contatoCargo||'Psicólogo · CRP 06/227336');
   const [contatoEmail,setContatoEmail]=useState(empresa.contatoEmail||'');
   const [contatoTel,setContatoTel]=useState(empresa.contatoTel||'');
   const [saving,setSaving]=useState(false);const [confirmar,setConfirmar]=useState(false);
+  const [erroCodigo,setErroCodigo]=useState('');
+
+  const normalizarCodigo=v=>v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);
+
   const handleSalvar=async()=>{
-    setSaving(true);
-    await db.collection('companies').doc(empresa.id).update({
-      nome:nome.trim(),contatoNome:contatoNome.trim(),contatoCargo:contatoCargo.trim(),
-      contatoEmail:contatoEmail.trim(),contatoTel:contatoTel.trim()
-    });
-    setSaving(false);onClose();
+    const codigoFinal=normalizarCodigo(codigo);
+    if(codigoFinal.length<3){setErroCodigo('O código precisa ter pelo menos 3 caracteres.');return;}
+    setSaving(true);setErroCodigo('');
+    try{
+      // Só checa duplicidade se o código mudou
+      if(codigoFinal!==empresa.slug){
+        const existente=await db.collection('companies').where('slug','==',codigoFinal).limit(1).get();
+        if(!existente.empty){
+          setErroCodigo('Este código já está em uso por outra empresa.');
+          setSaving(false);return;
+        }
+      }
+      await db.collection('companies').doc(empresa.id).update({
+        nome:nome.trim(),slug:codigoFinal,
+        contatoNome:contatoNome.trim(),contatoCargo:contatoCargo.trim(),
+        contatoEmail:contatoEmail.trim(),contatoTel:contatoTel.trim()
+      });
+      setSaving(false);onClose();
+    }catch(e){
+      setErroCodigo('Erro ao salvar: '+(e.message||e.code));
+      setSaving(false);
+    }
   };
   const handleExcluir=async()=>{await db.collection('companies').doc(empresa.id).delete();onClose();};
   const inp={width:'100%',background:'#f8f9fb',border:'1px solid #e2e5ec',borderRadius:8,padding:'10px 12px',color:'#1a1d2e',fontSize:14,marginBottom:14,boxSizing:'border-box'};
@@ -869,6 +944,12 @@ function ModalDetalheEmpresa({empresa,onClose}){
       // Dados da empresa
       React.createElement("label",{style:lbl},"Nome da empresa"),
       React.createElement("input",{value:nome,onChange:e=>setNome(e.target.value),style:inp}),
+      React.createElement("label",{style:lbl},"Código de acesso"),
+      React.createElement("input",{value:codigo,onChange:e=>{setCodigo(normalizarCodigo(e.target.value));setErroCodigo('');},style:{...inp,fontFamily:'monospace',fontWeight:700,letterSpacing:1,marginBottom:4}}),
+      erroCodigo&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:6,padding:'6px 10px',marginBottom:10,fontSize:11,color:'#e05c4a'}},erroCodigo),
+      React.createElement("div",{style:{background:'#f8f9fb',borderRadius:6,padding:'8px 10px',marginBottom:14,fontSize:11,color:'#9ca3af',wordBreak:'break-all',fontFamily:'monospace'}},
+        window.location.origin+'/funcionario?empresa='+normalizarCodigo(codigo)
+      ),
       // Contato RH / Psicólogo
       React.createElement("div",{style:{background:'#f0f7ff',border:'1px solid #bfdbfe',borderRadius:8,padding:'12px 14px',marginBottom:16}},
         React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#2563eb',marginBottom:12}},"👤 Contato RH / Psicólogo (visível ao colaborador)"),
@@ -2568,6 +2649,63 @@ function FormularioEscalaMobile({empresa,employeeId,employeeData,tarefa,onEnviad
 /* ======================================================
    APP RAIZ
 ====================================================== */
+/* ---- TELA DE ENTRADA DE CÓDIGO DA EMPRESA (colaborador sem link direto) ---- */
+function EntradaCodigoEmpresa(){
+  const [codigo,setCodigo]=useState('');
+  const [verificando,setVerificando]=useState(false);
+  const [erro,setErro]=useState('');
+
+  const normalizarCodigo=v=>v.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,20);
+
+  const handleEntrar=async()=>{
+    const codigoFinal=normalizarCodigo(codigo);
+    if(codigoFinal.length<3){setErro('Digite um código válido.');return;}
+    setVerificando(true);setErro('');
+    try{
+      const snap=await db.collection('companies').where('slug','==',codigoFinal).limit(1).get();
+      if(snap.empty){
+        setErro('Código não encontrado. Verifique com o RH da sua empresa.');
+        setVerificando(false);return;
+      }
+      const novaUrl=window.location.pathname+'?colaborador&empresa='+codigoFinal;
+      window.history.replaceState({},'',novaUrl);
+      window.location.reload();
+    }catch(e){
+      setErro('Erro ao verificar o código. Tente novamente.');
+      setVerificando(false);
+    }
+  };
+
+  const inp={width:'100%',background:'#fff',border:'1.5px solid #e2e5ec',borderRadius:12,padding:'16px',color:'#1a1d2e',fontSize:20,fontFamily:'monospace',fontWeight:700,letterSpacing:2,textAlign:'center',outline:'none',textTransform:'uppercase',boxSizing:'border-box'};
+
+  return React.createElement("div",{style:{minHeight:'100vh',background:'#f8f9fb',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:24}},
+    React.createElement("div",{style:{width:'100%',maxWidth:380}},
+      React.createElement("div",{style:{textAlign:'center',marginBottom:32}},
+        React.createElement("div",{style:{fontSize:12,color:'#b8976a',fontWeight:700,letterSpacing:2,marginBottom:16}},"INSTITUTO PROPAGARE"),
+        React.createElement("div",{style:{fontSize:44,marginBottom:12}},"🔑"),
+        React.createElement("h2",{style:{color:'#1a1d2e',fontSize:21,margin:'0 0 6px',fontWeight:800}},"Portal do Colaborador"),
+        React.createElement("p",{style:{color:'#6b7280',fontSize:13,margin:0}},"Digite o código de acesso fornecido pela sua empresa")
+      ),
+      React.createElement("input",{
+        value:codigo,
+        onChange:e=>{setCodigo(e.target.value);setErro('');},
+        onKeyDown:e=>e.key==='Enter'&&handleEntrar(),
+        placeholder:"CÓDIGO",
+        style:inp,
+        autoFocus:true,
+        maxLength:20
+      }),
+      erro&&React.createElement("div",{style:{background:'#fef2f2',border:'1px solid #fecaca',borderRadius:8,padding:'10px 14px',marginTop:14,fontSize:13,color:'#e05c4a',textAlign:'center'}},erro),
+      React.createElement("button",{
+        onClick:handleEntrar,
+        disabled:verificando||!codigo.trim(),
+        style:{width:'100%',background:'#b8976a',color:'#2e1a00',border:'none',borderRadius:12,padding:'14px',fontSize:15,fontWeight:800,cursor:'pointer',marginTop:16,opacity:verificando||!codigo.trim()?.6:1}
+      },verificando?'Verificando...':'Acessar →'),
+      React.createElement("p",{style:{textAlign:'center',fontSize:11,color:'#9ca3af',marginTop:20}},"Não tem o código? Fale com o RH ou seu gestor.")
+    )
+  );
+}
+
 function App(){
   const [user,setUser]=useState(undefined);
   const params=new URLSearchParams(window.location.search);
@@ -2604,6 +2742,8 @@ function App(){
 
   // Portal do colaborador — detecta tanto ?colaborador&empresa=slug quanto ?empresa=slug (legacy)
   if(isColaborador&&empresaSlug)return React.createElement(FluxoPublico,{slug:empresaSlug});
+  // ?colaborador sem código → tela para digitar o código da empresa manualmente
+  if(isColaborador&&!empresaSlug)return React.createElement(EntradaCodigoEmpresa,null);
   // Legacy: link antigo sem ?colaborador — redireciona para nova URL
   if(!isColaborador&&empresaSlug){
     const novaUrl=window.location.pathname+'?colaborador&empresa='+empresaSlug;
