@@ -171,7 +171,7 @@ const PERFIS_DISC = {
      pontosFortes:'Solucionador de problemas nato, com forte autoconfiança e clara orientação para metas. Em grupo, destaca-se como motivador e organizador, valorizando o tempo e mantendo o foco nos objetivos.',
      areasPerigo:'Tendência a ser argumentativo, forte aversão à rotina e propensão a extrapolar sua autoridade.',
      emDesequilibrio:'Pode ser visto como arrogante, excessivamente competitivo e insubordinado, chegando a desconsiderar as pessoas ao seu redor.',
-     medo:'Ser vítima da manipulação de outros — o que alimenta sua necessidade de controle.',
+     medo:'Ser vítima da manipulação de outros, o que alimenta sua necessidade de controle.',
      reacaoHostil:'Reage rapidamente com raiva; em ambiente hostil, sua abordagem é direta e agressiva.',
      dicas:[
        'Pare para analisar melhor as informações, assim suas ações terão mais embasamento.',
@@ -180,7 +180,13 @@ const PERFIS_DISC = {
        'Desenvolva paciência e cooperação.',
        'Evite ser rude ao ponto de ofender as pessoas.',
        'Evite fazer do seu trabalho um campo de batalha, medindo forças com as pessoas o tempo todo. Lembre-se: você precisa da equipe para chegar aos melhores resultados.'
-     ]},
+     ],
+     relacionamento:'Constrói vínculos rápido, mas em torno de objetivos compartilhados. Respeita quem entrega e perde paciência com quem enrola. Tende a liderar a relação mais do que dividi-la, e pode precisar de lembretes para ouvir antes de decidir pelos outros.',
+     decisoes:'Decide rápido e prefere agir a esperar. Confia na própria leitura da situação e busca o caminho mais direto até o resultado, mesmo que isso signifique assumir riscos que outros perfis evitariam. O ponto de atenção é validar a decisão com quem será afetado por ela antes de seguir em frente.',
+     comoLiderar:'Dê metas claras e depois saia do caminho: esse perfil rende mais com autonomia do que com supervisão constante. Ofereça desafios reais, seja direto no feedback (elogios e críticas sem rodeios) e evite microgerenciamento, que costuma ser recebido como falta de confiança. Envolvê-lo na definição das próprias metas aumenta o comprometimento.',
+     ambienteIdeal:'Rende mais em ambientes dinâmicos, com metas claras, autonomia de execução e pouca burocracia. Rotina excessiva e processos engessados tendem a esgotar sua energia rapidamente. Precisa sentir que está avançando e que seu esforço gera resultado visível.',
+     comoComunicar:'Vá direto ao ponto: prefere conversas objetivas, focadas em resultados e próximos passos, sem introduções longas. Argumentos bem embasados funcionam melhor do que apelos emocionais. Perguntas abertas do tipo "o que você acha que devemos fazer" costumam engajá-lo mais do que instruções detalhadas.',
+     subPressao:'Sob pressão, tende a acelerar ainda mais e pode se tornar impositivo, cortando caminho por cima de processos ou pessoas. A paciência para ouvir diminui, e decisões passam a ser tomadas de forma mais unilateral. Um sinal de alerta é quando para de perguntar e começa só a determinar.'},
   I:{nome:'Comunicador', letra:'I',cor:'#2E9CCA',emoji:'💬',resumo:'Influência',
      sinonimos:'Motivador · Vendedor · Diplomata · Persuasivo · Sociável · Entusiasta',
      motivacaoCentral:'Desenvolver relacionamentos e fortalecer laços sociais',
@@ -189,7 +195,7 @@ const PERFIS_DISC = {
      pontosFortes:'Dentro de um grupo, atua como encorajador, pacificador e fonte de bom humor. É um solucionador de problemas criativo, sempre em busca de maneiras inovadoras de agir.',
      areasPerigo:'Pode negligenciar detalhes, ser desorganizado e ouvir apenas o que lhe convém.',
      emDesequilibrio:'Pode se tornar irresponsável, procrastinar em tarefas que não lhe trazem prazer e demonstrar comportamento inconveniente ou rebelde.',
-     medo:'Rejeição e perda de aprovação social — o que o leva a priorizar a popularidade sobre os resultados concretos.',
+     medo:'Rejeição e perda de aprovação social, o que o leva a priorizar a popularidade sobre os resultados concretos.',
      reacaoHostil:'Em situações de conflito, sua reação imediata é tentar negociar ou se desculpar para restaurar a harmonia.',
      dicas:[
        'Desenvolva habilidades de gerência do tempo.',
@@ -200,25 +206,37 @@ const PERFIS_DISC = {
        'Desenvolva tabela de cronograma e checagem de conclusão das atividades.',
        'Evite ficar perto de pessoas negativas, frias ou pessimistas.',
        'Evite trabalhar sozinho.'
-     ]},
+     ],
+     relacionamento:'Cria conexão com facilidade e genuinamente gosta de estar perto das pessoas. Costuma ser o elo que mantém o grupo unido e animado, mas pode evitar conversas difíceis para não abalar o clima, o que às vezes adia problemas em vez de resolvê-los.',
+     decisoes:'Decide guiado pelo impacto nas pessoas envolvidas e pela própria intuição do momento. Prefere debater em voz alta a refletir sozinho, e tende a se empolgar com a primeira boa ideia. O risco é comprometer-se antes de considerar os detalhes práticos da execução.',
+     comoLiderar:'Reconheça publicamente as contribuições e mantenha o ambiente leve: esse perfil se motiva por aprovação e conexão, não só por metas. Ajude a estruturar prazos e desdobrar ideias em passos concretos, já que a empolgação inicial nem sempre vem acompanhada de plano de execução. Envolvê-lo em decisões que afetam a equipe aumenta o engajamento.',
+     ambienteIdeal:'Rende mais em ambientes colaborativos, com interação social frequente, variedade de tarefas e liberdade para propor ideias. Isolamento prolongado ou trabalho repetitivo tendem a esvaziar sua energia. Precisa sentir que faz parte de algo maior com outras pessoas.',
+     comoComunicar:'Reserve um tempo para o lado pessoal da conversa antes de entrar direto no assunto profissional. Histórias e exemplos concretos funcionam melhor do que dados isolados. Elogios sinceros e reconhecimento verbal têm mais impacto nesse perfil do que em qualquer outro.',
+     subPressao:'Sob pressão, tende a se dispersar, prometer mais do que consegue entregar, ou evitar a conversa difícil que precisa acontecer. Pode buscar validação externa em vez de enfrentar o problema diretamente. Um sinal de alerta é o excesso de otimismo verbal sem um plano concreto por trás.'},
   S:{nome:'Planejador',  letra:'S',cor:'#5A9B72',emoji:'🧭',resumo:'Estabilidade',
      sinonimos:'Colaborador · Pacificador · Especialista · Constante · Paciente · Leal',
      motivacaoCentral:'Serviço ao próximo, busca por harmonia e cooperação',
      descricao:'O perfil "Planejador" é fundamentalmente motivado pelo serviço ao próximo e pela busca de harmonia e cooperação. Sua principal necessidade é a segurança, e seu maior medo é a perda de estabilidade. Para manter esse equilíbrio, torna-se uma pessoa calorosa, paciente, leal e um excelente ouvinte.',
      caracteristicas:'Calor humano, paciência e lealdade combinados com organização e persistência para "fazer junto".',
-     pontosFortes:'Seu valor para uma equipe é imenso — age como um pilar de confiança e empatia, trabalhando de forma persistente e organizada.',
+     pontosFortes:'Seu valor para uma equipe é imenso, pois age como um pilar de confiança e empatia, trabalhando de forma persistente e organizada.',
      areasPerigo:'Naturalmente resistente a mudanças, tende a se retirar de conflitos em vez de enfrentá-los, e pode "guardar" mágoas por ser muito sensível.',
      emDesequilibrio:'Magoa-se com facilidade, pode se tornar complacente e tem dificuldade em se impor ou definir prioridades que possam gerar atrito.',
-     medo:'Perda de estabilidade — sua emoção base é o medo diante de mudanças.',
+     medo:'Perda de estabilidade. Sua emoção base é o medo diante de mudanças.',
      reacaoHostil:'Tende a se retirar do conflito ao invés de enfrentá-lo diretamente.',
      dicas:[
        'Torne-se mais flexível com suas rotinas e se disponha a negociar a mudança.',
        'Desenvolva suas habilidades de assertividade.',
-       'Saiba que as pessoas não sabem o que você está sentindo ou pensando — aprenda a se comunicar melhor.',
+       'Saiba que as pessoas não sabem o que você está sentindo ou pensando. Aprenda a se comunicar melhor.',
        'Evite receber as críticas ao seu trabalho como algo pessoal.',
        'Evite ser rigoroso em demasia consigo mesmo.',
        'Evite olhar para as pessoas e esperar que todos reajam como você.'
-     ]},
+     ],
+     relacionamento:'Valoriza vínculos duradouros e é leal a quem já conquistou sua confiança. Prefere um círculo estável a muitas conexões novas, e se envolve mais fundo depois que sente segurança na relação. Evita expor discordâncias abertamente, o que pode acumular ressentimentos não ditos.',
+     decisoes:'Decide com cautela, priorizando o que preserva a estabilidade do grupo e evita conflito. Prefere consultar quem será afetado antes de agir, e busca apoio em valores e práticas já conhecidos. Diante de decisões difíceis, pode adiar por tempo demais em vez de assumir o desconforto de escolher.',
+     comoLiderar:'Avise mudanças com antecedência e explique o porquê: esse perfil precisa de tempo para se ajustar antes de agir. Ofereça um ambiente previsível, elogie a consistência (não só resultados pontuais) e dê feedback em particular, nunca na frente do grupo. Perguntar diretamente sua opinião ajuda, já que raramente vai se colocar sem ser convidado.',
+     ambienteIdeal:'Rende mais em ambientes estáveis, com processos claros, equipe cooperativa e previsibilidade na rotina. Mudanças bruscas e ambientes de alta pressão competitiva tendem a gerar desconforto real, não só resistência superficial. Precisa sentir segurança para entregar o melhor de si.',
+     comoComunicar:'Fale com calma e dê tempo para a pessoa processar antes de esperar uma resposta ou decisão. Evite pressionar por respostas imediatas em reuniões, prefira enviar a pauta com antecedência. Reforce verbalmente que discordar é seguro, já que esse perfil tende a guardar objeções em vez de expressá-las.',
+     subPressao:'Sob pressão, tende a se retrair, evitar o confronto necessário e concordar externamente mesmo discordando por dentro. Mágoas não expressas podem se acumular silenciosamente. Um sinal de alerta é o silêncio prolongado ou respostas monossilábicas em situações que normalmente gerariam mais engajamento.'},
   C:{nome:'Analista',    letra:'C',cor:'#7B5FC4',emoji:'🔎',resumo:'Conformidade',
      sinonimos:'Estrategista · Controlador · Técnico · Rigoroso · Sistemático · Criterioso',
      motivacaoCentral:'Dever para com as regras, padrões e qualidade — "fazer certo"',
@@ -234,21 +252,27 @@ const PERFIS_DISC = {
        'Compartilhe seu raciocínio com a equipe antes de concluir sozinho.',
        'Evite deixar a busca por detalhes atrasar decisões importantes.',
        'Pratique dar e receber feedback sem tomá-lo como ataque pessoal.',
-       'Permita-se errar e ajustar — a perfeição não é pré-requisito para avançar.',
+       'Permita-se errar e ajustar. A perfeição não é pré-requisito para avançar.',
        'Busque equilíbrio entre rigor técnico e agilidade nas entregas.'
-     ]},
+     ],
+     relacionamento:'Mantém uma postura reservada e seletiva, preferindo poucas relações bem estabelecidas a muitos vínculos superficiais. É educado e confiável, mas leva tempo para se abrir de verdade. Costuma ser mais claro nos fatos do que nos sentimentos envolvidos numa relação.',
+     decisoes:'Decide com base em critérios objetivos e dados concretos, evitando aspectos subjetivos sempre que possível. Prefere resolver problemas sozinho a pedir ajuda, embora costume consultar quem será diretamente afetado. Diante de decisões arriscadas ou sem informação suficiente, tende a adiar a escolha até se sentir seguro.',
+     comoLiderar:'Dê critérios claros e tempo para analisar antes de cobrar uma posição. Respeite a necessidade de rigor técnico e evite pressionar por respostas rápidas em temas complexos, isso tende a gerar mais trava do que agilidade. Feedback por escrito, com exemplos específicos, costuma ser mais bem recebido do que uma conversa informal.',
+     ambienteIdeal:'Rende mais em ambientes estruturados, com padrões de qualidade definidos, acesso a dados e baixa ambiguidade nas instruções. Pressa excessiva e falta de critérios claros tendem a gerar desconforto e retrabalho. Precisa sentir que o que está entregando está correto antes de considerar o trabalho concluído.',
+     comoComunicar:'Traga dados e evidências, não apenas opiniões. Perguntas vagas geram desconforto, seja específico sobre o que precisa e até quando. Dê espaço para a pessoa pensar antes de responder, respostas imediatas nem sempre são o forte desse perfil, e tudo bem.',
+     subPressao:'Sob pressão, tende a ficar mais crítico e perfeccionista, podendo travar em detalhes ao invés de avançar. Pode evitar se expor por medo de errar, adiando entregas para revisar mais uma vez. Um sinal de alerta é quando a busca por precisão começa a impedir qualquer entrega, mesmo as pequenas.'},
 };
 
 // Indicadores situacionais e competências (material de apoio DISC Profiller)
 const DISC_INDICADORES = [
-  {id:'energia',label:'Energia',desc:'Seu nível de energia pessoal — força, disposição e motivação para entrega de resultados.'},
+  {id:'energia',label:'Energia',desc:'Seu nível de energia pessoal, incluindo força, disposição e motivação para entrega de resultados.'},
   {id:'exigencia',label:'Exigência do meio',desc:'O quanto você se sente cobrado por fatores externos: ambiente de trabalho, rotina ou outras influências.'},
-  {id:'aproveitamento',label:'Aproveitamento',desc:'O quanto você se sente aproveitado em seu ambiente de trabalho — se suas entregas e competências são valorizadas.'},
-  {id:'autoconfianca',label:'Autoconfiança',desc:'Sua autoaprovação profissional — satisfação com a qualidade de suas entregas, função e rotina.'},
+  {id:'aproveitamento',label:'Aproveitamento',desc:'O quanto você se sente aproveitado em seu ambiente de trabalho, ou seja, se suas entregas e competências são valorizadas.'},
+  {id:'autoconfianca',label:'Autoconfiança',desc:'Sua autoaprovação profissional, ligada à satisfação com a qualidade de suas entregas, função e rotina.'},
   {id:'autoestima',label:'Autoestima',desc:'O quanto você se sente satisfeito consigo mesmo pessoalmente, o que também impacta seu trabalho.'},
-  {id:'flexibilidade',label:'Flexibilidade',desc:'Sua capacidade de se adaptar — facilidade em mudar de comportamento ou trabalhar de formas diferentes do habitual.'},
+  {id:'flexibilidade',label:'Flexibilidade',desc:'Sua capacidade de se adaptar, com facilidade para mudar de comportamento ou trabalhar de formas diferentes do habitual.'},
   {id:'amplitude',label:'Amplitude',desc:'O quanto você afeta o ambiente ao seu redor e como ele também afeta sua produtividade.'},
-  {id:'automotivacao',label:'Automotivação',desc:'Energia de longo prazo — energia de manutenção para continuar as tarefas diárias.'},
+  {id:'automotivacao',label:'Automotivação',desc:'Energia de longo prazo, que mantém você engajado para continuar as tarefas diárias.'},
   {id:'incitabilidade',label:'Incitabilidade',desc:'Sua velocidade de resposta ao se deparar com um novo projeto, desafio ou problema no trabalho.'},
 ];
 
@@ -485,7 +509,7 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
     +'.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}'
     +'@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body>'
     +'<div class="header"><div>'
-    +'<div style="font-size:20px;font-weight:700;color:#2e2b28">COPSOQ II — '+tarefa.titulo+'</div>'
+    +'<div style="font-size:20px;font-weight:700;color:#2e2b28">COPSOQ II · '+tarefa.titulo+'</div>'
     +'<div style="font-size:12px;color:#888;margin-top:4px">Riscos Psicossociais · '+empresaNome+' · Gerado em '+dataHoje+'</div>'
     +'</div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
     +'<div style="display:flex;gap:16px;margin-bottom:24px">'
@@ -504,6 +528,113 @@ function gerarPDFCopsoq(tarefa, respostas, empresaNome) {
   w.document.write(html);
   w.document.close();
   setTimeout(function(){w.print();},500);
+}
+
+function discRadarSVG(pctAuto,pctHetero,size){
+  size=size||220;
+  var cx=size/2,cy=size/2,r=size*0.30;
+  var ordem=['D','I','S','C'];
+  var n=4,angBase=-Math.PI/2;
+
+  function ptsFor(pct){
+    return ordem.map(function(k,i){
+      var ang=angBase+2*Math.PI*i/n;
+      var val=(pct[k]||0)/100;
+      return{x:cx+r*val*Math.cos(ang),y:cy+r*val*Math.sin(ang)};
+    });
+  }
+
+  var grades=[0.25,0.5,0.75,1].map(function(frac){
+    var gpts=ordem.map(function(_,i){
+      var ang=angBase+2*Math.PI*i/n;
+      return(cx+r*frac*Math.cos(ang)).toFixed(1)+','+(cy+r*frac*Math.sin(ang)).toFixed(1);
+    }).join(' ');
+    return'<polygon points="'+gpts+'" fill="none" stroke="#e5e0d8" stroke-width="0.6"/>';
+  }).join('');
+
+  var eixos=ordem.map(function(_,i){
+    var ang=angBase+2*Math.PI*i/n;
+    return'<line x1="'+cx.toFixed(1)+'" y1="'+cy.toFixed(1)+'" x2="'+(cx+r*Math.cos(ang)).toFixed(1)+'" y2="'+(cy+r*Math.sin(ang)).toFixed(1)+'" stroke="#ccc" stroke-width="0.7"/>';
+  }).join('');
+
+  var ptsAuto=ptsFor(pctAuto);
+  var ptsHetero=ptsFor(pctHetero);
+
+  var areaHetero='<polygon points="'+ptsHetero.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ')+'" fill="#7B5FC422" stroke="#7B5FC488" stroke-width="1.6" stroke-dasharray="3,2"/>';
+  var areaAuto='<polygon points="'+ptsAuto.map(function(p){return p.x.toFixed(1)+','+p.y.toFixed(1);}).join(' ')+'" fill="#7B5FC433" stroke="#7B5FC4" stroke-width="2"/>';
+
+  var pontosAuto=ptsAuto.map(function(p){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="3.2" fill="#7B5FC4"/>';}).join('');
+  var pontosHetero=ptsHetero.map(function(p){return'<circle cx="'+p.x.toFixed(1)+'" cy="'+p.y.toFixed(1)+'" r="2.6" fill="#fff" stroke="#7B5FC4" stroke-width="1.4"/>';}).join('');
+
+  var labelOff=28;
+  var labelsHTML=ordem.map(function(k,i){
+    var p=PERFIS_DISC[k];
+    var ang=angBase+2*Math.PI*i/n;
+    var lx=cx+(r+labelOff)*Math.cos(ang);
+    var ly=cy+(r+labelOff)*Math.sin(ang);
+    var anchor=Math.cos(ang)>0.15?'start':Math.cos(ang)<-0.15?'end':'middle';
+    // Sem emoji: wkhtmltopdf renderiza emoji com largura instável, causando sobreposição de labels em radares pequenos
+    return'<text x="'+lx.toFixed(1)+'" y="'+ly.toFixed(1)+'" text-anchor="'+anchor+'" dominant-baseline="middle" font-size="12" font-weight="bold" fill="'+p.cor+'" font-family="Arial">'+k+'</text>';
+  }).join('');
+
+  return'<svg width="'+size+'" height="'+size+'" viewBox="0 0 '+size+' '+size+'" xmlns="http://www.w3.org/2000/svg">'
+    +grades+eixos+areaHetero+areaAuto+pontosHetero+pontosAuto+labelsHTML
+    +'</svg>';
+}
+
+// Gráfico de linha comparando Perfil Atual, Exigência do meio e Força de Adaptação
+// Conceito clássico de teoria DISC (perfil interno x ambiente x adaptação) — fórmula e design próprios
+function discLinhaComparativa(pctAuto,pctHetero,width,height){
+  width=width||420;height=height||220;
+  var pad={top:24,bottom:30,left:36,right:16};
+  var W=width-pad.left-pad.right,H=height-pad.top-pad.bottom;
+  var ordem=['D','I','S','C'];
+  var baseline=25; // 100%/4 dimensões = ponto neutro
+  var minV=-25,maxV=25;
+
+  function serieValores(tipo){
+    return ordem.map(function(k){
+      var a=(pctAuto[k]||0)-baseline;
+      var h=(pctHetero[k]||0)-baseline;
+      if(tipo==='atual')return a;
+      if(tipo==='exigencia')return h;
+      return (a+h)/2; // Força de adaptação = ponto médio entre autopercepção e ambiente
+    });
+  }
+  function yPos(v){return pad.top+H-((v-minV)/(maxV-minV))*H;}
+  function xPos(i){return pad.left+(i/(ordem.length-1))*W;}
+
+  var grades=[minV,minV/2,0,maxV/2,maxV].map(function(v){
+    var y=yPos(v);
+    return '<line x1="'+pad.left+'" y1="'+y.toFixed(1)+'" x2="'+(width-pad.right)+'" y2="'+y.toFixed(1)+'" stroke="'+(v===0?'#ccc':'#eee')+'" stroke-width="'+(v===0?1.2:0.6)+'"/>'
+      +'<text x="'+(pad.left-6)+'" y="'+(y+3).toFixed(1)+'" text-anchor="end" font-size="8" fill="#999" font-family="Arial">'+v+'</text>';
+  }).join('');
+
+  var xLabels=ordem.map(function(k,i){
+    var p=PERFIS_DISC[k];
+    return '<text x="'+xPos(i).toFixed(1)+'" y="'+(height-pad.bottom+16)+'" text-anchor="middle" font-size="9" font-weight="bold" fill="'+p.cor+'" font-family="Arial">'+k+'</text>';
+  }).join('');
+
+  function linha(tipo,cor,dash,marcador){
+    var vals=serieValores(tipo);
+    var pts=vals.map(function(v,i){return xPos(i).toFixed(1)+','+yPos(v).toFixed(1);}).join(' ');
+    var linhaSvg='<polyline points="'+pts+'" fill="none" stroke="'+cor+'" stroke-width="1.8"'+(dash?' stroke-dasharray="'+dash+'"':'')+'/>';
+    var pontosSvg=vals.map(function(v,i){
+      var x=xPos(i),y=yPos(v);
+      if(marcador==='circle')return '<circle cx="'+x.toFixed(1)+'" cy="'+y.toFixed(1)+'" r="3.4" fill="'+cor+'"/>';
+      if(marcador==='square')return '<rect x="'+(x-3).toFixed(1)+'" y="'+(y-3).toFixed(1)+'" width="6" height="6" fill="'+cor+'"/>';
+      return '<polygon points="'+x.toFixed(1)+','+(y-3.6).toFixed(1)+' '+(x-3.4).toFixed(1)+','+(y+2.8).toFixed(1)+' '+(x+3.4).toFixed(1)+','+(y+2.8).toFixed(1)+'" fill="'+cor+'"/>';
+    }).join('');
+    return linhaSvg+pontosSvg;
+  }
+
+  var linhaAtual=linha('atual','#7B5FC4',null,'circle');
+  var linhaExigencia=linha('exigencia','#E05C4A','4,2','square');
+  var linhaAdaptacao=linha('adaptacao','#555','1,2','triangle');
+
+  return '<svg width="'+width+'" height="'+height+'" viewBox="0 0 '+width+' '+height+'" xmlns="http://www.w3.org/2000/svg">'
+    +grades+xLabels+linhaExigencia+linhaAdaptacao+linhaAtual
+    +'</svg>';
 }
 
 function gerarPDFDisc(tarefa,respostas,empresaNome){
@@ -525,7 +656,18 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
     n++;
   });
   n=n||1;
-  var mediasGrupo=['D','I','S','C'].map(function(k){return barraDim(k,Math.round(somaAuto[k]/n),Math.round(somaHetero[k]/n));}).join('');
+  var pctMedioAuto={},pctMedioHetero={};
+  ['D','I','S','C'].forEach(function(k){pctMedioAuto[k]=Math.round(somaAuto[k]/n);pctMedioHetero[k]=Math.round(somaHetero[k]/n);});
+  var radarGrupo=discRadarSVG(pctMedioAuto,pctMedioHetero,210);
+  var mediasGrupoBarras=['D','I','S','C'].map(function(k){return barraDim(k,pctMedioAuto[k],pctMedioHetero[k]);}).join('');
+  var mediasGrupo='<div style="display:flex;gap:24px;align-items:center">'
+    +'<div style="flex-shrink:0;text-align:center;width:210px">'+radarGrupo
+    +'<div style="display:flex;gap:14px;justify-content:center;margin-top:6px;font-size:9px;color:#666">'
+    +'<span><span style="display:inline-block;width:8px;height:8px;background:#7B5FC4;border-radius:50%;margin-right:4px"></span>Autopercepção</span>'
+    +'<span><span style="display:inline-block;width:8px;height:8px;background:#fff;border:1.4px solid #7B5FC4;border-radius:50%;margin-right:4px"></span>Heteropercepção</span>'
+    +'</div></div>'
+    +'<div style="flex:1">'+mediasGrupoBarras+'</div>'
+    +'</div>';
 
   var individuais=respostas.map(function(r){
     var auto=calcDiscScores(r.respostas&&r.respostas.auto);
@@ -534,7 +676,11 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
     var talento=calcDiscTalento(auto.pct);
     var indic=calcDiscIndicadores(r.respostas);
     var comps=calcDiscCompetencias(auto.pct).slice(0,8);
-    var barras=['D','I','S','C'].map(function(k){return barraDim(k,auto.pct[k]||0,hetero.pct[k]||0);}).join('');
+    var radar=discRadarSVG(auto.pct,hetero.pct,190);
+    var legendaRadar='<div style="display:flex;gap:14px;justify-content:center;margin-top:4px;font-size:9px;color:#666">'
+      +'<span><span style="display:inline-block;width:8px;height:8px;background:#7B5FC4;border-radius:50%;margin-right:4px"></span>Autopercepção</span>'
+      +'<span><span style="display:inline-block;width:8px;height:8px;background:#fff;border:1.4px solid #7B5FC4;border-radius:50%;margin-right:4px"></span>Heteropercepção</span>'
+      +'</div>';
     var dicasHtml=(pDom.dicas||[]).map(function(d){return '<div style="margin-bottom:4px">✓ '+d+'</div>';}).join('');
     var indicHtml=DISC_INDICADORES.filter(function(ind){return ind.id!=='aproveitamento';}).map(function(ind){
       return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="width:110px;font-size:10px;color:#666">'+ind.label+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pDom.cor+';width:'+indic[ind.id]+'%"></div></div><span style="width:28px;text-align:right;font-size:10px;font-weight:700;color:'+pDom.cor+'">'+indic[ind.id]+'%</span></div>';
@@ -543,16 +689,43 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
       return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px"><span style="width:130px;font-size:10px;color:#666">'+c.label+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pDom.cor+'aa;width:'+c.valor+'%"></div></div><span style="width:28px;text-align:right;font-size:10px;font-weight:700;color:'+pDom.cor+'">'+c.valor+'%</span></div>';
     }).join('');
     return '<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:14px;page-break-inside:avoid">'
-      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">'
       +'<div><div style="font-size:15px;font-weight:700;color:#2e2b28">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div></div>'
       +'<div style="background:'+pDom.cor+'22;border:1px solid '+pDom.cor+'55;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:700;color:'+pDom.cor+'">'+pDom.emoji+' '+pDom.nome+'</div>'
-      +'</div>'+barras
-      +'<div style="background:'+pDom.cor+'0d;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:11px;line-height:1.6;color:#444">'
+      +'</div>'
+      // Radar centralizado, em linha própria (evita colisão com o texto ao lado)
+      +'<div style="text-align:center;margin-bottom:14px">'+radar+legendaRadar+'</div>'
+      // Área de talento em faixa própria, largura total
+      +'<div style="background:'+pDom.cor+'0d;border-radius:6px;padding:10px 12px;margin-bottom:14px;font-size:11px;line-height:1.6;color:#444">'
       +'<b style="color:'+pDom.cor+'">🎯 Área de talento: '+talento.nome+'</b><br>'+talento.desc+'<br><span style="color:#888">Profissões: '+talento.profissoes+'</span>'
       +'</div>'
-      +'<div style="display:flex;gap:16px;margin-top:10px">'
+      // Índices e competências lado a lado abaixo, com espaço garantido
+      +'<div style="display:flex;gap:20px">'
       +'<div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Índices situacionais</div>'+indicHtml+'</div>'
       +'<div style="flex:1"><div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:6px">Principais competências</div>'+compsHtml+'</div>'
+      +'</div>'
+      +'</div>'
+      +'</div>'
+      +'<div style="margin-top:12px;border-top:1px solid #f0ede8;padding-top:10px">'
+      +'<div style="font-size:10px;font-weight:700;color:#888;text-transform:uppercase;margin-bottom:4px">Perfil atual × Exigência do meio × Força de adaptação</div>'
+      +'<div style="text-align:center">'+discLinhaComparativa(auto.pct,hetero.pct,380,170)+'</div>'
+      +'<div style="display:flex;gap:14px;justify-content:center;font-size:9px;color:#666;margin-top:2px">'
+      +'<span><span style="display:inline-block;width:10px;height:2px;background:#7B5FC4;margin-right:4px;vertical-align:middle"></span>Perfil atual</span>'
+      +'<span><span style="display:inline-block;width:10px;height:2px;background:#E05C4A;margin-right:4px;vertical-align:middle"></span>Exigência do meio</span>'
+      +'<span><span style="display:inline-block;width:10px;height:2px;background:#555;margin-right:4px;vertical-align:middle"></span>Força de adaptação</span>'
+      +'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:12px">'
+      +'<div style="flex:1;background:#faf9f7;border-radius:6px;padding:10px 12px;font-size:11px;line-height:1.6;color:#444"><b style="color:'+pDom.cor+'">Relacionando-se com os outros</b><br>'+pDom.relacionamento+'</div>'
+      +'<div style="flex:1;background:#faf9f7;border-radius:6px;padding:10px 12px;font-size:11px;line-height:1.6;color:#444"><b style="color:'+pDom.cor+'">Tomando decisões</b><br>'+pDom.decisoes+'</div>'
+      +'</div>'
+      +'<div style="display:flex;gap:16px;margin-top:12px">'
+      +'<div style="flex:1;background:#faf9f7;border-radius:6px;padding:10px 12px;font-size:11px;line-height:1.6;color:#444"><b style="color:'+pDom.cor+'">Sob pressão</b><br>'+pDom.subPressao+'</div>'
+      +'<div style="flex:1;background:#faf9f7;border-radius:6px;padding:10px 12px;font-size:11px;line-height:1.6;color:#444"><b style="color:'+pDom.cor+'">Ambiente ideal</b><br>'+pDom.ambienteIdeal+'</div>'
+      +'</div>'
+      +'<div style="background:'+pDom.cor+'0d;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:11px;line-height:1.6;color:#444">'
+      +'<div style="margin-bottom:6px"><b style="color:'+pDom.cor+'">🧭 Como liderar esse perfil:</b> '+pDom.comoLiderar+'</div>'
+      +'<div><b style="color:'+pDom.cor+'">💬 Como se comunicar:</b> '+pDom.comoComunicar+'</div>'
       +'</div>'
       +'<div style="background:#faf9f7;border-radius:6px;padding:10px 12px;margin-top:10px;font-size:11px;line-height:1.6;color:#444">'
       +'<div style="margin-bottom:6px"><b style="color:'+pDom.cor+'">Motivação central:</b> '+pDom.motivacaoCentral+'</div>'
@@ -561,21 +734,32 @@ function gerarPDFDisc(tarefa,respostas,empresaNome){
       +(pDom.medo?'<div><b style="color:#d97706">Principal medo:</b> '+pDom.medo+'</div>':'')
       +'</div>'
       +(dicasHtml?'<div style="margin-top:8px;font-size:11px;line-height:1.7;color:#059669"><b>Dicas de desenvolvimento:</b><div style="color:#374151;margin-top:4px">'+dicasHtml+'</div></div>':'')
-      +'</div>';
+      +'</div>'; // fecha card do colaborador
   }).join('');
 
   var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>DISC · '+tarefa.titulo+'</title>'
-    +'<style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}'
-    +'.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}'
-    +'.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}'
-    +'@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body>'
+    +'<style>'
+    +'*{box-sizing:border-box;margin:0;padding:0}'
+    +'body{font-family:"Segoe UI",-apple-system,Helvetica,Arial,sans-serif;font-size:13px;color:#2b2924;padding:36px 42px;line-height:1.5;background:#fff}'
+    +'.header{border-bottom:2px solid #b8976a;padding-bottom:16px;margin-bottom:26px;display:flex;justify-content:space-between;align-items:flex-end}'
+    +'.header .titulo{font-size:21px;font-weight:800;color:#20201c;letter-spacing:-.2px}'
+    +'.header .subtitulo{font-size:12px;color:#8a8478;margin-top:5px}'
+    +'.header .marca{font-size:11.5px;color:#b8976a;font-weight:700;text-align:right;line-height:1.5;letter-spacing:.2px}'
+    +'.secao-titulo{font-size:13px;font-weight:800;color:#20201c;text-transform:uppercase;letter-spacing:.6px;margin:28px 0 14px;padding-left:10px;border-left:3px solid #b8976a}'
+    +'.secao-titulo .contagem{font-weight:500;color:#a39c8e;text-transform:none;letter-spacing:0;font-size:12px}'
+    +'.card-pessoa{border:1px solid #e8e2d6;border-radius:12px;padding:18px 20px;margin-bottom:18px;page-break-inside:avoid;background:#fff}'
+    +'.faixa{border-radius:8px;padding:11px 14px;font-size:11.5px;line-height:1.65;color:#4a463e}'
+    +'.mini-titulo{font-size:10px;font-weight:800;color:#a39c8e;text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}'
+    +'.footer{margin-top:36px;padding-top:14px;border-top:1px solid #eee7da;font-size:10.5px;color:#b4ac9c;display:flex;justify-content:space-between}'
+    +'@media print{body{padding:22px 30px}@page{margin:1.4cm}}'
+    +'</style></head><body>'
     +'<div class="header"><div>'
-    +'<div style="font-size:20px;font-weight:700;color:#2e2b28">Perfil Comportamental DISC — '+tarefa.titulo+'</div>'
-    +'<div style="font-size:12px;color:#888;margin-top:4px">Autopercepção x Heteropercepção · '+empresaNome+' · Gerado em '+dataHoje+'</div>'
-    +'</div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
-    +'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 14px">Médias do grupo ('+respostas.length+' respondente(s))</h2>'
+    +'<div class="titulo">Perfil Comportamental DISC · '+tarefa.titulo+'</div>'
+    +'<div class="subtitulo">Autopercepção × Heteropercepção &nbsp;·&nbsp; '+empresaNome+' &nbsp;·&nbsp; Gerado em '+dataHoje+'</div>'
+    +'</div><div class="marca">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div>'
+    +'<div class="secao-titulo">Médias do grupo <span class="contagem">('+respostas.length+' respondente(s))</span></div>'
     +mediasGrupo
-    +'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual</h2>'
+    +'<div class="secao-titulo">Resultado individual</div>'
     +individuais
     +'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div>'
     +'</body></html>';
@@ -591,7 +775,7 @@ function gerarPDFTarefa(tarefa,respostas,empresaNome){
   if(tarefa.formato==='disc') { gerarPDFDisc(tarefa,respostas,empresaNome); return; }
   var dataHoje=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
   var conteudo='';
-  if(tarefa.formato==='perfil_comportamental'){var total=respostas.length;var contagem={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(function(r){if(r.perfilDominante&&contagem[r.perfilDominante]!==undefined)contagem[r.perfilDominante]++;});var entradas=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return Object.assign({key:k},p,{qtd:contagem[k],pct:total?Math.round(contagem[k]/total*100):0});}).sort(function(a,b){return b.qtd-a.qtd;});var dom=entradas[0];var distGrupo=entradas.map(function(p){return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:16px;width:22px">'+p.emoji+'</span><span style="width:76px;font-size:12px;font-weight:600">'+p.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+p.pct+'%;border-radius:4px"></div></div><span style="width:70px;text-align:right;font-size:12px;color:#666">'+p.pct+'% ('+p.qtd+')</span></div>';}).join('');var explicacoes=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return'<div style="border-left:4px solid '+p.cor+';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6"><div style="font-weight:700;color:'+p.cor+';margin-bottom:4px;font-size:13px">'+p.emoji+' '+p.nome+' — '+p.palavraChave+'</div><p style="margin:0 0 6px">'+p.descricao+'</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><b>Pontos fortes:</b> '+p.pontosFortes+'</div><div><b>Pontos de melhoria:</b> '+p.pontosMelhoria+'</div><div><b>O que motiva:</b> '+p.motivacao+'</div><div><b>Comunicação:</b> '+p.comunicacao+'</div><div style="grid-column:1/-1"><b>Profissões comuns:</b> '+p.profissoes+'</div></div></div>';}).join('');var individuais=respostas.map(function(r){var p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};var pts=r.pontosPorPerfil||{};var t=Object.values(pts).reduce(function(a,b){return a+b;},0)||10;var pct={};['aguia','golfinho','lobo','tubarao'].forEach(function(k){pct[k]=Math.round((pts[k]||0)/t*100);});var interp=r.perfilDominante?interpretacaoCombinada(pct,r.perfilDominante):'';var barras=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,pp]){return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px"><span style="width:16px">'+pp.emoji+'</span><span style="width:58px;color:#666">'+pp.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pp.cor+';width:'+(pct[k]||0)+'%"></div></div><span style="width:28px;text-align:right;font-weight:700;color:'+pp.cor+'">'+(pct[k]||0)+'%</span></div>';}).join('');return'<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid"><div style="display:flex;gap:16px;align-items:flex-start"><div style="text-align:center;min-width:192px">'+radarSVG(pct,192)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:10px">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div><div style="display:inline-block;background:'+p.cor+'22;border:1px solid '+p.cor+'55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:'+(p.cor||'#888')+';margin-bottom:10px">'+(p.emoji||'')+' '+(p.nome||'-')+' (perfil dominante)</div><div style="margin-bottom:10px">'+barras+'</div><div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #b8976a"><b style="color:#b8976a">Interpretação:</b> '+interp+'</div></div></div></div>';}).join('');conteudo='<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">'+dom.emoji+'</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div><div style="font-size:18px;font-weight:700;color:'+dom.cor+'">'+dom.nome+' · '+dom.pct+'% dos respondentes</div></div></div><h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>'+distGrupo+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>'+explicacoes+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>'+individuais;}else{var perguntas=tarefa.perguntas||[];conteudo=perguntas.map(function(perg,idx){var pergTexto=typeof perg==='string'?perg:perg&&perg.pergunta?perg.pergunta:'';var valores=respostas.map(function(r){return r.respostas&&r.respostas[idx];}).filter(function(v){return typeof v==='number';});var media=valores.length?(valores.reduce(function(a,b){return a+b;},0)/valores.length).toFixed(2):'-';var dist=[1,2,3,4,5].map(function(n){return valores.filter(function(v){return v===n;}).length;});return'<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">'+(idx+1)+'. '+pergTexto+'</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">'+media+' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>'+dist.map(function(qtd,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">'+(i+1)+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:'+(valores.length?Math.round(qtd/valores.length*100):0)+'%"></div></div><span style="width:20px;text-align:right;color:#666">'+qtd+'</span></div>';}).join('')+'</div>';}).join('')+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">'+['Nome','Cargo','Sexo'].concat(perguntas.map(function(_,i){return'Q'+(i+1);})).map(function(h){return'<th style="padding:8px 10px;text-align:left">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+respostas.map(function(r,i){return'<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.nomeColaborador||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.cargo||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.sexo||'-')+'</td>'+perguntas.map(function(_,idx){return'<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">'+(r.respostas&&r.respostas[idx]!=null?r.respostas[idx]:'-')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
+  if(tarefa.formato==='perfil_comportamental'){var total=respostas.length;var contagem={aguia:0,golfinho:0,lobo:0,tubarao:0};respostas.forEach(function(r){if(r.perfilDominante&&contagem[r.perfilDominante]!==undefined)contagem[r.perfilDominante]++;});var entradas=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return Object.assign({key:k},p,{qtd:contagem[k],pct:total?Math.round(contagem[k]/total*100):0});}).sort(function(a,b){return b.qtd-a.qtd;});var dom=entradas[0];var distGrupo=entradas.map(function(p){return'<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px"><span style="font-size:16px;width:22px">'+p.emoji+'</span><span style="width:76px;font-size:12px;font-weight:600">'+p.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:9px;overflow:hidden"><div style="height:100%;background:'+p.cor+';width:'+p.pct+'%;border-radius:4px"></div></div><span style="width:70px;text-align:right;font-size:12px;color:#666">'+p.pct+'% ('+p.qtd+')</span></div>';}).join('');var explicacoes=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,p]){return'<div style="border-left:4px solid '+p.cor+';padding:10px 14px;margin:8px 0;background:#faf9f7;font-size:11.5px;line-height:1.6"><div style="font-weight:700;color:'+p.cor+';margin-bottom:4px;font-size:13px">'+p.emoji+' '+p.nome+' · '+p.palavraChave+'</div><p style="margin:0 0 6px">'+p.descricao+'</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:6px"><div><b>Pontos fortes:</b> '+p.pontosFortes+'</div><div><b>Pontos de melhoria:</b> '+p.pontosMelhoria+'</div><div><b>O que motiva:</b> '+p.motivacao+'</div><div><b>Comunicação:</b> '+p.comunicacao+'</div><div style="grid-column:1/-1"><b>Profissões comuns:</b> '+p.profissoes+'</div></div></div>';}).join('');var individuais=respostas.map(function(r){var p=PERFIS_COMPORTAMENTAIS[r.perfilDominante]||{};var pts=r.pontosPorPerfil||{};var t=Object.values(pts).reduce(function(a,b){return a+b;},0)||10;var pct={};['aguia','golfinho','lobo','tubarao'].forEach(function(k){pct[k]=Math.round((pts[k]||0)/t*100);});var interp=r.perfilDominante?interpretacaoCombinada(pct,r.perfilDominante):'';var barras=Object.entries(PERFIS_COMPORTAMENTAIS).map(function([k,pp]){return'<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-bottom:4px"><span style="width:16px">'+pp.emoji+'</span><span style="width:58px;color:#666">'+pp.nome+'</span><div style="flex:1;background:#f0ede8;border-radius:3px;height:6px;overflow:hidden"><div style="height:100%;background:'+pp.cor+';width:'+(pct[k]||0)+'%"></div></div><span style="width:28px;text-align:right;font-weight:700;color:'+pp.cor+'">'+(pct[k]||0)+'%</span></div>';}).join('');return'<div style="border:1px solid #e3e0da;border-radius:8px;padding:14px;margin-bottom:16px;page-break-inside:avoid"><div style="display:flex;gap:16px;align-items:flex-start"><div style="text-align:center;min-width:192px">'+radarSVG(pct,192)+'</div><div style="flex:1"><div style="font-size:15px;font-weight:700;color:#2e2b28;margin-bottom:2px">'+(r.nomeColaborador||'-')+'</div><div style="font-size:12px;color:#888;margin-bottom:10px">'+(r.cargo||'-')+' · '+(r.sexo||'-')+'</div><div style="display:inline-block;background:'+p.cor+'22;border:1px solid '+p.cor+'55;border-radius:20px;padding:3px 12px;font-size:12px;font-weight:700;color:'+(p.cor||'#888')+';margin-bottom:10px">'+(p.emoji||'')+' '+(p.nome||'-')+' (perfil dominante)</div><div style="margin-bottom:10px">'+barras+'</div><div style="background:#f8f6f2;border-radius:6px;padding:10px;font-size:11.5px;color:#555;line-height:1.6;border-left:3px solid #b8976a"><b style="color:#b8976a">Interpretação:</b> '+interp+'</div></div></div></div>';}).join('');conteudo='<div style="background:#f3ead9;border:1px solid #e6d4b5;border-radius:8px;padding:14px 18px;display:flex;gap:16px;align-items:center;margin-bottom:20px"><span style="font-size:36px">'+dom.emoji+'</span><div><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">Perfil predominante do grupo</div><div style="font-size:18px;font-weight:700;color:'+dom.cor+'">'+dom.nome+' · '+dom.pct+'% dos respondentes</div></div></div><h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:0 0 12px">Distribuição do grupo</h2>'+distGrupo+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">O que significa cada perfil</h2>'+explicacoes+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:24px 0 12px">Resultado individual com gráfico de radar</h2>'+individuais;}else{var perguntas=tarefa.perguntas||[];conteudo=perguntas.map(function(perg,idx){var pergTexto=typeof perg==='string'?perg:perg&&perg.pergunta?perg.pergunta:'';var valores=respostas.map(function(r){return r.respostas&&r.respostas[idx];}).filter(function(v){return typeof v==='number';});var media=valores.length?(valores.reduce(function(a,b){return a+b;},0)/valores.length).toFixed(2):'-';var dist=[1,2,3,4,5].map(function(n){return valores.filter(function(v){return v===n;}).length;});return'<div style="border:1px solid #e3e0da;border-radius:6px;padding:12px;margin-bottom:10px"><div style="font-weight:600;margin-bottom:8px;font-size:13px">'+(idx+1)+'. '+pergTexto+'</div><div style="font-size:22px;font-weight:800;margin-bottom:8px">'+media+' <span style="font-size:12px;color:#888;font-weight:400">média (1–5)</span></div>'+dist.map(function(qtd,i){return'<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:12px"><span style="width:12px;color:#666">'+(i+1)+'</span><div style="flex:1;background:#f0ede8;border-radius:4px;height:8px;overflow:hidden"><div style="height:100%;background:#b8976a;width:'+(valores.length?Math.round(qtd/valores.length*100):0)+'%"></div></div><span style="width:20px;text-align:right;color:#666">'+qtd+'</span></div>';}).join('')+'</div>';}).join('')+'<h2 style="font-size:14px;border-bottom:1px solid #e3e0da;padding-bottom:6px;margin:20px 0 12px">Respondentes</h2><table style="width:100%;border-collapse:collapse;font-size:12px"><thead><tr style="background:#2e2b28;color:#fff">'+['Nome','Cargo','Sexo'].concat(perguntas.map(function(_,i){return'Q'+(i+1);})).map(function(h){return'<th style="padding:8px 10px;text-align:left">'+h+'</th>';}).join('')+'</tr></thead><tbody>'+respostas.map(function(r,i){return'<tr style="background:'+(i%2===0?'#fff':'#faf9f7')+'"><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.nomeColaborador||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.cargo||'-')+'</td><td style="padding:8px 10px;border-bottom:1px solid #e3e0da">'+(r.sexo||'-')+'</td>'+perguntas.map(function(_,idx){return'<td style="padding:8px 10px;border-bottom:1px solid #e3e0da;text-align:center">'+(r.respostas&&r.respostas[idx]!=null?r.respostas[idx]:'-')+'</td>';}).join('')+'</tr>';}).join('')+'</tbody></table>';}
   var kpis=[['Total de respondentes',respostas.length],['Empresa',empresaNome],['Tipo',tarefa.tipo]].map(function([l,v]){return'<div style="flex:1;border:1px solid #e3e0da;border-radius:8px;padding:12px 16px"><div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px">'+l+'</div><div style="font-size:'+(typeof v==='number'?'24':'16')+'px;font-weight:700;color:#2e2b28">'+v+'</div></div>';}).join('');
   var html='<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>'+tarefa.titulo+'</title><style>*{box-sizing:border-box;margin:0;padding:0}body{font-family:Arial,sans-serif;font-size:13px;color:#1f1d1a;padding:32px 40px}.header{border-bottom:3px solid #b8976a;padding-bottom:14px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end}.footer{margin-top:32px;padding-top:12px;border-top:1px solid #e3e0da;font-size:11px;color:#aaa;display:flex;justify-content:space-between}@media print{body{padding:20px 28px}@page{margin:1.5cm}}</style></head><body><div class="header"><div><div style="font-size:20px;font-weight:700;color:#2e2b28">'+tarefa.titulo+'</div><div style="font-size:12px;color:#888;margin-top:4px">'+tarefa.tipo+' · '+empresaNome+' · Gerado em '+dataHoje+'</div></div><div style="font-size:12px;color:#b8976a;font-weight:600;text-align:right">INSTITUTO PROPAGARE<br>João Rosa · CRP 06/227336</div></div><div style="display:flex;gap:16px;margin-bottom:24px">'+kpis+'</div>'+conteudo+'<div class="footer"><span>Plataforma de Avaliação Organizacional · Instituto Propagare</span><span>João Vitor Rosa · Psicólogo · CRP 06/227336 · Franca, SP</span></div></body></html>';
   var w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(function(){w.print();},500);
@@ -1578,7 +1762,7 @@ function DashboardDisc({respostas}){
               )
             ),
             // Top competências
-            React.createElement("div",null,
+            React.createElement("div",{style:{marginBottom:16}},
               React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"Principais competências"),
               comps.map(c=>React.createElement("div",{key:c.id,style:{marginBottom:8}},
                 React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},
@@ -1587,6 +1771,37 @@ function DashboardDisc({respostas}){
                 ),
                 React.createElement("div",{style:{background:'#f0f2f5',borderRadius:3,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor+'aa',width:`${c.valor}%`}}))
               ))
+            ),
+            // Relacionamento e decisões
+            React.createElement("div",{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}},
+              React.createElement("div",{style:{background:'#fafafa',borderRadius:8,padding:'10px 12px'}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:700,color:pDom.cor,marginBottom:4}},"Relacionando-se com os outros"),
+                React.createElement("div",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.relacionamento)
+              ),
+              React.createElement("div",{style:{background:'#fafafa',borderRadius:8,padding:'10px 12px'}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:700,color:pDom.cor,marginBottom:4}},"Tomando decisões"),
+                React.createElement("div",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.decisoes)
+              )
+            ),
+            React.createElement("div",{style:{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:10}},
+              React.createElement("div",{style:{background:'#fafafa',borderRadius:8,padding:'10px 12px'}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:700,color:pDom.cor,marginBottom:4}},"Sob pressão"),
+                React.createElement("div",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.subPressao)
+              ),
+              React.createElement("div",{style:{background:'#fafafa',borderRadius:8,padding:'10px 12px'}},
+                React.createElement("div",{style:{fontSize:11,fontWeight:700,color:pDom.cor,marginBottom:4}},"Ambiente ideal"),
+                React.createElement("div",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.ambienteIdeal)
+              )
+            ),
+            React.createElement("div",{style:{background:pDom.cor+'0d',borderRadius:8,padding:'10px 12px'}},
+              React.createElement("div",{style:{marginBottom:8}},
+                React.createElement("span",{style:{fontSize:11,fontWeight:700,color:pDom.cor}},"🧭 Como liderar esse perfil: "),
+                React.createElement("span",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.comoLiderar)
+              ),
+              React.createElement("div",null,
+                React.createElement("span",{style:{fontSize:11,fontWeight:700,color:pDom.cor}},"💬 Como se comunicar: "),
+                React.createElement("span",{style:{fontSize:11,color:'#374151',lineHeight:1.5}},pDom.comoComunicar)
+              )
             )
           )
         );
@@ -2351,102 +2566,13 @@ function ResultadoColaborador({tarefa,resposta,empresa,onVoltar}){
         })
       ),
       // DISC → mostrar autopercepção x heteropercepção
-      isDisc&&(()=>{
-        const auto=calcDiscScores(resposta.respostas?.auto);
-        const hetero=calcDiscScores(resposta.respostas?.hetero);
-        const pDom=PERFIS_DISC[auto.dominante];
-        return React.createElement("div",null,
-          React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,textAlign:'center',marginBottom:14}},
-            React.createElement("div",{style:{fontSize:56,marginBottom:8}},pDom.emoji),
-            React.createElement("div",{style:{fontSize:22,fontWeight:800,color:pDom.cor,marginBottom:4}},pDom.nome),
-            React.createElement("div",{style:{fontSize:12,color:'#9ca3af',marginBottom:4}},pDom.resumo),
-            pDom.sinonimos&&React.createElement("div",{style:{fontSize:11,color:'#c0c4ce',marginBottom:12}},pDom.sinonimos),
-            React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:0,textAlign:'left'}},pDom.descricao)
-          ),
-          React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
-            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Autopercepção x Heteropercepção"),
-            ['D','I','S','C'].map(k=>{
-              const p=PERFIS_DISC[k];
-              return React.createElement("div",{key:k,style:{marginBottom:14}},
-                React.createElement("div",{style:{fontSize:13,fontWeight:700,color:p.cor,marginBottom:6}},p.emoji,' ',p.nome),
-                React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8,marginBottom:4}},
-                  React.createElement("span",{style:{width:90,fontSize:11,color:'#9ca3af'}},"Como me vejo"),
-                  React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:4,height:8,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor,width:`${auto.pct[k]||0}%`}})),
-                  React.createElement("span",{style:{width:32,textAlign:'right',fontSize:12,fontWeight:700,color:p.cor}},auto.pct[k]||0,'%')
-                ),
-                React.createElement("div",{style:{display:'flex',alignItems:'center',gap:8}},
-                  React.createElement("span",{style:{width:90,fontSize:11,color:'#9ca3af'}},"Como me veem"),
-                  React.createElement("div",{style:{flex:1,background:'#f0f2f5',borderRadius:4,height:8,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:p.cor+'88',width:`${hetero.pct[k]||0}%`}})),
-                  React.createElement("span",{style:{width:32,textAlign:'right',fontSize:12,fontWeight:700,color:p.cor}},hetero.pct[k]||0,'%')
-                )
-              );
-            })
-          ),
-          // Área de talento
-          (()=>{
-            const talento=calcDiscTalento(auto.pct);
-            return React.createElement("div",{style:{background:pDom.cor+'12',border:`1px solid ${pDom.cor}33`,borderRadius:14,padding:20,marginBottom:14}},
-              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pDom.cor,textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"🎯 Área de talento · ",talento.nome),
-              React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:'0 0 10px'}},talento.desc),
-              React.createElement("div",{style:{fontSize:12,color:'#6b7280'}},React.createElement("b",null,"Profissões relacionadas: "),talento.profissoes)
-            );
-          })(),
-          // Índices situacionais
-          (()=>{
-            const indic=calcDiscIndicadores(resposta.respostas);
-            return React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
-              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Índices situacionais"),
-              DISC_INDICADORES.filter(ind=>ind.id!=='aproveitamento').map(ind=>React.createElement("div",{key:ind.id,style:{marginBottom:12}},
-                React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:12,marginBottom:3}},
-                  React.createElement("span",{style:{color:'#374151',fontWeight:600}},ind.label),
-                  React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},indic[ind.id],'%')
-                ),
-                React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:6,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor,width:`${indic[ind.id]}%`}})),
-                React.createElement("div",{style:{fontSize:11,color:'#9ca3af',marginTop:3}},ind.desc)
-              ))
-            );
-          })(),
-          // Principais competências
-          (()=>{
-            const comps=calcDiscCompetencias(auto.pct).slice(0,8);
-            return React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
-              React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',letterSpacing:.5,marginBottom:14}},"Principais competências"),
-              comps.map(c=>React.createElement("div",{key:c.id,style:{marginBottom:10}},
-                React.createElement("div",{style:{display:'flex',justifyContent:'space-between',fontSize:13,marginBottom:4}},
-                  React.createElement("span",{style:{color:'#374151',fontWeight:600}},c.label),
-                  React.createElement("span",{style:{fontWeight:700,color:pDom.cor}},c.valor,'%')
-                ),
-                React.createElement("div",{style:{background:'#f0f2f5',borderRadius:4,height:7,overflow:'hidden'}},React.createElement("div",{style:{height:'100%',background:pDom.cor+'aa',width:`${c.valor}%`}}))
-              ))
-            );
-          })(),
-          // Pontos fortes e características
-          React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20,marginBottom:14}},
-            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:pDom.cor,textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"✨ Pontos fortes"),
-            React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:'0 0 12px'}},pDom.pontosFortes),
-            pDom.caracteristicas&&React.createElement(React.Fragment,null,
-              React.createElement("div",{style:{fontSize:11,fontWeight:700,color:'#9ca3af',textTransform:'uppercase',marginBottom:6}},"Características principais"),
-              React.createElement("p",{style:{fontSize:13,color:'#374151',lineHeight:1.6,margin:0}},pDom.caracteristicas)
-            )
-          ),
-          // Áreas de atenção
-          React.createElement("div",{style:{background:'#fff8ec',border:'1px solid #fde68a',borderRadius:14,padding:20,marginBottom:14}},
-            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#d97706',textTransform:'uppercase',letterSpacing:.5,marginBottom:10}},"⚠️ Áreas de atenção"),
-            React.createElement("p",{style:{fontSize:13,color:'#78350f',lineHeight:1.6,margin:'0 0 10px'}},pDom.areasPerigo),
-            pDom.medo&&React.createElement("div",{style:{fontSize:12,color:'#92400e',fontStyle:'italic'}},"Principal medo: ",pDom.medo)
-          ),
-          // Dicas de desenvolvimento
-          pDom.dicas&&React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:20}},
-            React.createElement("div",{style:{fontSize:12,fontWeight:700,color:'#059669',textTransform:'uppercase',letterSpacing:.5,marginBottom:12}},"🌱 Dicas para o desenvolvimento"),
-            React.createElement("div",{style:{display:'flex',flexDirection:'column',gap:10}},
-              pDom.dicas.map((dica,i)=>React.createElement("div",{key:i,style:{display:'flex',gap:10,alignItems:'flex-start'}},
-                React.createElement("span",{style:{color:'#059669',fontSize:14,flexShrink:0,marginTop:1}},"✓"),
-                React.createElement("span",{style:{fontSize:13,color:'#374151',lineHeight:1.5}},dica)
-              ))
-            )
-          )
-        );
-      })(),
+      isDisc&&React.createElement("div",{style:{background:'#fff',border:'1px solid #e2e5ec',borderRadius:14,padding:24,textAlign:'center'}},
+        React.createElement("div",{style:{fontSize:48,marginBottom:12}},"🎯"),
+        React.createElement("div",{style:{fontSize:16,fontWeight:700,color:'#1a1d2e',marginBottom:8}},"Obrigado pela participação!"),
+        React.createElement("p",{style:{color:'#6b7280',fontSize:13,lineHeight:1.6}},
+          "Suas respostas foram registradas e serão analisadas pelo psicólogo responsável. Os resultados serão comunicados conforme combinado com sua empresa."
+        )
+      ),
       // Escala padrão → mostrar respostas dadas
       !isPerfil&&!isCopsoq&&!isForm&&!isDisc&&React.createElement("div",null,
         (tarefa.perguntas||[]).map((perg,idx)=>{
@@ -2767,7 +2893,7 @@ function DiscMobile({empresa,employeeId,employeeData,tarefa,onEnviado}){
         React.createElement("div",{style:{fontSize:13,color:'#374151'}},React.createElement("b",null,"Como os outros te identificam?")," Selecione como você acredita que as pessoas ao seu redor te veem.")
       )
     ),
-    React.createElement("p",{style:{color:'#9ca3af',fontSize:12,marginBottom:24}},"Escolha pelo menos ",MIN_PALAVRAS," palavras em cada etapa. Responda com sinceridade — não existe resposta certa ou errada."),
+    React.createElement("p",{style:{color:'#9ca3af',fontSize:12,marginBottom:24}},"Escolha pelo menos ",MIN_PALAVRAS," palavras em cada etapa. Responda com sinceridade. Não existe resposta certa ou errada."),
     React.createElement("button",{onClick:()=>setEtapa(1),style:{background:cor,color:'#fff',border:'none',borderRadius:14,padding:'16px 40px',fontSize:16,fontWeight:700,cursor:'pointer',width:'100%',maxWidth:340}},"Começar →")
   );
 
